@@ -80,7 +80,6 @@ Data yang telah dikonversi akan ditampilkan di aplikasi Flutter menggunakan Futu
 
 Semua alur pengintegrasian ini bertujuan agar aplikasi web dan aplikasi mobile dapat berbagi data dengan lancar dan konsisten.
 
-
 ## Link pws
 https://lessyarta-kamali-askmo.pbp.cs.ui.ac.id/
 
