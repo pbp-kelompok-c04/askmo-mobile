@@ -66,6 +66,21 @@ Admin mempunyai peran dalam mengurus keberlangsungan sebagian besar fitur pada A
 - **Review Lapangan**: Admin dapat menambahkan review awal lapangan, yang kemudian bisa ditambahkan serta diakumulasi lebih lanjut oleh User.
 - **Tambah Pelatih**: Admin dapat menambahkan pelatih beserta detail lengkapnya (profil, keahlian, kontak, lokasi) agar dapat ditampilkan di aplikasi mobile dan mudah dikenali oleh User.
 
+## Penjelasan alur pengintegrasian data di aplikasi dengan aplikasi web (PWS) yang sudah dibuat saat Proyek Tengah Semester berbasis web service.
+Untuk mengintegrasikan data supaya bisa sama antara aplikasi web dan aplikasi mobile, kami akan mengikuti cara dari Tutorial 8 yang telah disediakan oleh tim asisten dosen.
+
+Secara lengkap, langkah-langkahnya adalah sebagai berikut: 
+Menambahkan dependensi http pada proyek Flutter supaya dapat merequest data ke website melalui HTTP request. 
+
+Setelah itu, perlu dibuat model data yang sesuai dengan respons yang diterima dari web service, kemudian akan digunakan untuk mengonversi data JSON ke dalam objek Dart.
+
+Langkah berikutnya adalah mengirimkan request HTTP ke web service menggunakan dependensi http, lalu mengonversi objek yang diterima menjadi model yang telah dibuat sebelumnya. 
+
+Data yang telah dikonversi akan ditampilkan di aplikasi Flutter menggunakan Future Builder, memungkinkan penanganan data supaya dapat asinkron. 
+
+Semua alur pengintegrasian ini bertujuan agar aplikasi web dan aplikasi mobile dapat berbagi data dengan lancar dan konsisten.
+
+
 ## Link pws
 https://lessyarta-kamali-askmo.pbp.cs.ui.ac.id/
 
