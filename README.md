@@ -51,9 +51,9 @@
 ## Link sumber dataset
 Link sumber initial dataset kecamatan di seluruh Jabodetabek: https://id.wikipedia.org/wiki/Daftar_kecamatan_dan_kelurahan_di_Jabodetabek
 
-## Jenis pengguna website (Role/Peran Pengguna)
+## Jenis pengguna aplikasi mobile (Role/Peran Pengguna)
 ### 1. User
-User merupakan peran utama dalam aplikasi. Berikut adalah deskripsi peran User di dalam website ini, antara lain:
+User merupakan peran utama dalam aplikasi. Berikut adalah deskripsi peran User di dalam aplikasi mobile ini, antara lain:
 - **Cari Lapangan**: User dapat mencari lapangan terdekat dengan domisili mereka. Lapangan dikelompokkan berdasarkan kecamatan, sehingga memudahkan User memilih lokasi yang paling sesuai dari sisi akses transportasi.
 - **Cari Event**: User dapat mencari dan menghadiri berbagai event, seperti turnamen persahabatan, sesi latihan bersama, hingga coaching clinic. Pencarian event dapat disesuaikan dengan lokasi, waktu, jumlah peserta, dan biaya sesuai preferensi masing-masing User.
 - **Review Lapangan**: User dapat memberi ulasan terhadap lapangan yang telah mereka kunjungi. Fitur ini memudahkan User lain mengetahui lapangan yang paling sesuai dengan kebutuhan masing-masing.
@@ -61,10 +61,10 @@ User merupakan peran utama dalam aplikasi. Berikut adalah deskripsi peran User d
 
 ### 2. Admin
 Admin mempunyai peran dalam mengurus keberlangsungan sebagian besar fitur pada ASKMO. Berikut merupakan deskripsi peran Admin dari masing-masing fitur, antara lain:
-- **Tambah Lapangan**: Admin dapat menambahkan lapangan baru beserta data lengkapnya agar dapat ditampilkan di website.
-- **Tambah Event**: Admin dapat menambahkan event baru yang akan berlangsung di lapangan tertentu agar dapat ditampilkan di website.
+- **Tambah Lapangan**: Admin dapat menambahkan lapangan baru beserta data lengkapnya agar dapat ditampilkan di aplikasi mobile.
+- **Tambah Event**: Admin dapat menambahkan event baru yang akan berlangsung di lapangan tertentu agar dapat ditampilkan di aplikasi mobile.
 - **Review Lapangan**: Admin dapat menambahkan review awal lapangan, yang kemudian bisa ditambahkan serta diakumulasi lebih lanjut oleh User.
-- **Tambah Pelatih**: Admin dapat menambahkan pelatih beserta detail lengkapnya (profil, keahlian, kontak, lokasi) agar dapat ditampilkan di website dan mudah dikenali oleh User.
+- **Tambah Pelatih**: Admin dapat menambahkan pelatih beserta detail lengkapnya (profil, keahlian, kontak, lokasi) agar dapat ditampilkan di aplikasi mobile dan mudah dikenali oleh User.
 
 ## Link pws
 https://lessyarta-kamali-askmo.pbp.cs.ui.ac.id/
@@ -72,5 +72,5 @@ https://lessyarta-kamali-askmo.pbp.cs.ui.ac.id/
 ## Link design website PTS
 https://www.figma.com/design/T37GzvsuZNpaW1lPoTyhXS/Proyek-Tengah-Semester---C04?node-id=0-1&t=cVO2LgIFdmjYsk9z-1
 
-## Link design website PAS
+## Link design aplikasi mobile PAS
 https://www.figma.com/design/6iKjOB7YyDgkFixRf3b5AK/Proyek-Akhir-Semester---C04?node-id=0-1&t=uYqRo581K0o0aULG-1
