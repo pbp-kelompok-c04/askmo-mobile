@@ -37,6 +37,9 @@ class _RegisterPageState extends State<RegisterPage>
   @override
   void dispose() {
     _animationController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
+    _confirmPasswordController.dispose();
     super.dispose();
   }
 
@@ -144,7 +147,7 @@ class _RegisterPageState extends State<RegisterPage>
                                 ),
                               ),
                               const SizedBox(height: 30.0),
-                              TextFormField(
+                              TextField(
                                 controller: _usernameController,
                                 style: const TextStyle(
                                   color: Color(0xFFFFFFFF),
@@ -187,15 +190,9 @@ class _RegisterPageState extends State<RegisterPage>
                                     vertical: 8.0,
                                   ),
                                 ),
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Masukkan username Anda';
-                                  }
-                                  return null;
-                                },
                               ),
                               const SizedBox(height: 12.0),
-                              TextFormField(
+                              TextField(
                                 controller: _passwordController,
                                 style: const TextStyle(
                                   color: Color(0xFFFFFFFF),
@@ -239,15 +236,9 @@ class _RegisterPageState extends State<RegisterPage>
                                   ),
                                 ),
                                 obscureText: true,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Masukkan kata sandi Anda';
-                                  }
-                                  return null;
-                                },
                               ),
                               const SizedBox(height: 12.0),
-                              TextFormField(
+                              TextField(
                                 controller: _confirmPasswordController,
                                 style: const TextStyle(
                                   color: Color(0xFFFFFFFF),
@@ -291,109 +282,385 @@ class _RegisterPageState extends State<RegisterPage>
                                   ),
                                 ),
                                 obscureText: true,
-                                validator: (value) {
-                                  if (value == null || value.isEmpty) {
-                                    return 'Konfirmasi kata sandi Anda';
-                                  }
-                                  return null;
-                                },
                               ),
                               const SizedBox(height: 24.0),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  String username = _usernameController.text;
-                                  String password1 = _passwordController.text;
-                                  String password2 =
-                                      _confirmPasswordController.text;
-
-                                  // Untuk Android emulator gunakan http://10.0.2.2/
-                                  // Untuk Chrome gunakan http://localhost:8000
-                                  final response = await request.postJson(
-                                    "http://localhost:8000/auth/register/",
-                                    jsonEncode({
-                                      "username": username,
-                                      "password1": password1,
-                                      "password2": password2,
-                                    }),
-                                  );
-                                  if (context.mounted) {
-                                    if (response['status'] == 'success') {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          backgroundColor: const Color(
-                                            0xFF571E88,
-                                          ),
-                                          content: Text(
-                                            'Berhasil mendaftar!',
-                                            style: GoogleFonts.plusJakartaSans(
-                                              color: const Color(0xFFFFFFFF),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const LoginPage(),
-                                        ),
-                                      );
-                                    } else {
-                                      ScaffoldMessenger.of(
-                                        context,
-                                      ).showSnackBar(
-                                        SnackBar(
-                                          backgroundColor: const Color(
-                                            0xFFFF5555,
-                                          ),
-                                          content: Text(
-                                            'Gagal mendaftar!',
-                                            style: GoogleFonts.plusJakartaSans(
-                                              color: const Color(0xFFFFFFFF),
-                                            ),
-                                          ),
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  foregroundColor: const Color(0xFFFFFFFF),
-                                  minimumSize: const Size(double.infinity, 50),
-                                  backgroundColor: const Color(0xFF571E88),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16.0,
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF06005E),
+                                      Color(0xFF571E88),
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
                                   ),
+                                  borderRadius: BorderRadius.circular(8.0),
                                 ),
-                                child: const Text('Daftar'),
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    String username = _usernameController.text
+                                        .trim();
+                                    String password1 = _passwordController.text
+                                        .trim();
+                                    String password2 =
+                                        _confirmPasswordController.text.trim();
+
+                                    // Validasi input
+                                    if (username.isEmpty ||
+                                        password1.isEmpty ||
+                                        password2.isEmpty) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: const Color(
+                                              0xFFFF5555,
+                                            ),
+                                            content: Text(
+                                              'Semua field harus diisi!',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    color: const Color(
+                                                      0xFFFFFFFF,
+                                                    ),
+                                                  ),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                      return;
+                                    }
+
+                                    if (password1 != password2) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: const Color(
+                                              0xFFFF5555,
+                                            ),
+                                            content: Text(
+                                              'Kata sandi tidak cocok!',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    color: const Color(
+                                                      0xFFFFFFFF,
+                                                    ),
+                                                  ),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                      return;
+                                    }
+
+                                    try {
+                                      // Untuk Android emulator gunakan http://10.0.2.2/
+                                      // Untuk Chrome gunakan http://localhost:8000
+                                      final response = await request.postJson(
+                                        "http://localhost:8000/auth/register/",
+                                        jsonEncode({
+                                          "username": username,
+                                          "password1": password1,
+                                          "password2": password2,
+                                        }),
+                                      );
+
+                                      if (context.mounted) {
+                                        if (response['status'] == 'success' ||
+                                            response['status'] == true) {
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              backgroundColor: const Color(
+                                                0xFF571E88,
+                                              ),
+                                              content: Text(
+                                                'Berhasil mendaftar! Silakan login.',
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      color: const Color(
+                                                        0xFFFFFFFF,
+                                                      ),
+                                                    ),
+                                              ),
+                                            ),
+                                          );
+                                          Navigator.pushReplacement(
+                                            context,
+                                            MaterialPageRoute(
+                                              builder: (context) =>
+                                                  const LoginPage(),
+                                            ),
+                                          );
+                                        } else {
+                                          String errorMessage =
+                                              'Gagal mendaftar!';
+
+                                          if (response['errors'] != null) {
+                                            // Handle error dictionary
+                                            if (response['errors'] is Map) {
+                                              Map<String, dynamic> errors =
+                                                  response['errors'];
+                                              List<String> indonesianErrors =
+                                                  [];
+
+                                              errors.forEach((key, value) {
+                                                if (value is List) {
+                                                  for (var error in value) {
+                                                    String errorText = error
+                                                        .toString();
+                                                    // Translate common Django validation errors
+                                                    if (errorText.contains(
+                                                      'already exists',
+                                                    )) {
+                                                      indonesianErrors.add(
+                                                        'Username sudah digunakan',
+                                                      );
+                                                    } else if (errorText
+                                                            .contains(
+                                                              'too short',
+                                                            ) ||
+                                                        errorText.contains(
+                                                          'at least 8 characters',
+                                                        ) ||
+                                                        errorText.contains(
+                                                          'must be at least',
+                                                        )) {
+                                                      indonesianErrors.add(
+                                                        'Kata sandi harus minimal 8 karakter',
+                                                      );
+                                                    } else if (errorText
+                                                        .contains(
+                                                          'too common',
+                                                        )) {
+                                                      indonesianErrors.add(
+                                                        'Kata sandi terlalu umum',
+                                                      );
+                                                    } else if (errorText
+                                                        .contains(
+                                                          'entirely numeric',
+                                                        )) {
+                                                      indonesianErrors.add(
+                                                        'Kata sandi tidak boleh hanya angka',
+                                                      );
+                                                    } else if (errorText
+                                                        .contains(
+                                                          'similar to',
+                                                        )) {
+                                                      indonesianErrors.add(
+                                                        'Kata sandi terlalu mirip dengan username',
+                                                      );
+                                                    } else if (errorText
+                                                        .contains('required')) {
+                                                      indonesianErrors.add(
+                                                        'Field ini wajib diisi',
+                                                      );
+                                                    } else {
+                                                      indonesianErrors.add(
+                                                        errorText,
+                                                      );
+                                                    }
+                                                  }
+                                                } else {
+                                                  String errorText = value
+                                                      .toString();
+                                                  if (errorText.contains(
+                                                    'already exists',
+                                                  )) {
+                                                    indonesianErrors.add(
+                                                      'Username sudah digunakan',
+                                                    );
+                                                  } else if (errorText.contains(
+                                                        'too short',
+                                                      ) ||
+                                                      errorText.contains(
+                                                        'at least 8 characters',
+                                                      ) ||
+                                                      errorText.contains(
+                                                        'must be at least',
+                                                      )) {
+                                                    indonesianErrors.add(
+                                                      'Kata sandi harus minimal 8 karakter',
+                                                    );
+                                                  } else if (errorText.contains(
+                                                    'too common',
+                                                  )) {
+                                                    indonesianErrors.add(
+                                                      'Kata sandi terlalu umum',
+                                                    );
+                                                  } else if (errorText.contains(
+                                                    'entirely numeric',
+                                                  )) {
+                                                    indonesianErrors.add(
+                                                      'Kata sandi tidak boleh hanya angka',
+                                                    );
+                                                  } else if (errorText.contains(
+                                                    'similar to',
+                                                  )) {
+                                                    indonesianErrors.add(
+                                                      'Kata sandi terlalu mirip dengan username',
+                                                    );
+                                                  } else if (errorText.contains(
+                                                    'required',
+                                                  )) {
+                                                    indonesianErrors.add(
+                                                      'Field ini wajib diisi',
+                                                    );
+                                                  } else {
+                                                    indonesianErrors.add(
+                                                      errorText,
+                                                    );
+                                                  }
+                                                }
+                                              });
+
+                                              if (indonesianErrors.isNotEmpty) {
+                                                errorMessage = indonesianErrors
+                                                    .join('\n');
+                                              }
+                                            } else if (response['errors']
+                                                is String) {
+                                              String errorText =
+                                                  response['errors'];
+                                              if (errorText.contains(
+                                                'already exists',
+                                              )) {
+                                                errorMessage =
+                                                    'Username sudah digunakan';
+                                              } else if (errorText.contains(
+                                                    'too short',
+                                                  ) ||
+                                                  errorText.contains(
+                                                    'at least 8 characters',
+                                                  ) ||
+                                                  errorText.contains(
+                                                    'must be at least',
+                                                  )) {
+                                                errorMessage =
+                                                    'Kata sandi harus minimal 8 karakter';
+                                              } else if (errorText.contains(
+                                                'too common',
+                                              )) {
+                                                errorMessage =
+                                                    'Kata sandi terlalu umum';
+                                              } else if (errorText.contains(
+                                                'entirely numeric',
+                                              )) {
+                                                errorMessage =
+                                                    'Kata sandi tidak boleh hanya angka';
+                                              } else if (errorText.contains(
+                                                'similar to',
+                                              )) {
+                                                errorMessage =
+                                                    'Kata sandi terlalu mirip dengan username';
+                                              } else {
+                                                errorMessage = errorText;
+                                              }
+                                            }
+                                          } else if (response['message'] !=
+                                              null) {
+                                            String msgText =
+                                                response['message'];
+                                            if (msgText.contains(
+                                              'already exists',
+                                            )) {
+                                              errorMessage =
+                                                  'Username sudah digunakan';
+                                            } else if (msgText.contains(
+                                                  'too short',
+                                                ) ||
+                                                msgText.contains(
+                                                  'at least 8 characters',
+                                                ) ||
+                                                msgText.contains(
+                                                  'must be at least',
+                                                )) {
+                                              errorMessage =
+                                                  'Kata sandi harus minimal 8 karakter';
+                                            } else if (msgText.contains(
+                                              'too common',
+                                            )) {
+                                              errorMessage =
+                                                  'Kata sandi terlalu umum';
+                                            } else if (msgText.contains(
+                                              'entirely numeric',
+                                            )) {
+                                              errorMessage =
+                                                  'Kata sandi tidak boleh hanya angka';
+                                            } else if (msgText.contains(
+                                              'similar to',
+                                            )) {
+                                              errorMessage =
+                                                  'Kata sandi terlalu mirip dengan username';
+                                            } else {
+                                              errorMessage = msgText;
+                                            }
+                                          }
+
+                                          ScaffoldMessenger.of(
+                                            context,
+                                          ).showSnackBar(
+                                            SnackBar(
+                                              backgroundColor: const Color(
+                                                0xFFFF5555,
+                                              ),
+                                              content: Text(
+                                                errorMessage,
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      color: const Color(
+                                                        0xFFFFFFFF,
+                                                      ),
+                                                    ),
+                                              ),
+                                            ),
+                                          );
+                                        }
+                                      }
+                                    } catch (e) {
+                                      if (context.mounted) {
+                                        ScaffoldMessenger.of(
+                                          context,
+                                        ).showSnackBar(
+                                          SnackBar(
+                                            backgroundColor: const Color(
+                                              0xFFFF5555,
+                                            ),
+                                            content: Text(
+                                              'Terjadi kesalahan koneksi. Pastikan server Django berjalan di http://localhost:8000',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    color: const Color(
+                                                      0xFFFFFFFF,
+                                                    ),
+                                                  ),
+                                            ),
+                                          ),
+                                        );
+                                      }
+                                    }
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    foregroundColor: const Color(0xFFFFFFFF),
+                                    minimumSize: const Size(
+                                      double.infinity,
+                                      50,
+                                    ),
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16.0,
+                                    ),
+                                  ),
+                                  child: const Text('Daftar'),
+                                ),
                               ),
                               const SizedBox(height: 36.0),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.pop(context);
-                                },
-                                child: RichText(
-                                  text: TextSpan(
-                                    text: 'Sudah punya akun? ',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      color: const Color(0xFFFFFFFF),
-                                      fontSize: 16.0,
-                                    ),
-                                    children: [
-                                      TextSpan(
-                                        text: 'Masuk di sini!',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          color: const Color(0xFFA4E4FF),
-                                          fontSize: 16.0,
-                                          decoration: TextDecoration.underline,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              _LoginLink(),
                             ],
                           ),
                         ),
@@ -404,6 +671,52 @@ class _RegisterPageState extends State<RegisterPage>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _LoginLink extends StatefulWidget {
+  const _LoginLink();
+
+  @override
+  State<_LoginLink> createState() => _LoginLinkState();
+}
+
+class _LoginLinkState extends State<_LoginLink> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.pop(context);
+        },
+        child: RichText(
+          text: TextSpan(
+            text: 'Sudah punya akun? ',
+            style: GoogleFonts.plusJakartaSans(
+              color: const Color(0xFFFFFFFF),
+              fontSize: 16.0,
+            ),
+            children: [
+              TextSpan(
+                text: 'Masuk di sini!',
+                style: GoogleFonts.plusJakartaSans(
+                  color: _isHovered
+                      ? const Color.fromARGB(255, 110, 106, 114)
+                      : const Color(0xFFA4E4FF),
+                  fontSize: 16.0,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );

@@ -259,40 +259,92 @@ class _LoginPageState extends State<LoginPage>
                                 obscureText: true,
                               ),
                               const SizedBox(height: 24.0),
-                              ElevatedButton(
-                                onPressed: () async {
-                                  String username = _usernameController.text;
-                                  String password = _passwordController.text;
+                              Container(
+                                decoration: BoxDecoration(
+                                  gradient: const LinearGradient(
+                                    colors: [
+                                      Color(0xFF06005E),
+                                      Color(0xFF571E88),
+                                    ],
+                                    begin: Alignment.centerLeft,
+                                    end: Alignment.centerRight,
+                                  ),
+                                  borderRadius: BorderRadius.circular(8.0),
+                                ),
+                                child: ElevatedButton(
+                                  onPressed: () async {
+                                    String username = _usernameController.text;
+                                    String password = _passwordController.text;
 
-                                  // Untuk Android emulator gunakan http://10.0.2.2/
-                                  // Untuk Chrome gunakan http://localhost:8000
-                                  final response = await request.login(
-                                    "http://localhost:8000/auth/login/",
-                                    {
-                                      'username': username,
-                                      'password': password,
-                                    },
-                                  );
+                                    // Untuk Android emulator gunakan http://10.0.2.2/
+                                    // Untuk Chrome gunakan http://localhost:8000
+                                    final response = await request.login(
+                                      "http://localhost:8000/auth/login/",
+                                      {
+                                        'username': username,
+                                        'password': password,
+                                      },
+                                    );
 
-                                  if (request.loggedIn) {
-                                    String uname = response['username'];
-                                    if (context.mounted) {
-                                      Navigator.pushReplacement(
-                                        context,
-                                        MaterialPageRoute(
-                                          builder: (context) =>
-                                              const LoginPage(),
-                                        ),
-                                      );
-                                      ScaffoldMessenger.of(context)
-                                        ..hideCurrentSnackBar()
-                                        ..showSnackBar(
-                                          SnackBar(
+                                    if (request.loggedIn) {
+                                      String uname = response['username'];
+                                      if (context.mounted) {
+                                        Navigator.pushReplacement(
+                                          context,
+                                          MaterialPageRoute(
+                                            builder: (context) =>
+                                                const LoginPage(),
+                                          ),
+                                        );
+                                        ScaffoldMessenger.of(context)
+                                          ..hideCurrentSnackBar()
+                                          ..showSnackBar(
+                                            SnackBar(
+                                              backgroundColor: const Color(
+                                                0xFF571E88,
+                                              ),
+                                              content: Text(
+                                                "Selamat datang, $uname!",
+                                                style:
+                                                    GoogleFonts.plusJakartaSans(
+                                                      color: const Color(
+                                                        0xFFFFFFFF,
+                                                      ),
+                                                    ),
+                                              ),
+                                            ),
+                                          );
+                                      }
+                                    } else {
+                                      if (context.mounted) {
+                                        showDialog(
+                                          context: context,
+                                          builder: (context) => AlertDialog(
                                             backgroundColor: const Color(
-                                              0xFF571E88,
+                                              0xFF1E1E1E,
+                                            ),
+                                            shape: RoundedRectangleBorder(
+                                              borderRadius:
+                                                  BorderRadius.circular(12.0),
+                                              side: BorderSide(
+                                                color: const Color(
+                                                  0xFF571E88,
+                                                ).withOpacity(0.5),
+                                                width: 1.5,
+                                              ),
+                                            ),
+                                            title: Text(
+                                              'Login Gagal',
+                                              style:
+                                                  GoogleFonts.plusJakartaSans(
+                                                    color: const Color(
+                                                      0xFFFFFFFF,
+                                                    ),
+                                                    fontWeight: FontWeight.bold,
+                                                  ),
                                             ),
                                             content: Text(
-                                              "Selamat datang, $uname!",
+                                              'Username atau kata sandi salah. Silakan coba lagi.',
                                               style:
                                                   GoogleFonts.plusJakartaSans(
                                                     color: const Color(
@@ -300,107 +352,48 @@ class _LoginPageState extends State<LoginPage>
                                                     ),
                                                   ),
                                             ),
+                                            actions: [
+                                              TextButton(
+                                                style: TextButton.styleFrom(
+                                                  foregroundColor: const Color(
+                                                    0xFF571E88,
+                                                  ),
+                                                ),
+                                                child: Text(
+                                                  'OK',
+                                                  style:
+                                                      GoogleFonts.plusJakartaSans(
+                                                        fontWeight:
+                                                            FontWeight.bold,
+                                                      ),
+                                                ),
+                                                onPressed: () {
+                                                  Navigator.pop(context);
+                                                },
+                                              ),
+                                            ],
                                           ),
                                         );
+                                      }
                                     }
-                                  } else {
-                                    if (context.mounted) {
-                                      showDialog(
-                                        context: context,
-                                        builder: (context) => AlertDialog(
-                                          backgroundColor: const Color(
-                                            0xFF1E1E1E,
-                                          ),
-                                          shape: RoundedRectangleBorder(
-                                            borderRadius: BorderRadius.circular(
-                                              12.0,
-                                            ),
-                                            side: BorderSide(
-                                              color: const Color(
-                                                0xFF571E88,
-                                              ).withOpacity(0.5),
-                                              width: 1.5,
-                                            ),
-                                          ),
-                                          title: Text(
-                                            'Login Gagal',
-                                            style: GoogleFonts.plusJakartaSans(
-                                              color: const Color(0xFFFFFFFF),
-                                              fontWeight: FontWeight.bold,
-                                            ),
-                                          ),
-                                          content: Text(
-                                            'Username atau kata sandi salah. Silakan coba lagi.',
-                                            style: GoogleFonts.plusJakartaSans(
-                                              color: const Color(0xFFFFFFFF),
-                                            ),
-                                          ),
-                                          actions: [
-                                            TextButton(
-                                              style: TextButton.styleFrom(
-                                                foregroundColor: const Color(
-                                                  0xFF571E88,
-                                                ),
-                                              ),
-                                              child: Text(
-                                                'OK',
-                                                style:
-                                                    GoogleFonts.plusJakartaSans(
-                                                      fontWeight:
-                                                          FontWeight.bold,
-                                                    ),
-                                              ),
-                                              onPressed: () {
-                                                Navigator.pop(context);
-                                              },
-                                            ),
-                                          ],
-                                        ),
-                                      );
-                                    }
-                                  }
-                                },
-                                style: ElevatedButton.styleFrom(
-                                  foregroundColor: const Color(0xFFFFFFFF),
-                                  minimumSize: const Size(double.infinity, 50),
-                                  backgroundColor: const Color(0xFF571E88),
-                                  padding: const EdgeInsets.symmetric(
-                                    vertical: 16.0,
+                                  },
+                                  style: ElevatedButton.styleFrom(
+                                    foregroundColor: const Color(0xFFFFFFFF),
+                                    minimumSize: const Size(
+                                      double.infinity,
+                                      50,
+                                    ),
+                                    backgroundColor: Colors.transparent,
+                                    shadowColor: Colors.transparent,
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16.0,
+                                    ),
                                   ),
+                                  child: const Text('Masuk'),
                                 ),
-                                child: const Text('Masuk'),
                               ),
                               const SizedBox(height: 36.0),
-                              GestureDetector(
-                                onTap: () {
-                                  Navigator.push(
-                                    context,
-                                    MaterialPageRoute(
-                                      builder: (context) =>
-                                          const RegisterPage(),
-                                    ),
-                                  );
-                                },
-                                child: RichText(
-                                  text: TextSpan(
-                                    text: 'Belum punya akun? ',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      color: const Color(0xFFFFFFFF),
-                                      fontSize: 16.0,
-                                    ),
-                                    children: [
-                                      TextSpan(
-                                        text: 'Daftar akun disini!',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          color: const Color(0xFFA4E4FF),
-                                          fontSize: 16.0,
-                                          decoration: TextDecoration.underline,
-                                        ),
-                                      ),
-                                    ],
-                                  ),
-                                ),
-                              ),
+                              _RegisterLink(),
                             ],
                           ),
                         ),
@@ -411,6 +404,55 @@ class _LoginPageState extends State<LoginPage>
               ),
             ),
           ],
+        ),
+      ),
+    );
+  }
+}
+
+class _RegisterLink extends StatefulWidget {
+  const _RegisterLink();
+
+  @override
+  State<_RegisterLink> createState() => _RegisterLinkState();
+}
+
+class _RegisterLinkState extends State<_RegisterLink> {
+  bool _isHovered = false;
+
+  @override
+  Widget build(BuildContext context) {
+    return MouseRegion(
+      cursor: SystemMouseCursors.click,
+      onEnter: (_) => setState(() => _isHovered = true),
+      onExit: (_) => setState(() => _isHovered = false),
+      child: GestureDetector(
+        onTap: () {
+          Navigator.push(
+            context,
+            MaterialPageRoute(builder: (context) => const RegisterPage()),
+          );
+        },
+        child: RichText(
+          text: TextSpan(
+            text: 'Belum punya akun? ',
+            style: GoogleFonts.plusJakartaSans(
+              color: const Color(0xFFFFFFFF),
+              fontSize: 16.0,
+            ),
+            children: [
+              TextSpan(
+                text: 'Daftar akun disini!',
+                style: GoogleFonts.plusJakartaSans(
+                  color: _isHovered
+                      ? const Color.fromARGB(255, 110, 106, 114)
+                      : const Color(0xFFA4E4FF),
+                  fontSize: 16.0,
+                  decoration: TextDecoration.underline,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     );
