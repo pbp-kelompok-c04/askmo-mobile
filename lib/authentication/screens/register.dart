@@ -106,25 +106,28 @@ class _RegisterPageState extends State<RegisterPage>
             // Content
             Center(
               child: SingleChildScrollView(
-                padding: const EdgeInsets.all(16.0),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 40.0,
+                  vertical: 16.0,
+                ),
                 child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12.0),
+                  borderRadius: BorderRadius.circular(24.0),
                   child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+                    filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
                     child: Container(
                       decoration: BoxDecoration(
-                        color: const Color(0xFF1E1E1E).withOpacity(0.7),
-                        borderRadius: BorderRadius.circular(12.0),
+                        color: Colors.white.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(24.0),
                         border: Border.all(
-                          color: const Color(0xFF571E88).withOpacity(0.3),
-                          width: 1.5,
+                          color: Colors.white.withOpacity(0.3),
+                          width: 1.0,
                         ),
                       ),
                       child: Card(
                         elevation: 0,
                         color: Colors.transparent,
                         shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(12.0),
+                          borderRadius: BorderRadius.circular(24.0),
                         ),
                         child: Padding(
                           padding: const EdgeInsets.all(20.0),
