@@ -5,7 +5,6 @@ class ReviewRepository {
   ReviewRepository._privateConstructor();
   static final ReviewRepository instance = ReviewRepository._privateConstructor();
 
-  // Use ValueNotifier so UI can listen for changes
   final ValueNotifier<List<Review>> reviews = ValueNotifier<List<Review>>([]);
 
   List<Review> getAll() => reviews.value;
