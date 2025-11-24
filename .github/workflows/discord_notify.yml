@@ -18,7 +18,7 @@ jobs:
           webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }} # Menggunakan Secret URL LENGKAP
 
           message: |
-            📢 **@everyone: PUSH KODE BARU ke [askmo-mobile] di branch DEV!**
+            📢 **PUSH KODE BARU ke [askmo-mobile] di branch DEV!**
 
             **Repo:** ${{ github.repository }}
             **Oleh:** **${{ github.actor }}**
