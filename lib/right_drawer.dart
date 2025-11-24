@@ -4,6 +4,7 @@ import 'package:askmo/authentication/screens/login.dart';
 import 'package:askmo/profile/screens/profile.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:askmo/profile/models/user_state.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 
@@ -155,6 +156,9 @@ class RightDrawer extends StatelessWidget {
                     if (context.mounted) {
                       if (response['status']) {
                         String uname = response["username"];
+                        // clear stored username on logout
+                        final userState = context.read<UserState>();
+                        userState.clear();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             backgroundColor: const Color(0xFF571E88),

@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:askmo/profile/models/user_state.dart';
 import 'package:askmo/authentication/screens/register.dart';
 import 'package:askmo/menu.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -292,6 +293,10 @@ class _LoginPageState extends State<LoginPage>
 
                                     if (request.loggedIn) {
                                       String uname = response['username'];
+                                      // store username in app state
+                                      final userState = context
+                                          .read<UserState>();
+                                      userState.setUsername(uname);
                                       if (context.mounted) {
                                         Navigator.pushReplacement(
                                           context,

@@ -3,6 +3,7 @@ import 'menu.dart'; // Import the menu we created in Step 2
 import 'package:askmo/authentication/screens/login.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:askmo/profile/models/user_state.dart';
 import 'package:google_fonts/google_fonts.dart';
 
 void main() {
@@ -14,11 +15,16 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Provider(
-      create: (_) {
-        CookieRequest request = CookieRequest();
-        return request;
-      },
+    return MultiProvider(
+      providers: [
+        Provider<CookieRequest>(
+          create: (_) {
+            CookieRequest request = CookieRequest();
+            return request;
+          },
+        ),
+        ChangeNotifierProvider<UserState>(create: (_) => UserState()),
+      ],
       child: MaterialApp(
         title: 'ASKMO',
         theme: ThemeData(
