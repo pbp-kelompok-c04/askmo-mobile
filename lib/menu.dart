@@ -153,14 +153,14 @@ class _MenuPageState extends State<MenuPage>
           Positioned.fill(child: _buildBackgroundAura()),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 80.0),
+              padding: const EdgeInsets.only(bottom: 0),
               child: IndexedStack(index: _selectedIndex, children: pages),
             ),
           ),
         ],
       ),
       bottomNavigationBar: Container(
-        margin: const EdgeInsets.only(top: 16.0),
+        margin: const EdgeInsets.only(top: 0),
         child: ClipRRect(
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20.0),
@@ -180,41 +180,60 @@ class _MenuPageState extends State<MenuPage>
                   width: 0.5,
                 ),
               ),
-              child: BottomNavigationBar(
-                type: BottomNavigationBarType.fixed,
-                backgroundColor: Colors.transparent,
-                elevation: 0,
-                currentIndex: _selectedIndex,
-                selectedItemColor: const Color(0xFFA4E4FF),
-                unselectedItemColor: const Color(0xFFFFFFFF),
-                selectedLabelStyle: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w600,
-                  fontSize: 12,
-                ),
-                unselectedLabelStyle: GoogleFonts.plusJakartaSans(
-                  fontWeight: FontWeight.w400,
-                  fontSize: 12,
-                ),
-                onTap: _onItemTapped,
-                items: const [
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.home_rounded),
-                    label: 'Beranda',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.sports_soccer_rounded),
-                    label: 'Lapangan',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.person_rounded),
-                    label: 'Coach',
-                  ),
-                  BottomNavigationBarItem(
-                    icon: Icon(Icons.event_rounded),
-                    label: 'Event',
-                  ),
-                ],
+              border: Border.all(
+                color: Colors.white.withOpacity(0.3),
+                width: 0.5,
               ),
+            ),
+            child: BottomNavigationBar(
+              type: BottomNavigationBarType.fixed,
+              backgroundColor: Colors.transparent,
+              elevation: 0,
+              currentIndex: _selectedIndex,
+              selectedItemColor: const Color(0xFFA4E4FF),
+              unselectedItemColor: const Color(0xFFFFFFFF),
+              selectedLabelStyle: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w600,
+                fontSize: 12,
+              ),
+              unselectedLabelStyle: GoogleFonts.plusJakartaSans(
+                fontWeight: FontWeight.w400,
+                fontSize: 12,
+              ),
+              selectedFontSize: 12,
+              unselectedFontSize: 12,
+              iconSize: 28,
+              onTap: _onItemTapped,
+              items: const [
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.home_rounded),
+                  ),
+                  label: 'Beranda',
+                ),
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.sports_soccer_rounded),
+                  ),
+                  label: 'Lapangan',
+                ),
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.person_rounded),
+                  ),
+                  label: 'Coach',
+                ),
+                BottomNavigationBarItem(
+                  icon: Padding(
+                    padding: EdgeInsets.only(bottom: 4),
+                    child: Icon(Icons.event_rounded),
+                  ),
+                  label: 'Event',
+                ),
+              ],
             ),
           ),
         ),
