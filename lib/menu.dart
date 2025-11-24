@@ -153,14 +153,14 @@ class _MenuPageState extends State<MenuPage>
           Positioned.fill(child: _buildBackgroundAura()),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 80.0),
+              padding: const EdgeInsets.only(bottom: 0),
               child: IndexedStack(index: _selectedIndex, children: pages),
             ),
           ),
         ],
       ),
       bottomNavigationBar: Container(
-        margin: const EdgeInsets.only(top: 16.0),
+        margin: const EdgeInsets.only(top: 0),
         child: ClipRRect(
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20.0),
