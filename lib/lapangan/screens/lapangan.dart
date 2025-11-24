@@ -249,14 +249,15 @@ class _LapanganPageState extends State<LapanganPage> {
 
   @override
   Widget build(BuildContext context) {
-    return Stack(
+    return SafeArea(
+      child: Stack(
       children: [
         CustomScrollView(
           slivers: [
             // Header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.only(top: 24, bottom: 24),
+                padding: const EdgeInsets.only(top: 0, bottom: 25),
                 child: Column(
                   children: [
                     Text(
@@ -348,7 +349,8 @@ class _LapanganPageState extends State<LapanganPage> {
           ],
         ),
       ],
-    );
+    ),
+  );
   }
 
   Widget _buildSearchField() {
