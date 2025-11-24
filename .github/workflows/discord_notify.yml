@@ -30,3 +30,4 @@ jobs:
             [Lihat Commit di GitHub](${{ github.event.head_commit.url }})
 
           color: 00FF00
+          
