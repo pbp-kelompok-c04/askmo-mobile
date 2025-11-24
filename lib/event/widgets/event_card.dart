@@ -7,8 +7,16 @@ import '../models/event.dart';
 class EventCard extends StatelessWidget {
   final Event event;
   final VoidCallback onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const EventCard({super.key, required this.event, required this.onTap});
+  const EventCard({
+    super.key,
+    required this.event,
+    required this.onTap,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -168,7 +176,7 @@ class EventCard extends StatelessWidget {
       children: [
         _buildDetailItem(
           icon: Icons.calendar_today,
-          text: DateFormat('d MMMM yyyy', 'id_ID').format(event.tanggal),
+          text: DateFormat('d MMM yyyy', 'id_ID').format(event.tanggal),
         ),
         _buildDetailItem(icon: Icons.location_on, text: event.lokasi),
         _buildDetailItem(icon: Icons.sports_soccer, text: event.olahraga),
@@ -182,11 +190,15 @@ class EventCard extends StatelessWidget {
       children: [
         Icon(icon, color: Colors.grey[300], size: 16),
         const SizedBox(width: 8),
-        Text(
-          text,
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.grey[300],
-            fontSize: 14,
+        Flexible(
+          child: Text(
+            text,
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.grey[300],
+              fontSize: 14,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
       ],
@@ -207,22 +219,46 @@ class EventCard extends StatelessWidget {
   }
 
   Widget _buildActions(BuildContext context) {
-    return TextButton(
-      onPressed: onTap,
-      style: TextButton.styleFrom(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size(0, 0),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      child: Text(
-        'Selengkapnya',
-        style: GoogleFonts.plusJakartaSans(
-          color: const Color(0xFFA4B3FF),
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          decoration: TextDecoration.underline,
+    return Row(
+      children: [
+        TextButton(
+          onPressed: onTap,
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(0, 0),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(
+            'Selengkapnya',
+            style: GoogleFonts.plusJakartaSans(
+              color: const Color(0xFFA4B3FF),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
+            ),
+          ),
         ),
-      ),
+        const Spacer(),
+        if (onEdit != null)
+          IconButton(
+            onPressed: onEdit,
+            icon: const Icon(Icons.edit, size: 20),
+            color: const Color(0xFF571E88),
+            tooltip: 'Edit Event',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        if (onEdit != null && onDelete != null) const SizedBox(width: 8),
+        if (onDelete != null)
+          IconButton(
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete, size: 20),
+            color: const Color(0xFFFF5555),
+            tooltip: 'Hapus Event',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+      ],
     );
   }
 }

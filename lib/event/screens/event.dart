@@ -7,6 +7,7 @@ import '../models/event.dart';
 import '../widgets/event_card.dart';
 import 'event_detail.dart';
 import 'event_form.dart';
+import 'event_edit_form.dart';
 
 class EventPage extends StatefulWidget {
   const EventPage({super.key});
@@ -237,6 +238,104 @@ class _EventPageState extends State<EventPage> {
         return matchesSearch && matchesLocation && matchesSport;
       }).toList();
     });
+  }
+
+  Future<void> _editEvent(Event event) async {
+    final result = await Navigator.push(
+      context,
+      MaterialPageRoute(builder: (context) => EventEditFormPage(event: event)),
+    );
+    if (result == true) {
+      _fetchEvents();
+    }
+  }
+
+  Future<void> _deleteEvent(Event event) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.white.withOpacity(0.2)),
+        ),
+        title: Text(
+          'Hapus Event',
+          style: GoogleFonts.plusJakartaSans(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus event "${event.nama}"?',
+          style: GoogleFonts.plusJakartaSans(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.plusJakartaSans(color: Colors.white70),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(
+              'Hapus',
+              style: GoogleFonts.plusJakartaSans(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        final request = context.read<CookieRequest>();
+        final response = await request.post(
+          'http://localhost:8000/delete-event-ajax/${event.id}/',
+          {},
+        );
+
+        if (context.mounted) {
+          if (response['status'] == 'success') {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: Colors.green,
+                content: Text(
+                  'Event berhasil dihapus',
+                  style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                ),
+              ),
+            );
+            _fetchEvents();
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                backgroundColor: Colors.red,
+                content: Text(
+                  response['message'] ?? 'Gagal menghapus event',
+                  style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                ),
+              ),
+            );
+          }
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              content: Text(
+                'Terjadi kesalahan: $e',
+                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+              ),
+            ),
+          );
+        }
+      }
+    }
   }
 
   @override
@@ -555,6 +654,8 @@ class _EventPageState extends State<EventPage> {
                 ),
               );
             },
+            onEdit: () => _editEvent(event),
+            onDelete: () => _deleteEvent(event),
           );
         }, childCount: _filteredEvents.length),
       ),
