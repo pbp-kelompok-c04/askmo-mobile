@@ -1,12 +1,93 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
+import 'dart:ui';
 import '../models/event.dart';
 
-class EventDetailPage extends StatelessWidget {
+class EventDetailPage extends StatefulWidget {
   final Event event;
 
   const EventDetailPage({super.key, required this.event});
+
+  @override
+  State<EventDetailPage> createState() => _EventDetailPageState();
+}
+
+class _EventDetailPageState extends State<EventDetailPage>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _animationController;
+  late Animation<double> _pulseAnimation;
+
+  @override
+  void initState() {
+    super.initState();
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 15),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+    );
+  }
+
+  @override
+  void dispose() {
+    _animationController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildBackgroundAura() {
+    return AnimatedBuilder(
+      animation: _pulseAnimation,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            Positioned(
+              top: -150,
+              left: -150,
+              child: Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 700,
+                  height: 700,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF571E88).withOpacity(0.7),
+                        const Color(0xFF06005E).withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -200,
+              right: -200,
+              child: Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 800,
+                  height: 800,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF6F0732).withOpacity(0.7),
+                        const Color(0xFF571E88).withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -28,21 +109,26 @@ class EventDetailPage extends StatelessWidget {
         ),
         actions: const [],
       ),
-      body: SingleChildScrollView(
-        child: Padding(
-          padding: const EdgeInsets.all(16),
-          child: Container(
-            decoration: BoxDecoration(
-              color: const Color(0xFF353535),
-              borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [_buildImageAndInfo(context)],
+      body: Stack(
+        children: [
+          Positioned.fill(child: _buildBackgroundAura()),
+          SingleChildScrollView(
+            child: Padding(
+              padding: const EdgeInsets.all(16),
+              child: Container(
+                decoration: BoxDecoration(
+                  color: const Color(0xFF353535),
+                  borderRadius: BorderRadius.circular(16),
+                  border: Border.all(color: Colors.white.withOpacity(0.2)),
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [_buildImageAndInfo(context)],
+                ),
+              ),
             ),
           ),
-        ),
+        ],
       ),
     );
   }
@@ -76,10 +162,27 @@ class EventDetailPage extends StatelessWidget {
         borderRadius: BorderRadius.circular(12),
         child: AspectRatio(
           aspectRatio: 3 / 4,
-          child: event.thumbnail != null && event.thumbnail!.isNotEmpty
+          child:
+              widget.event.thumbnail != null &&
+                  widget.event.thumbnail!.isNotEmpty
               ? Image.network(
-                  event.thumbnail!,
+                  'http://localhost:8000/proxy-image/?url=${Uri.encodeComponent(widget.event.thumbnail!)}',
                   fit: BoxFit.cover,
+                  loadingBuilder: (context, child, loadingProgress) {
+                    if (loadingProgress == null) return child;
+                    return Container(
+                      color: const Color(0xFF4F4F4F),
+                      child: Center(
+                        child: CircularProgressIndicator(
+                          value: loadingProgress.expectedTotalBytes != null
+                              ? loadingProgress.cumulativeBytesLoaded /
+                                    loadingProgress.expectedTotalBytes!
+                              : null,
+                          color: const Color(0xFF571E88),
+                        ),
+                      ),
+                    );
+                  },
                   errorBuilder: (context, error, stackTrace) {
                     return _buildPlaceholder();
                   },
@@ -91,14 +194,41 @@ class EventDetailPage extends StatelessWidget {
   }
 
   Widget _buildPlaceholder() {
-    return Container(
-      color: const Color(0xFF4F4F4F),
-      child: Center(
-        child: Text(
-          'Foto tidak tersedia',
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.grey[400],
-            fontSize: 14,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withOpacity(0.1),
+                Colors.white.withOpacity(0.05),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1.5,
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.image_outlined, color: Colors.grey[400], size: 64),
+                const SizedBox(height: 12),
+                Text(
+                  'Foto tidak tersedia',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.grey[400],
+                    fontSize: 14,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
@@ -118,7 +248,7 @@ class EventDetailPage extends StatelessWidget {
               borderRadius: BorderRadius.circular(6),
             ),
             child: Text(
-              event.olahraga,
+              widget.event.olahraga,
               style: GoogleFonts.plusJakartaSans(
                 color: Colors.white,
                 fontSize: 12,
@@ -128,7 +258,7 @@ class EventDetailPage extends StatelessWidget {
           ),
           const SizedBox(height: 16),
           Text(
-            event.nama,
+            widget.event.nama,
             style: GoogleFonts.plusJakartaSans(
               color: Colors.white,
               fontSize: 32,
@@ -138,7 +268,7 @@ class EventDetailPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            'Lokasi: ${event.lokasi}',
+            'Lokasi: ${widget.event.lokasi}',
             style: GoogleFonts.plusJakartaSans(
               color: Colors.grey[300],
               fontSize: 18,
@@ -161,28 +291,29 @@ class EventDetailPage extends StatelessWidget {
                   value: DateFormat(
                     'd MMMM yyyy',
                     'id_ID',
-                  ).format(event.tanggal),
+                  ).format(widget.event.tanggal),
                 ),
-                if (event.jam != null && event.jam!.toString().isNotEmpty) ...[
+                if (widget.event.jam != null &&
+                    widget.event.jam!.toString().isNotEmpty) ...[
                   const SizedBox(height: 16),
                   _buildDetailRow(
                     icon: Icons.access_time,
                     label: 'Jam',
-                    value: '${event.jam} WIB',
+                    value: '${widget.event.jam} WIB',
                   ),
                 ],
                 const SizedBox(height: 16),
                 _buildDetailRow(
                   icon: Icons.contact_phone,
                   label: 'Kontak',
-                  value: event.kontak,
+                  value: widget.event.kontak,
                 ),
               ],
             ),
           ),
           const SizedBox(height: 24),
           Text(
-            'Rp ${event.biaya}',
+            'Rp ${widget.event.biaya}',
             style: GoogleFonts.plusJakartaSans(
               color: const Color(0xFFA4B3FF),
               fontSize: 36,
@@ -200,7 +331,7 @@ class EventDetailPage extends StatelessWidget {
           ),
           const SizedBox(height: 8),
           Text(
-            event.deskripsi,
+            widget.event.deskripsi,
             style: GoogleFonts.plusJakartaSans(
               color: Colors.grey[300],
               fontSize: 16,

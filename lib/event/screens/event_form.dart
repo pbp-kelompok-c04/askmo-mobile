@@ -206,7 +206,7 @@ class _EventFormPageState extends State<EventFormPage> {
             '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
 
         final response = await request
-            .post('http://127.0.0.1:8000/add-event-ajax/', {
+            .post('http://localhost:8000/add-event-ajax/', {
               'nama': _namaController.text,
               'lokasi': _selectedLokasi,
               'tanggal': tanggalFormatted,

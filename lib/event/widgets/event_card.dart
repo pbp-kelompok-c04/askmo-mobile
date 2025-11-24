@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'dart:ui';
@@ -77,10 +76,27 @@ class EventCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(12),
       child: event.thumbnail != null && event.thumbnail!.isNotEmpty
           ? Image.network(
-              event.thumbnail!,
+              'http://localhost:8000/proxy-image/?url=${Uri.encodeComponent(event.thumbnail!)}',
               width: 192,
               height: 192,
               fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  width: 192,
+                  height: 192,
+                  color: const Color(0xFF4F4F4F),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                          : null,
+                      color: const Color(0xFF571E88),
+                    ),
+                  ),
+                );
+              },
               errorBuilder: (context, error, stackTrace) {
                 return _buildPlaceholder();
               },
@@ -90,18 +106,45 @@ class EventCard extends StatelessWidget {
   }
 
   Widget _buildPlaceholder() {
-    return Container(
-      width: 192,
-      height: 192,
-      color: const Color(0xFF4F4F4F),
-      child: Center(
-        child: Text(
-          'Foto tidak tersedia',
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.grey[500],
-            fontSize: 12,
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+        child: Container(
+          width: 192,
+          height: 192,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withOpacity(0.1),
+                Colors.white.withOpacity(0.05),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1.5,
+            ),
           ),
-          textAlign: TextAlign.center,
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.image_outlined, color: Colors.grey[400], size: 48),
+                const SizedBox(height: 8),
+                Text(
+                  'Foto tidak tersedia',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.grey[400],
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
         ),
       ),
     );
@@ -164,55 +207,20 @@ class EventCard extends StatelessWidget {
   }
 
   Widget _buildActions(BuildContext context) {
-    return Row(
-      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-      children: [
-        TextButton(
-          onPressed: onTap,
-          style: TextButton.styleFrom(
-            padding: EdgeInsets.zero,
-            minimumSize: const Size(0, 0),
-            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-          ),
-          child: Text(
-            'Selengkapnya',
-            style: GoogleFonts.plusJakartaSans(
-              color: const Color(0xFFA4B3FF),
-              fontSize: 14,
-              fontWeight: FontWeight.w600,
-              decoration: TextDecoration.underline,
-            ),
-          ),
-        ),
-        _buildShareButton(context),
-      ],
-    );
-  }
-
-  Widget _buildShareButton(BuildContext context) {
     return TextButton(
-      onPressed: () {
-        final link = 'event/${event.id}';
-        Clipboard.setData(ClipboardData(text: link));
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Tersalin!', style: GoogleFonts.plusJakartaSans()),
-            duration: const Duration(seconds: 2),
-            backgroundColor: Colors.green,
-          ),
-        );
-      },
+      onPressed: onTap,
       style: TextButton.styleFrom(
         padding: EdgeInsets.zero,
         minimumSize: const Size(0, 0),
         tapTargetSize: MaterialTapTargetSize.shrinkWrap,
       ),
       child: Text(
-        'Bagikan',
+        'Selengkapnya',
         style: GoogleFonts.plusJakartaSans(
-          color: Colors.grey[300],
+          color: const Color(0xFFA4B3FF),
           fontSize: 14,
-          fontWeight: FontWeight.w500,
+          fontWeight: FontWeight.w600,
+          decoration: TextDecoration.underline,
         ),
       ),
     );

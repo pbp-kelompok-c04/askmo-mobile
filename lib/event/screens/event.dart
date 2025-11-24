@@ -173,7 +173,7 @@ class _EventPageState extends State<EventPage> {
       final request = context.read<CookieRequest>();
       // Endpoint Django yang benar sesuai urls.py
       final response = await request.get(
-        'http://127.0.0.1:8000/get-events-json/',
+        'http://localhost:8000/get-events-json/',
       );
 
       if (response != null && response['events'] != null) {
@@ -201,7 +201,7 @@ class _EventPageState extends State<EventPage> {
           SnackBar(
             backgroundColor: const Color(0xFFFF5555),
             content: Text(
-              'Gagal mengambil data event. Pastikan Django server berjalan di http://127.0.0.1:8000',
+              'Gagal mengambil data event. Pastikan Django server berjalan di http://localhost:8000',
               style: GoogleFonts.plusJakartaSans(color: Colors.white),
             ),
             duration: const Duration(seconds: 5),
