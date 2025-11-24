@@ -1,0 +1,228 @@
+import 'package:flutter/material.dart';
+import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
+import 'dart:ui';
+import '../models/event.dart';
+
+class EventCard extends StatelessWidget {
+  final Event event;
+  final VoidCallback onTap;
+
+  const EventCard({super.key, required this.event, required this.onTap});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      margin: const EdgeInsets.only(bottom: 24),
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: BackdropFilter(
+          filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Colors.white.withOpacity(0.1),
+                  Colors.white.withOpacity(0.05),
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+              borderRadius: BorderRadius.circular(16),
+              border: Border.all(
+                color: Colors.white.withOpacity(0.2),
+                width: 1.5,
+              ),
+            ),
+            child: Material(
+              color: Colors.transparent,
+              child: InkWell(
+                onTap: onTap,
+                borderRadius: BorderRadius.circular(16),
+                child: Padding(
+                  padding: const EdgeInsets.all(24),
+                  child: Row(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      _buildThumbnail(),
+                      const SizedBox(width: 24),
+                      Expanded(
+                        child: Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            _buildTitle(),
+                            const SizedBox(height: 12),
+                            _buildEventDetails(),
+                            const SizedBox(height: 12),
+                            _buildDescription(),
+                            const SizedBox(height: 16),
+                            _buildActions(context),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildThumbnail() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: event.thumbnail != null && event.thumbnail!.isNotEmpty
+          ? Image.network(
+              'http://localhost:8000/proxy-image/?url=${Uri.encodeComponent(event.thumbnail!)}',
+              width: 192,
+              height: 192,
+              fit: BoxFit.cover,
+              loadingBuilder: (context, child, loadingProgress) {
+                if (loadingProgress == null) return child;
+                return Container(
+                  width: 192,
+                  height: 192,
+                  color: const Color(0xFF4F4F4F),
+                  child: Center(
+                    child: CircularProgressIndicator(
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                          : null,
+                      color: const Color(0xFF571E88),
+                    ),
+                  ),
+                );
+              },
+              errorBuilder: (context, error, stackTrace) {
+                return _buildPlaceholder();
+              },
+            )
+          : _buildPlaceholder(),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: BackdropFilter(
+        filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
+        child: Container(
+          width: 192,
+          height: 192,
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withOpacity(0.1),
+                Colors.white.withOpacity(0.05),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+            borderRadius: BorderRadius.circular(12),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.2),
+              width: 1.5,
+            ),
+          ),
+          child: Center(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Icon(Icons.image_outlined, color: Colors.grey[400], size: 48),
+                const SizedBox(height: 8),
+                Text(
+                  'Foto tidak tersedia',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.grey[400],
+                    fontSize: 12,
+                  ),
+                  textAlign: TextAlign.center,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildTitle() {
+    return Text(
+      event.nama,
+      style: GoogleFonts.plusJakartaSans(
+        color: Colors.white,
+        fontSize: 24,
+        fontWeight: FontWeight.bold,
+      ),
+    );
+  }
+
+  Widget _buildEventDetails() {
+    return Wrap(
+      spacing: 24,
+      runSpacing: 8,
+      children: [
+        _buildDetailItem(
+          icon: Icons.calendar_today,
+          text: DateFormat('d MMMM yyyy', 'id_ID').format(event.tanggal),
+        ),
+        _buildDetailItem(icon: Icons.location_on, text: event.lokasi),
+        _buildDetailItem(icon: Icons.sports_soccer, text: event.olahraga),
+      ],
+    );
+  }
+
+  Widget _buildDetailItem({required IconData icon, required String text}) {
+    return Row(
+      mainAxisSize: MainAxisSize.min,
+      children: [
+        Icon(icon, color: Colors.grey[300], size: 16),
+        const SizedBox(width: 8),
+        Text(
+          text,
+          style: GoogleFonts.plusJakartaSans(
+            color: Colors.grey[300],
+            fontSize: 14,
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildDescription() {
+    return Text(
+      event.deskripsi,
+      style: GoogleFonts.plusJakartaSans(
+        color: Colors.grey[400],
+        fontSize: 14,
+        height: 1.5,
+      ),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
+    );
+  }
+
+  Widget _buildActions(BuildContext context) {
+    return TextButton(
+      onPressed: onTap,
+      style: TextButton.styleFrom(
+        padding: EdgeInsets.zero,
+        minimumSize: const Size(0, 0),
+        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+      ),
+      child: Text(
+        'Selengkapnya',
+        style: GoogleFonts.plusJakartaSans(
+          color: const Color(0xFFA4B3FF),
+          fontSize: 14,
+          fontWeight: FontWeight.w600,
+          decoration: TextDecoration.underline,
+        ),
+      ),
+    );
+  }
+}
