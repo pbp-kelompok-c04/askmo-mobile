@@ -152,23 +152,33 @@ class _MenuPageState extends State<MenuPage>
         children: [
           Positioned.fill(child: _buildBackgroundAura()),
           SafeArea(
-            child: IndexedStack(index: _selectedIndex, children: pages),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 0),
+              child: IndexedStack(index: _selectedIndex, children: pages),
+            ),
           ),
         ],
       ),
-      bottomNavigationBar: ClipRRect(
-        borderRadius: const BorderRadius.only(
-          topLeft: Radius.circular(20.0),
-          topRight: Radius.circular(20.0),
-        ),
-        child: BackdropFilter(
-          filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
-          child: Container(
-            decoration: BoxDecoration(
-              color: Colors.white.withOpacity(0.15),
-              borderRadius: const BorderRadius.only(
-                topLeft: Radius.circular(20.0),
-                topRight: Radius.circular(20.0),
+      bottomNavigationBar: Container(
+        margin: const EdgeInsets.only(top: 0),
+        child: ClipRRect(
+          borderRadius: const BorderRadius.only(
+            topLeft: Radius.circular(20.0),
+            topRight: Radius.circular(20.0),
+          ),
+          child: BackdropFilter(
+            filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+            child: Container(
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.15),
+                borderRadius: const BorderRadius.only(
+                  topLeft: Radius.circular(20.0),
+                  topRight: Radius.circular(20.0),
+                ),
+                border: Border.all(
+                  color: Colors.white.withOpacity(0.3),
+                  width: 0.5,
+                ),
               ),
               border: Border.all(
                 color: Colors.white.withOpacity(0.3),
