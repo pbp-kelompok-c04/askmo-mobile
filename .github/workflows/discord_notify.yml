@@ -1,0 +1,32 @@
+name: Notifikasi Discord Setelah Push
+
+on:
+  push:
+    branches:
+      - dev 
+
+jobs:
+  notify_discord:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Kirim Notifikasi Push ke Discord dengan @everyone
+        uses: appleboy/discord-action@master
+        with:
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }} 
+
+          message: |
+            📢 **@everyone: PUSH KODE BARU ke [askmo-mobile] di branch DEV!**
+
+            **Repo:** ${{ github.repository }}
+            **Oleh:** **${{ github.actor }}**
+            **Branch:** `${{ github.ref_name }}`
+
+            📝 **Pesan Commit:**
+            > ${{ github.event.head_commit.message }}
+
+            [Lihat Commit di GitHub](${{ github.event.head_commit.url }})
+
+          color: 00FF00
