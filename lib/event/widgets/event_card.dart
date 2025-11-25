@@ -49,25 +49,18 @@ class EventCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 child: Padding(
                   padding: const EdgeInsets.all(24),
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildThumbnail(),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildTitle(),
-                            const SizedBox(height: 12),
-                            _buildEventDetails(),
-                            const SizedBox(height: 12),
-                            _buildDescription(),
-                            const SizedBox(height: 16),
-                            _buildActions(context),
-                          ],
-                        ),
-                      ),
+                      const SizedBox(height: 20),
+                      _buildTitle(),
+                      const SizedBox(height: 12),
+                      _buildEventDetails(),
+                      const SizedBox(height: 12),
+                      _buildDescription(),
+                      const SizedBox(height: 16),
+                      _buildActions(context),
                     ],
                   ),
                 ),
@@ -83,33 +76,33 @@ class EventCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: event.thumbnail != null && event.thumbnail!.isNotEmpty
-          ? Image.network(
-              'http://localhost:8000/proxy-image/?url=${Uri.encodeComponent(event.thumbnail!)}',
-              width: 192,
-              height: 192,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  width: 192,
-                  height: 192,
-                  color: const Color(0xFF4F4F4F),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                          : null,
-                      color: const Color(0xFF571E88),
+          ? AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Image.network(
+                'http://localhost:8000/proxy-image/?url=${Uri.encodeComponent(event.thumbnail!)}',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: const Color(0xFF4F4F4F),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                            : null,
+                        color: const Color(0xFF571E88),
+                      ),
                     ),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return _buildPlaceholder();
-              },
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildPlaceholder();
+                },
+              ),
             )
-          : _buildPlaceholder(),
+          : AspectRatio(aspectRatio: 16 / 9, child: _buildPlaceholder()),
     );
   }
 
@@ -119,8 +112,7 @@ class EventCard extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
         child: Container(
-          width: 192,
-          height: 192,
+          width: double.infinity,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -163,9 +155,11 @@ class EventCard extends StatelessWidget {
       event.nama,
       style: GoogleFonts.plusJakartaSans(
         color: Colors.white,
-        fontSize: 24,
+        fontSize: 18, // Perkecil dari 24 ke 18
         fontWeight: FontWeight.bold,
       ),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
   }
 

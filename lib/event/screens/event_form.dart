@@ -498,20 +498,13 @@ class _EventFormPageState extends State<EventFormPage> {
             style: GoogleFonts.plusJakartaSans(
               color: const Color(0xFFA4E4FF),
               fontWeight: FontWeight.bold,
+              fontSize: 14,
             ),
           ),
         ),
       );
       for (var loc in locations) {
-        items.add(
-          DropdownMenuItem<String>(
-            value: loc,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: Text(loc),
-            ),
-          ),
-        );
+        items.add(DropdownMenuItem<String>(value: loc, child: Text(loc)));
       }
     });
 

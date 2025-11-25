@@ -246,11 +246,14 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
         final jamFormatted =
             '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
 
+        // Trim lokasi sebelum submit
+        final trimmedLokasi = _selectedLokasi.trim();
+
         // Kirim ke endpoint edit-event-ajax dengan ID event
         final response = await request
             .post('http://localhost:8000/edit-event-ajax/${widget.event.id}/', {
               'nama': _namaController.text,
-              'lokasi': _selectedLokasi,
+              'lokasi': trimmedLokasi,
               'tanggal': tanggalFormatted,
               'deskripsi': _deskripsiController.text,
               'biaya': _biayaController.text.isEmpty
@@ -546,15 +549,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
         ),
       );
       for (var loc in locations) {
-        items.add(
-          DropdownMenuItem<String>(
-            value: loc,
-            child: Padding(
-              padding: const EdgeInsets.only(left: 16),
-              child: Text(loc),
-            ),
-          ),
-        );
+        items.add(DropdownMenuItem<String>(value: loc, child: Text(loc)));
       }
     });
 
