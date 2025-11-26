@@ -21,7 +21,8 @@ class _ProfilePageState extends State<ProfilePage>
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
-  // --- Data / state for profile editing (constants) ---
+  String _selectedTab = 'wishlist';
+
   final List<String> _avatars = [
     'asset/avatar/default_avatar.png',
     'asset/avatar/avatar1.png',
@@ -40,6 +41,10 @@ class _ProfilePageState extends State<ProfilePage>
     'golf': 'Golf',
     'lainnya': 'Lainnya',
   };
+
+  final bool _hasWishlistItems = true;
+  final bool _hasCoachItems = true;
+  final bool _hasHistoryItems = false;
 
   @override
   void initState() {
@@ -117,6 +122,7 @@ class _ProfilePageState extends State<ProfilePage>
     EdgeInsets? padding,
     double radius = 16.0,
     double? height,
+    double opacity = 0.03, 
   }) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
@@ -126,14 +132,24 @@ class _ProfilePageState extends State<ProfilePage>
           height: height,
           padding: padding,
           decoration: BoxDecoration(
-            color: Colors.white.withOpacity(0.03),
+            gradient: LinearGradient(
+              colors: [
+                Colors.white.withOpacity(0.10),
+                Colors.white.withOpacity(0.05),
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
             borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: Colors.white.withOpacity(0.06)),
+            border: Border.all(
+              color: Colors.white.withOpacity(0.20),
+              width: 1.5,
+            ),
             boxShadow: [
               BoxShadow(
-                color: Colors.black.withOpacity(0.45),
-                blurRadius: 20,
-                offset: const Offset(0, 8),
+                color: Colors.black.withOpacity(0.12),
+                blurRadius: 12,
+                offset: const Offset(0, 6),
               ),
             ],
           ),
@@ -143,7 +159,7 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  // --- Profile Column (Menggunakan UserState) ---
+  // --- Profile Column (Tanpa tombol aksi di bawah) ---
   Widget _buildProfileColumn() {
     final userState = context.watch<UserState>();
     final String avatarPath = userState.avatarPath.isNotEmpty
@@ -161,138 +177,178 @@ class _ProfilePageState extends State<ProfilePage>
       avatarImage = AssetImage(avatarPath);
     }
 
-    return SizedBox(
-      width: 300,
-      child: Column(
-        children: [
-          GestureDetector(
-            onTap: () => _showEditProfile(),
+    return Column(
+      children: [
+        GestureDetector(
+          onTap: () => _showEditProfile(),
+          child: CircleAvatar(
+            radius: 70,
+            backgroundColor: const Color(0xFF6C5CE7),
             child: CircleAvatar(
-              radius: 70,
-              backgroundColor: const Color(0xFF6C5CE7),
-              child: CircleAvatar(
-                radius: 66,
-                // Menggunakan avatarImage yang sudah disiapkan dari UserState
-                backgroundImage: avatarImage,
-                backgroundColor: Colors.grey[900],
-              ),
+              radius: 66,
+              backgroundImage: avatarImage,
+              backgroundColor: Colors.grey[900],
             ),
           ),
-          const SizedBox(height: 12),
-          Text(
-            userState.displayName.isNotEmpty
-                ? userState.displayName
-                : userState.username,
-            style: GoogleFonts.plusJakartaSans(
-              color: Colors.white,
-              fontSize: 22,
-              fontWeight: FontWeight.w700,
+        ),
+        const SizedBox(height: 12),
+        Text(
+          userState.displayName.isNotEmpty
+              ? userState.displayName
+              : userState.username,
+          style: GoogleFonts.plusJakartaSans(
+            color: Colors.white,
+            fontSize: 22,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Text(
+              'Olahraga favorit: ',
+              style: TextStyle(color: Colors.grey),
             ),
-          ),
-          const SizedBox(height: 8),
-          Row(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              const Text(
-                'Olahraga favorit: ',
-                style: TextStyle(color: Colors.grey),
+            const SizedBox(width: 6),
+            SizedBox(width: 24, height: 24, child: _sportIconWidget(sportKey)),
+          ],
+        ),
+        const SizedBox(height: 12),
+        SizedBox(
+          width: 300, // Batasi lebar tombol
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: const LinearGradient(
+                colors: [Color(0xFF06005E), Color(0xFF571E88)],
+                begin: Alignment.centerLeft,
+                end: Alignment.centerRight,
               ),
-              const SizedBox(width: 6),
-              SizedBox(
-                width: 24,
-                height: 24,
-                child: _sportIconWidget(
-                  sportKey,
-                ), // Menggunakan sportKey dari UserState
+              borderRadius: BorderRadius.circular(28),
+            ),
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 14),
+                shape: const StadiumBorder(),
+                backgroundColor: Colors.transparent,
+                shadowColor: Colors.transparent,
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          SizedBox(
-            width: double.infinity,
-            child: Container(
-              decoration: BoxDecoration(
-                gradient: const LinearGradient(
-                  colors: [Color(0xFF06005E), Color(0xFF571E88)],
-                  begin: Alignment.centerLeft,
-                  end: Alignment.centerRight,
-                ),
-                borderRadius: BorderRadius.circular(28),
-              ),
-              child: ElevatedButton(
-                style: ElevatedButton.styleFrom(
-                  padding: const EdgeInsets.symmetric(vertical: 14),
-                  shape: const StadiumBorder(),
-                  backgroundColor: Colors.transparent,
-                  shadowColor: Colors.transparent,
-                ),
-                onPressed: _showEditProfile,
-                child: Text(
-                  'Edit Profile',
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white,
-                    fontWeight: FontWeight.w600,
-                  ),
+              onPressed: _showEditProfile,
+              child: Text(
+                'Edit Profile',
+                style: GoogleFonts.plusJakartaSans(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
                 ),
               ),
             ),
           ),
+        ),
+      ],
+    );
+  }
+
+  // --- Baris Menu Navigasi Horizontal ---
+  Widget _buildTabsBar() {
+    return Container(
+      decoration: BoxDecoration(
+        border: Border(
+          top: BorderSide(color: Colors.white.withOpacity(0.1), width: 1.0),
+          bottom: BorderSide(color: Colors.white.withOpacity(0.1), width: 1.0),
+        ),
+      ),
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          _buildTabIcon(icon: Icons.grid_on_outlined, tabKey: 'wishlist'),
+          _buildTabIcon(icon: Icons.person_search_outlined, tabKey: 'coach'),
+          _buildTabIcon(icon: Icons.bookmark_border, tabKey: 'history'),
         ],
       ),
     );
   }
 
-  // --- Card Content (New function for dynamic image based on type) ---
+  Widget _buildTabIcon({required IconData icon, required String tabKey}) {
+    final bool isSelected = _selectedTab == tabKey;
+    return Flexible(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _selectedTab = tabKey;
+          });
+        },
+        child: Container(
+          height: 48,
+          alignment: Alignment.center,
+          decoration: BoxDecoration(
+            border: Border(
+              bottom: isSelected
+                  ? const BorderSide(color: Color(0xFF6C5CE7), width: 2.0)
+                  : BorderSide.none,
+            ),
+          ),
+          child: Icon(
+            icon,
+            color: isSelected ? Colors.white : Colors.grey,
+            size: 28,
+          ),
+        ),
+      ),
+    );
+  }
+
+  Widget _buildEmptyState({required String message}) {
+    return Center(
+      child: Padding(
+        padding: const EdgeInsets.symmetric(vertical: 40.0),
+        child: Column(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const Icon(
+              Icons.search_off_outlined,
+              color: Colors.white38,
+              size: 50,
+            ),
+            const SizedBox(height: 12),
+            Text(
+              message,
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.white54,
+                fontSize: 16,
+                fontWeight: FontWeight.w500,
+              ),
+              textAlign: TextAlign.center,
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+
   Widget _buildCardContent(String type) {
     String imagePath;
 
-    // Menentukan path gambar berdasarkan tipe kartu
     if (type == 'wishlist') {
-      imagePath =
-          'asset/image/wishlist_placeholder_1.png'; // Ganti dengan aset yang diinginkan
+      imagePath = 'asset/image/wishlist_placeholder_1.png';
     } else if (type == 'coach') {
-      imagePath =
-          'asset/image/coach_placeholder.png'; // Ganti dengan aset yang diinginkan
+      imagePath = 'asset/image/coach_placeholder.png';
+    } else if (type == 'history') {
+      imagePath = 'asset/image/history_placeholder.png';
     } else {
       return Container(color: Colors.grey[800]);
     }
 
     return Image.asset(
       imagePath,
-      // Menggunakan BoxFit.cover dan Alignment.topCenter untuk tampilan seperti di foto kedua
       fit: BoxFit.cover,
       alignment: Alignment.topCenter,
       errorBuilder: (c, e, s) => Container(color: Colors.grey[800]),
     );
   }
 
-  // --- Right Column Cards (Updated to use type and dynamic content) ---
-  Widget _buildRightColumn() {
-    return Column(
-      children: [
-        _buildCard(
-          title: 'Wishlist - Koleksi Lapangan',
-          type: 'wishlist', // Mengirim tipe 'wishlist'
-          onTap: () {
-            // navigate to wishlist
-          },
-        ),
-        const SizedBox(height: 12),
-        _buildCard(
-          title: 'List - Coach',
-          type: 'coach', // Mengirim tipe 'coach'
-          onTap: () {
-            // navigate to coach list
-          },
-        ),
-      ],
-    );
-  }
-
-  // --- Generic Card Widget (Updated signature) ---
   Widget _buildCard({
     required String title,
-    required String type, // Menerima parameter type baru
+    required String type,
     VoidCallback? onTap,
   }) {
     return GestureDetector(
@@ -300,6 +356,7 @@ class _ProfilePageState extends State<ProfilePage>
       child: _glassContainer(
         radius: 12,
         height: 160,
+        opacity: 0.1,
         child: Column(
           children: [
             Expanded(
@@ -310,8 +367,8 @@ class _ProfilePageState extends State<ProfilePage>
                 child: Stack(
                   fit: StackFit.expand,
                   children: [
-                    _buildCardContent(type), // Memanggil fungsi konten dinamis
-                    Container(color: Colors.black.withOpacity(0.08)),
+                    _buildCardContent(type),
+                    Container(color: Colors.black.withOpacity(0.15)),
                   ],
                 ),
               ),
@@ -336,8 +393,70 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
+  Widget _buildTabContent(String tabKey) {
+    if (tabKey == 'wishlist') {
+      if (!_hasWishlistItems) {
+        return _buildEmptyState(
+          message:
+              'Tidak ada Lapangan yang di-Wishlist. Ayo temukan Lapangan favoritmu!',
+        );
+      }
+      return Column(
+        children: [
+          _buildCard(
+            title: 'Wishlist Lapangan 1',
+            type: 'wishlist',
+            onTap: () {},
+          ),
+          const SizedBox(height: 12),
+          _buildCard(
+            title: 'Wishlist Lapangan 2',
+            type: 'wishlist',
+            onTap: () {},
+          ),
+        ],
+      );
+    } else if (tabKey == 'coach') {
+      if (!_hasCoachItems) {
+        return _buildEmptyState(
+          message:
+              'Tidak ada Coach dalam daftar favorit. Cari Coach terbaik sekarang!',
+        );
+      }
+      return Column(
+        children: [
+          _buildCard(title: 'Coach A - Sepakbola', type: 'coach', onTap: () {}),
+          const SizedBox(height: 12),
+          _buildCard(title: 'Coach B - Basket', type: 'coach', onTap: () {}),
+        ],
+      );
+    } else if (tabKey == 'history') {
+      if (!_hasHistoryItems) {
+        return _buildEmptyState(
+          message:
+              'Anda belum memiliki riwayat booking. Booking lapangan pertamamu!',
+        );
+      }
+      return Column(
+        children: [
+          _buildCard(
+            title: 'Booking History - Voli',
+            type: 'history',
+            onTap: () {},
+          ),
+        ],
+      );
+    } else {
+      return const Center(
+        child: Text(
+          'Konten tidak tersedia',
+          style: TextStyle(color: Colors.white54),
+        ),
+      );
+    }
+  }
+
   Widget _sportIconWidget(String key) {
-    // Try to load an asset icon; if missing, fallback to an Icon
     final path = 'asset/icon-olahraga/$key.png';
     return Image.asset(
       path,
@@ -346,11 +465,6 @@ class _ProfilePageState extends State<ProfilePage>
           const Icon(Icons.sports, color: Colors.white, size: 20),
     );
   }
-
-  // Fungsi yang tidak digunakan lagi:
-  // bool _avatarExists(String path) {
-  //   return path.isNotEmpty;
-  // }
 
   void _showEditProfile() {
     final userState = context.read<UserState>();
@@ -438,7 +552,6 @@ class _ProfilePageState extends State<ProfilePage>
                         ),
                         const SizedBox(height: 18),
 
-                        // Name field
                         Text(
                           'Name',
                           style: GoogleFonts.plusJakartaSans(
@@ -460,7 +573,6 @@ class _ProfilePageState extends State<ProfilePage>
                         ),
                         const SizedBox(height: 12),
 
-                        // Avatar selection and upload
                         Row(
                           children: [
                             Expanded(
@@ -646,7 +758,6 @@ class _ProfilePageState extends State<ProfilePage>
                             ),
                             child: ElevatedButton(
                               onPressed: () async {
-                                // save changes to UserState
                                 final finalName = nameController.text.trim();
                                 if (finalName.isNotEmpty) {
                                   await userState.setName(finalName);
@@ -654,16 +765,13 @@ class _ProfilePageState extends State<ProfilePage>
                                 await userState.setFavoriteSport(tempSport);
                                 if (pickedBytes != null) {
                                   final b64 = base64Encode(pickedBytes!);
-                                  // Simpan sebagai base64 string dengan format URI data
                                   await userState.setAvatarPath(
                                     'data:image/png;base64,' + b64,
                                   );
                                 } else if (tempAvatar.isNotEmpty) {
-                                  // Simpan asset path atau base64 string yang dipilih dari koleksi
                                   await userState.setAvatarPath(tempAvatar);
                                 }
-                                // Tidak perlu setState() di sini, karena UserState.notifyListeners()
-                                // akan memicu rebuild dari widget yang menggunakan context.watch().
+
                                 if (context.mounted) {
                                   Navigator.pop(context);
                                   ScaffoldMessenger.of(context).showSnackBar(
@@ -760,49 +868,44 @@ class _ProfilePageState extends State<ProfilePage>
           Positioned.fill(child: _buildBackgroundAura()),
           SafeArea(
             child: SingleChildScrollView(
-              padding: const EdgeInsets.symmetric(vertical: 24, horizontal: 16),
               child: Center(
                 child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 1000),
+                  constraints: const BoxConstraints(maxWidth: 600),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      Text(
-                        'PROFILE',
-                        textAlign: TextAlign.center,
-                        style: GoogleFonts.plusJakartaSans(
-                          color: Colors.white,
-                          fontSize: 34,
-                          fontWeight: FontWeight.bold,
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: Text(
+                          'PROFILE',
+                          textAlign: TextAlign.center,
+                          style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white,
+                            fontSize: 34,
+                            fontWeight: FontWeight.bold,
+                          ),
                         ),
                       ),
                       const SizedBox(height: 18),
-                      _glassContainer(
-                        padding: const EdgeInsets.all(20),
-                        radius: 16,
-                        child: LayoutBuilder(
-                          builder: (context, constraints) {
-                            final isWide = constraints.maxWidth > 640;
-                            return isWide
-                                ? Row(
-                                    crossAxisAlignment:
-                                        CrossAxisAlignment.start,
-                                    children: [
-                                      _buildProfileColumn(),
-                                      const SizedBox(width: 20),
-                                      Expanded(child: _buildRightColumn()),
-                                    ],
-                                  )
-                                : Column(
-                                    children: [
-                                      _buildProfileColumn(),
-                                      const SizedBox(height: 16),
-                                      _buildRightColumn(),
-                                    ],
-                                  );
-                          },
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: _glassContainer(
+                          padding: const EdgeInsets.all(20),
+                          radius: 16,
+                          child: _buildProfileColumn(),
                         ),
                       ),
+                      const SizedBox(height: 24),
+
+                      _buildTabsBar(),
+
+                      const SizedBox(height: 16),
+
+                      Padding(
+                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                        child: _buildTabContent(_selectedTab),
+                      ),
+                      const SizedBox(height: 24),
                     ],
                   ),
                 ),
