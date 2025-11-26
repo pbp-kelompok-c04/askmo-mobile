@@ -7,6 +7,7 @@ import 'dart:ui';
 import '../models/lapangan.dart';
 import '../widgets/lapangan_card.dart';
 import 'lapangan_detail.dart';
+import 'lapangan_booking.dart';
 
 class LapanganPage extends StatefulWidget {
   const LapanganPage({super.key});
@@ -584,6 +585,16 @@ class _LapanganPageState extends State<LapanganPage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => LapanganDetailPage(lapangan: lapangan),
+                ),
+              );
+            },
+            onBook: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LapanganBookingPage(
+                    lapangan: lapangan,
+                  ),
                 ),
               );
             },
