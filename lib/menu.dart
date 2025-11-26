@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 
+
 // import relatif dari lib/
 import 'lapangan/screens/lapangan.dart';
 import 'coach/screens/coach.dart';
@@ -153,14 +154,15 @@ class _MenuPageState extends State<MenuPage>
           Positioned.fill(child: _buildBackgroundAura()),
           SafeArea(
             child: Padding(
-              padding: const EdgeInsets.only(bottom: 80.0),
+              padding: const EdgeInsets.only(bottom: 0.0),
               child: IndexedStack(index: _selectedIndex, children: pages),
             ),
           ),
         ],
       ),
       bottomNavigationBar: Container(
-        margin: const EdgeInsets.only(top: 16.0),
+        margin: const EdgeInsets.only(top: 0.0),
+        height: 90, // Increased height for taller navbar
         child: ClipRRect(
           borderRadius: const BorderRadius.only(
             topLeft: Radius.circular(20.0),
@@ -195,22 +197,39 @@ class _MenuPageState extends State<MenuPage>
                   fontWeight: FontWeight.w400,
                   fontSize: 12,
                 ),
+                selectedFontSize: 12,
+                unselectedFontSize: 12,
+                iconSize: 28,
                 onTap: _onItemTapped,
                 items: const [
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.home_rounded),
+                    icon: Padding(
+                      padding: EdgeInsets.only(
+                        bottom: 12,
+                      ), // More padding for taller look
+                      child: Icon(Icons.home_rounded),
+                    ),
                     label: 'Beranda',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.sports_soccer_rounded),
+                    icon: Padding(
+                      padding: EdgeInsets.only(bottom: 12),
+                      child: Icon(Icons.sports_soccer_rounded),
+                    ),
                     label: 'Lapangan',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.person_rounded),
+                    icon: Padding(
+                      padding: EdgeInsets.only(bottom: 12),
+                      child: Icon(Icons.person_rounded),
+                    ),
                     label: 'Coach',
                   ),
                   BottomNavigationBarItem(
-                    icon: Icon(Icons.event_rounded),
+                    icon: Padding(
+                      padding: EdgeInsets.only(bottom: 12),
+                      child: Icon(Icons.event_rounded),
+                    ),
                     label: 'Event',
                   ),
                 ],
