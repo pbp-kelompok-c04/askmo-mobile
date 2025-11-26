@@ -15,10 +15,10 @@ jobs:
       - name: Kirim Notifikasi Push ke Discord dengan @everyone
         uses: appleboy/discord-action@master
         with:
-          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }} # Menggunakan Secret URL LENGKAP
+          webhook_url: ${{ secrets.DISCORD_WEBHOOK_URL }} 
 
           message: |
-            📢 **PUSH KODE BARU ke [askmo-mobile] di branch DEV!**
+            📢 **@everyonePUSH KODE BARU ke [askmo-mobile] di branch DEV!**
 
             **Repo:** ${{ github.repository }}
             **Oleh:** **${{ github.actor }}**
@@ -30,4 +30,3 @@ jobs:
             [Lihat Commit di GitHub](${{ github.event.head_commit.url }})
 
           color: 00FF00
-          

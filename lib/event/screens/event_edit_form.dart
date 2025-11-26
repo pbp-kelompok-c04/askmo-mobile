@@ -3,25 +3,28 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
+import '../models/event.dart';
 
-class EventFormPage extends StatefulWidget {
-  const EventFormPage({super.key});
+class EventEditFormPage extends StatefulWidget {
+  final Event event;
+
+  const EventEditFormPage({super.key, required this.event});
 
   @override
-  State<EventFormPage> createState() => _EventFormPageState();
+  State<EventEditFormPage> createState() => _EventEditFormPageState();
 }
 
-class _EventFormPageState extends State<EventFormPage> {
+class _EventEditFormPageState extends State<EventEditFormPage> {
   final _formKey = GlobalKey<FormState>();
-  final _namaController = TextEditingController();
-  final _deskripsiController = TextEditingController();
-  final _biayaController = TextEditingController();
-  final _kontakController = TextEditingController();
-  final _thumbnailController = TextEditingController();
-  String _selectedOlahraga = 'futsal';
-  String _selectedLokasi = '';
-  DateTime? _selectedDate;
-  TimeOfDay? _selectedTime;
+  late final TextEditingController _namaController;
+  late final TextEditingController _deskripsiController;
+  late final TextEditingController _biayaController;
+  late final TextEditingController _kontakController;
+  late final TextEditingController _thumbnailController;
+  late String _selectedOlahraga;
+  late String _selectedLokasi;
+  late DateTime? _selectedDate;
+  late TimeOfDay? _selectedTime;
 
   final List<Map<String, String>> _sportOptions = [
     {'value': 'sepakbola', 'label': 'Sepak Bola'},
@@ -157,6 +160,45 @@ class _EventFormPageState extends State<EventFormPage> {
   };
 
   @override
+  void initState() {
+    super.initState();
+    // Initialize controllers dengan data dari event yang sudah ada
+    _namaController = TextEditingController(text: widget.event.nama);
+    _deskripsiController = TextEditingController(text: widget.event.deskripsi);
+    _biayaController = TextEditingController(
+      text: widget.event.biaya.toString(),
+    );
+    _kontakController = TextEditingController(text: widget.event.kontak);
+    _thumbnailController = TextEditingController(
+      text: widget.event.thumbnail ?? '',
+    );
+    // Normalize olahraga to lowercase to match dropdown values
+    _selectedOlahraga = widget.event.olahraga.toLowerCase();
+    // Validate that the value exists in options, otherwise default to futsal
+    final validValues = _sportOptions.map((s) => s['value']!).toList();
+    if (!validValues.contains(_selectedOlahraga)) {
+      _selectedOlahraga = 'futsal';
+    }
+    _selectedLokasi = widget.event.lokasi;
+    _selectedDate = widget.event.tanggal;
+
+    // Parse jam dari string ke TimeOfDay
+    if (widget.event.jam != null && widget.event.jam!.toString().isNotEmpty) {
+      try {
+        final jamParts = widget.event.jam.toString().split(':');
+        _selectedTime = TimeOfDay(
+          hour: int.parse(jamParts[0]),
+          minute: int.parse(jamParts[1]),
+        );
+      } catch (e) {
+        _selectedTime = null;
+      }
+    } else {
+      _selectedTime = null;
+    }
+  }
+
+  @override
   void dispose() {
     _namaController.dispose();
     _deskripsiController.dispose();
@@ -189,7 +231,6 @@ class _EventFormPageState extends State<EventFormPage> {
 
       final request = context.read<CookieRequest>();
 
-      // opsional: cek apakah Flutter merasa sudah login
       if (!request.loggedIn) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(
@@ -205,10 +246,14 @@ class _EventFormPageState extends State<EventFormPage> {
         final jamFormatted =
             '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
 
+        // Trim lokasi sebelum submit
+        final trimmedLokasi = _selectedLokasi.trim();
+
+        // Kirim ke endpoint edit-event-ajax dengan ID event
         final response = await request
-            .post('http://localhost:8000/add-event-ajax/', {
+            .post('http://localhost:8000/edit-event-ajax/${widget.event.id}/', {
               'nama': _namaController.text,
-              'lokasi': _selectedLokasi,
+              'lokasi': trimmedLokasi,
               'tanggal': tanggalFormatted,
               'deskripsi': _deskripsiController.text,
               'biaya': _biayaController.text.isEmpty
@@ -227,7 +272,7 @@ class _EventFormPageState extends State<EventFormPage> {
             SnackBar(
               backgroundColor: const Color(0xFF571E88),
               content: Text(
-                'Event berhasil ditambahkan!',
+                'Event berhasil diperbarui!',
                 style: GoogleFonts.plusJakartaSans(color: Colors.white),
               ),
             ),
@@ -238,7 +283,7 @@ class _EventFormPageState extends State<EventFormPage> {
             SnackBar(
               backgroundColor: const Color(0xFFFF5555),
               content: Text(
-                'Gagal menambahkan event: ${response['message'] ?? response['errors']}',
+                'Gagal memperbarui event: ${response['message'] ?? response['errors']}',
                 style: GoogleFonts.plusJakartaSans(color: Colors.white),
               ),
             ),
@@ -265,7 +310,7 @@ class _EventFormPageState extends State<EventFormPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Background gradient - full screen
+          // Background gradient
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -277,7 +322,7 @@ class _EventFormPageState extends State<EventFormPage> {
               ),
             ),
           ),
-          // Aura circles - extended to cover full screen
+          // Aura circles
           Positioned(
             top: -200,
             left: -200,
@@ -331,7 +376,7 @@ class _EventFormPageState extends State<EventFormPage> {
                       ),
                       Expanded(
                         child: Text(
-                          'Tambah Event',
+                          'Edit Event',
                           textAlign: TextAlign.center,
                           style: GoogleFonts.plusJakartaSans(
                             color: Colors.white,
@@ -340,7 +385,7 @@ class _EventFormPageState extends State<EventFormPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 48), // Balance for back button
+                      const SizedBox(width: 48),
                     ],
                   ),
                 ),
@@ -406,7 +451,7 @@ class _EventFormPageState extends State<EventFormPage> {
                               ),
                             ),
                             child: Text(
-                              'Tambah Event',
+                              'Simpan Perubahan',
                               style: GoogleFonts.plusJakartaSans(
                                 color: Colors.white,
                                 fontSize: 16,
@@ -428,6 +473,7 @@ class _EventFormPageState extends State<EventFormPage> {
     );
   }
 
+  // Helper widgets (sama seperti di event_form.dart)
   Widget _buildDropdown() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
@@ -498,7 +544,6 @@ class _EventFormPageState extends State<EventFormPage> {
             style: GoogleFonts.plusJakartaSans(
               color: const Color(0xFFA4E4FF),
               fontWeight: FontWeight.bold,
-              fontSize: 14,
             ),
           ),
         ),
@@ -600,7 +645,7 @@ class _EventFormPageState extends State<EventFormPage> {
                 context: context,
                 initialDate: _selectedDate ?? DateTime.now(),
                 firstDate: DateTime.now(),
-                lastDate: DateTime(2026),
+                lastDate: DateTime.now().add(const Duration(days: 365)),
                 builder: (context, child) {
                   return Theme(
                     data: Theme.of(context).copyWith(
