@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:askmo/profile/models/user_state.dart';
 import 'package:askmo/authentication/screens/register.dart';
 import 'package:askmo/menu.dart';
 import 'package:askmo/user_info.dart';
@@ -292,8 +293,17 @@ class _LoginPageState extends State<LoginPage>
                                     );
 
                                     if (request.loggedIn) {
-                                      // SIMPAN DATA USER
                                       String username = response['username'];
+                                      // store username in app state
+                                      final userState = context
+                                          .read<UserState>();
+                                    
+                                      // Reload data dari storage untuk memastikan perubahan terakhir ter-load
+                                      await userState.reload();
+                                      await userState.setUsername(username);
+                                      
+                                      // SIMPAN DATA USER
+                                      
                                       bool isStaff = response['is_staff'] ?? false;
                                       
                                       UserInfo.login(username, isStaff); // Simpan ke static variable
