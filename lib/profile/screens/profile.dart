@@ -142,15 +142,16 @@ class _ProfilePageState extends State<ProfilePage>
       ),
     );
   }
-  
+
   // --- Profile Column (Menggunakan UserState) ---
   Widget _buildProfileColumn() {
     final userState = context.watch<UserState>();
     final String avatarPath = userState.avatarPath.isNotEmpty
         ? userState.avatarPath
         : 'asset/avatar/default_avatar.png';
-    final String sportKey =
-        userState.favoriteSport.isNotEmpty ? userState.favoriteSport : 'lainnya';
+    final String sportKey = userState.favoriteSport.isNotEmpty
+        ? userState.favoriteSport
+        : 'lainnya';
 
     ImageProvider avatarImage;
     if (avatarPath.startsWith('data:')) {
@@ -179,7 +180,9 @@ class _ProfilePageState extends State<ProfilePage>
           ),
           const SizedBox(height: 12),
           Text(
-            userState.username.isNotEmpty ? userState.username : 'username',
+            userState.displayName.isNotEmpty
+                ? userState.displayName
+                : userState.username,
             style: GoogleFonts.plusJakartaSans(
               color: Colors.white,
               fontSize: 22,
@@ -198,21 +201,40 @@ class _ProfilePageState extends State<ProfilePage>
               SizedBox(
                 width: 24,
                 height: 24,
-                child: _sportIconWidget(sportKey), // Menggunakan sportKey dari UserState
+                child: _sportIconWidget(
+                  sportKey,
+                ), // Menggunakan sportKey dari UserState
               ),
             ],
           ),
           const SizedBox(height: 12),
           SizedBox(
             width: double.infinity,
-            child: ElevatedButton(
-              style: ElevatedButton.styleFrom(
-                padding: const EdgeInsets.symmetric(vertical: 14),
-                shape: const StadiumBorder(),
-                backgroundColor: const Color(0xFF571E88),
+            child: Container(
+              decoration: BoxDecoration(
+                gradient: const LinearGradient(
+                  colors: [Color(0xFF06005E), Color(0xFF571E88)],
+                  begin: Alignment.centerLeft,
+                  end: Alignment.centerRight,
+                ),
+                borderRadius: BorderRadius.circular(28),
               ),
-              onPressed: _showEditProfile,
-              child: Text('Edit Profile', style: GoogleFonts.plusJakartaSans()),
+              child: ElevatedButton(
+                style: ElevatedButton.styleFrom(
+                  padding: const EdgeInsets.symmetric(vertical: 14),
+                  shape: const StadiumBorder(),
+                  backgroundColor: Colors.transparent,
+                  shadowColor: Colors.transparent,
+                ),
+                onPressed: _showEditProfile,
+                child: Text(
+                  'Edit Profile',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
             ),
           ),
         ],
@@ -223,14 +245,16 @@ class _ProfilePageState extends State<ProfilePage>
   // --- Card Content (New function for dynamic image based on type) ---
   Widget _buildCardContent(String type) {
     String imagePath;
-    
+
     // Menentukan path gambar berdasarkan tipe kartu
     if (type == 'wishlist') {
-      imagePath = 'asset/image/wishlist_placeholder_1.png'; // Ganti dengan aset yang diinginkan
+      imagePath =
+          'asset/image/wishlist_placeholder_1.png'; // Ganti dengan aset yang diinginkan
     } else if (type == 'coach') {
-      imagePath = 'asset/image/coach_placeholder.png'; // Ganti dengan aset yang diinginkan
+      imagePath =
+          'asset/image/coach_placeholder.png'; // Ganti dengan aset yang diinginkan
     } else {
-      return Container(color: Colors.grey[800]); 
+      return Container(color: Colors.grey[800]);
     }
 
     return Image.asset(
@@ -324,7 +348,7 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   // Fungsi yang tidak digunakan lagi:
-  // bool _avatarExists(String path) { 
+  // bool _avatarExists(String path) {
   //   return path.isNotEmpty;
   // }
 
@@ -470,27 +494,27 @@ class _ProfilePageState extends State<ProfilePage>
                                   backgroundImage: MemoryImage(pickedBytes!),
                                 )
                               : (tempAvatar.isNotEmpty
-                                  ? (tempAvatar.startsWith('data:')
-                                      ? CircleAvatar(
-                                          radius: 48,
-                                          backgroundImage: MemoryImage(
-                                            base64Decode(
-                                              tempAvatar.split(',').last,
-                                            ),
-                                          ),
-                                        )
-                                      : CircleAvatar(
-                                          radius: 48,
-                                          backgroundImage:
-                                              AssetImage(tempAvatar)
-                                                  as ImageProvider,
-                                        ))
-                                  : CircleAvatar(
-                                      radius: 48,
-                                      backgroundImage: const AssetImage(
-                                        'asset/avatar/default_avatar.png',
-                                      ),
-                                    )),
+                                    ? (tempAvatar.startsWith('data:')
+                                          ? CircleAvatar(
+                                              radius: 48,
+                                              backgroundImage: MemoryImage(
+                                                base64Decode(
+                                                  tempAvatar.split(',').last,
+                                                ),
+                                              ),
+                                            )
+                                          : CircleAvatar(
+                                              radius: 48,
+                                              backgroundImage:
+                                                  AssetImage(tempAvatar)
+                                                      as ImageProvider,
+                                            ))
+                                    : CircleAvatar(
+                                        radius: 48,
+                                        backgroundImage: const AssetImage(
+                                          'asset/avatar/default_avatar.png',
+                                        ),
+                                      )),
                         ),
                         const SizedBox(height: 12),
 
@@ -509,10 +533,9 @@ class _ProfilePageState extends State<ProfilePage>
                                       border: Border.all(
                                         color:
                                             tempAvatar == a &&
-                                                    !tempAvatar
-                                                        .startsWith('data:')
-                                                ? const Color(0xFF6C5CE7)
-                                                : Colors.transparent,
+                                                !tempAvatar.startsWith('data:')
+                                            ? const Color(0xFF6C5CE7)
+                                            : Colors.transparent,
                                         width: 3,
                                       ),
                                     ),
@@ -612,45 +635,68 @@ class _ProfilePageState extends State<ProfilePage>
                         const SizedBox(height: 20),
                         SizedBox(
                           width: double.infinity,
-                          child: ElevatedButton(
-                            onPressed: () {
-                              // save changes to UserState
-                              final finalName = nameController.text.trim();
-                              if (finalName.isNotEmpty) {
-                                userState.setName(finalName);
-                              }
-                              userState.setFavoriteSport(tempSport);
-                              if (pickedBytes != null) {
-                                final b64 = base64Encode(pickedBytes!);
-                                // Simpan sebagai base64 string dengan format URI data
-                                userState.setAvatarPath(
-                                  'data:image/png;base64,' + b64,
-                                );
-                              } else if (tempAvatar.isNotEmpty) {
-                                // Simpan asset path atau base64 string yang dipilih dari koleksi
-                                userState.setAvatarPath(tempAvatar);
-                              }
-                              // Tidak perlu setState() di sini, karena UserState.notifyListeners()
-                              // akan memicu rebuild dari widget yang menggunakan context.watch().
-                              Navigator.pop(context);
-                              ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(
-                                  content: Text('Profil diperbarui'),
-                                ),
-                              );
-                            },
-                            style: ElevatedButton.styleFrom(
-                              padding: const EdgeInsets.symmetric(vertical: 14),
-                              shape: const StadiumBorder(),
-                              backgroundColor: const Color(0xFF571E88),
+                          child: Container(
+                            decoration: BoxDecoration(
+                              gradient: const LinearGradient(
+                                colors: [Color(0xFF06005E), Color(0xFF571E88)],
+                                begin: Alignment.centerLeft,
+                                end: Alignment.centerRight,
+                              ),
+                              borderRadius: BorderRadius.circular(28),
                             ),
-                            child: Text(
-                              'SIMPAN PERUBAHAN',
-                              style: GoogleFonts.plusJakartaSans(),
+                            child: ElevatedButton(
+                              onPressed: () async {
+                                // save changes to UserState
+                                final finalName = nameController.text.trim();
+                                if (finalName.isNotEmpty) {
+                                  await userState.setName(finalName);
+                                }
+                                await userState.setFavoriteSport(tempSport);
+                                if (pickedBytes != null) {
+                                  final b64 = base64Encode(pickedBytes!);
+                                  // Simpan sebagai base64 string dengan format URI data
+                                  await userState.setAvatarPath(
+                                    'data:image/png;base64,' + b64,
+                                  );
+                                } else if (tempAvatar.isNotEmpty) {
+                                  // Simpan asset path atau base64 string yang dipilih dari koleksi
+                                  await userState.setAvatarPath(tempAvatar);
+                                }
+                                // Tidak perlu setState() di sini, karena UserState.notifyListeners()
+                                // akan memicu rebuild dari widget yang menggunakan context.watch().
+                                if (context.mounted) {
+                                  Navigator.pop(context);
+                                  ScaffoldMessenger.of(context).showSnackBar(
+                                    SnackBar(
+                                      backgroundColor: const Color(0xFF571E88),
+                                      content: Text(
+                                        'Profil diperbarui',
+                                        style: GoogleFonts.plusJakartaSans(
+                                          color: Colors.white,
+                                        ),
+                                      ),
+                                    ),
+                                  );
+                                }
+                              },
+                              style: ElevatedButton.styleFrom(
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 14,
+                                ),
+                                shape: const StadiumBorder(),
+                                backgroundColor: Colors.transparent,
+                                shadowColor: Colors.transparent,
+                              ),
+                              child: Text(
+                                'SIMPAN PERUBAHAN',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
                             ),
                           ),
                         ),
-
                         const SizedBox(height: 12),
                         Align(
                           alignment: Alignment.centerRight,

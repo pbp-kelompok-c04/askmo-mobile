@@ -296,7 +296,11 @@ class _LoginPageState extends State<LoginPage>
                                       // store username in app state
                                       final userState = context
                                           .read<UserState>();
-                                      userState.setUsername(uname);
+                                    
+                                      // Reload data dari storage untuk memastikan perubahan terakhir ter-load
+                                      await userState.reload();
+                                      await userState.setUsername(uname);
+                                      
                                       if (context.mounted) {
                                         Navigator.pushReplacement(
                                           context,

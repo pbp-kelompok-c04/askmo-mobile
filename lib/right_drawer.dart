@@ -158,7 +158,7 @@ class RightDrawer extends StatelessWidget {
                         String uname = response["username"];
                         // clear stored username on logout
                         final userState = context.read<UserState>();
-                        userState.clear();
+                        await userState.clear();
                         ScaffoldMessenger.of(context).showSnackBar(
                           SnackBar(
                             backgroundColor: const Color(0xFF571E88),
