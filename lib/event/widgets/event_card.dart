@@ -7,8 +7,16 @@ import '../models/event.dart';
 class EventCard extends StatelessWidget {
   final Event event;
   final VoidCallback onTap;
+  final VoidCallback? onEdit;
+  final VoidCallback? onDelete;
 
-  const EventCard({super.key, required this.event, required this.onTap});
+  const EventCard({
+    super.key,
+    required this.event,
+    required this.onTap,
+    this.onEdit,
+    this.onDelete,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -41,25 +49,18 @@ class EventCard extends StatelessWidget {
                 borderRadius: BorderRadius.circular(16),
                 child: Padding(
                   padding: const EdgeInsets.all(24),
-                  child: Row(
+                  child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       _buildThumbnail(),
-                      const SizedBox(width: 24),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildTitle(),
-                            const SizedBox(height: 12),
-                            _buildEventDetails(),
-                            const SizedBox(height: 12),
-                            _buildDescription(),
-                            const SizedBox(height: 16),
-                            _buildActions(context),
-                          ],
-                        ),
-                      ),
+                      const SizedBox(height: 20),
+                      _buildTitle(),
+                      const SizedBox(height: 12),
+                      _buildEventDetails(),
+                      const SizedBox(height: 12),
+                      _buildDescription(),
+                      const SizedBox(height: 16),
+                      _buildActions(context),
                     ],
                   ),
                 ),
@@ -75,33 +76,33 @@ class EventCard extends StatelessWidget {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: event.thumbnail != null && event.thumbnail!.isNotEmpty
-          ? Image.network(
-              'http://localhost:8000/proxy-image/?url=${Uri.encodeComponent(event.thumbnail!)}',
-              width: 192,
-              height: 192,
-              fit: BoxFit.cover,
-              loadingBuilder: (context, child, loadingProgress) {
-                if (loadingProgress == null) return child;
-                return Container(
-                  width: 192,
-                  height: 192,
-                  color: const Color(0xFF4F4F4F),
-                  child: Center(
-                    child: CircularProgressIndicator(
-                      value: loadingProgress.expectedTotalBytes != null
-                          ? loadingProgress.cumulativeBytesLoaded /
-                                loadingProgress.expectedTotalBytes!
-                          : null,
-                      color: const Color(0xFF571E88),
+          ? AspectRatio(
+              aspectRatio: 16 / 9,
+              child: Image.network(
+                'http://localhost:8000/proxy-image/?url=${Uri.encodeComponent(event.thumbnail!)}',
+                fit: BoxFit.cover,
+                width: double.infinity,
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Container(
+                    color: const Color(0xFF4F4F4F),
+                    child: Center(
+                      child: CircularProgressIndicator(
+                        value: loadingProgress.expectedTotalBytes != null
+                            ? loadingProgress.cumulativeBytesLoaded /
+                                  loadingProgress.expectedTotalBytes!
+                            : null,
+                        color: const Color(0xFF571E88),
+                      ),
                     ),
-                  ),
-                );
-              },
-              errorBuilder: (context, error, stackTrace) {
-                return _buildPlaceholder();
-              },
+                  );
+                },
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildPlaceholder();
+                },
+              ),
             )
-          : _buildPlaceholder(),
+          : AspectRatio(aspectRatio: 16 / 9, child: _buildPlaceholder()),
     );
   }
 
@@ -111,8 +112,7 @@ class EventCard extends StatelessWidget {
       child: BackdropFilter(
         filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
         child: Container(
-          width: 192,
-          height: 192,
+          width: double.infinity,
           decoration: BoxDecoration(
             gradient: LinearGradient(
               colors: [
@@ -155,9 +155,11 @@ class EventCard extends StatelessWidget {
       event.nama,
       style: GoogleFonts.plusJakartaSans(
         color: Colors.white,
-        fontSize: 24,
+        fontSize: 18, // Perkecil dari 24 ke 18
         fontWeight: FontWeight.bold,
       ),
+      maxLines: 2,
+      overflow: TextOverflow.ellipsis,
     );
   }
 
@@ -168,7 +170,7 @@ class EventCard extends StatelessWidget {
       children: [
         _buildDetailItem(
           icon: Icons.calendar_today,
-          text: DateFormat('d MMMM yyyy', 'id_ID').format(event.tanggal),
+          text: DateFormat('d MMM yyyy', 'id_ID').format(event.tanggal),
         ),
         _buildDetailItem(icon: Icons.location_on, text: event.lokasi),
         _buildDetailItem(icon: Icons.sports_soccer, text: event.olahraga),
@@ -182,11 +184,15 @@ class EventCard extends StatelessWidget {
       children: [
         Icon(icon, color: Colors.grey[300], size: 16),
         const SizedBox(width: 8),
-        Text(
-          text,
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.grey[300],
-            fontSize: 14,
+        Flexible(
+          child: Text(
+            text,
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.grey[300],
+              fontSize: 14,
+            ),
+            overflow: TextOverflow.ellipsis,
+            maxLines: 1,
           ),
         ),
       ],
@@ -207,22 +213,46 @@ class EventCard extends StatelessWidget {
   }
 
   Widget _buildActions(BuildContext context) {
-    return TextButton(
-      onPressed: onTap,
-      style: TextButton.styleFrom(
-        padding: EdgeInsets.zero,
-        minimumSize: const Size(0, 0),
-        tapTargetSize: MaterialTapTargetSize.shrinkWrap,
-      ),
-      child: Text(
-        'Selengkapnya',
-        style: GoogleFonts.plusJakartaSans(
-          color: const Color(0xFFA4B3FF),
-          fontSize: 14,
-          fontWeight: FontWeight.w600,
-          decoration: TextDecoration.underline,
+    return Row(
+      children: [
+        TextButton(
+          onPressed: onTap,
+          style: TextButton.styleFrom(
+            padding: EdgeInsets.zero,
+            minimumSize: const Size(0, 0),
+            tapTargetSize: MaterialTapTargetSize.shrinkWrap,
+          ),
+          child: Text(
+            'Selengkapnya',
+            style: GoogleFonts.plusJakartaSans(
+              color: const Color(0xFFA4B3FF),
+              fontSize: 14,
+              fontWeight: FontWeight.w600,
+              decoration: TextDecoration.underline,
+            ),
+          ),
         ),
-      ),
+        const Spacer(),
+        if (onEdit != null)
+          IconButton(
+            onPressed: onEdit,
+            icon: const Icon(Icons.edit, size: 20),
+            color: const Color(0xFF571E88),
+            tooltip: 'Edit Event',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+        if (onEdit != null && onDelete != null) const SizedBox(width: 8),
+        if (onDelete != null)
+          IconButton(
+            onPressed: onDelete,
+            icon: const Icon(Icons.delete, size: 20),
+            color: const Color(0xFFFF5555),
+            tooltip: 'Hapus Event',
+            padding: EdgeInsets.zero,
+            constraints: const BoxConstraints(),
+          ),
+      ],
     );
   }
 }
