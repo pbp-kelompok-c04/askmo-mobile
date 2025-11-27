@@ -79,7 +79,7 @@ class LapanganCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              lapangan.olahraga,
+                              toTitleCase(lapangan.olahraga),
                               style: GoogleFonts.plusJakartaSans(
                                 color: Colors.white,
                                 fontSize: 10,
@@ -228,4 +228,12 @@ class LapanganCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String toTitleCase(String text) {
+  if (text.isEmpty) return text;
+  return text.split(' ').map((word) {
+    if (word.isEmpty) return word;
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join(' ');
 }
