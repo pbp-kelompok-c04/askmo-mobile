@@ -167,9 +167,13 @@ class _CoachPageState extends State<CoachPage> {
       final response = await request.get('http://127.0.0.1:8000/coach/json/');
 
       if (response != null) {
+        print('DEBUG _fetchCoach - Raw response: $response');
+        
         List<Coach> listData = [];
         for (var d in response) {
           if (d != null) {
+            print('DEBUG _fetchCoach - Processing item: $d');
+            print('DEBUG _fetchCoach - Fields data: ${d["fields"]}');
             listData.add(Coach.fromJson(d));
           }
         }
@@ -531,6 +535,10 @@ class _CoachPageState extends State<CoachPage> {
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final coach = _filteredCoach[index];
+          
+          // DEBUG: Print foto value
+          print('DEBUG: Coach ${coach.fields.name} - Photo: ${coach.fields.photo}');
+          
           return GestureDetector(
             onTap: () {
               Navigator.push(
@@ -544,7 +552,7 @@ class _CoachPageState extends State<CoachPage> {
               margin: const EdgeInsets.only(bottom: 16),
               padding: const EdgeInsets.all(16),
               decoration: BoxDecoration(
-                color: const Color(0xFF1A1A1A),
+                color: Colors.white.withOpacity(0.05),
                 borderRadius: BorderRadius.circular(16),
                 boxShadow: [
                   BoxShadow(
@@ -554,8 +562,8 @@ class _CoachPageState extends State<CoachPage> {
                   ),
                 ],
                 border: Border.all(
-                  color: Colors.white.withOpacity(0.1),
-                  width: 1,
+                  color: Colors.white.withOpacity(0.15),
+                  width: 1.5,
                 ),
               ),
               child: Row(
@@ -570,9 +578,8 @@ class _CoachPageState extends State<CoachPage> {
                       image: coach.fields.photo != null &&
                               coach.fields.photo!.isNotEmpty
                           ? DecorationImage(
-                              // Pastikan URL gambar benar
                               image: NetworkImage(
-                                  'http://127.0.0.1:8000/media/${coach.fields.photo}'),
+                                  _buildPhotoUrl(coach.fields.photo!)),
                               fit: BoxFit.cover,
                             )
                           : null,
@@ -643,5 +650,26 @@ class _CoachPageState extends State<CoachPage> {
         }, childCount: _filteredCoach.length),
       ),
     );
+  }
+
+  String _buildPhotoUrl(String photoPath) {
+    print('DEBUG _buildPhotoUrl - Input: $photoPath');
+    
+    // Jika sudah URL lengkap (http/https), kembalikan as-is
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      print('DEBUG _buildPhotoUrl - Already full URL: $photoPath');
+      return photoPath;
+    }
+    
+    // Jika kosong atau tidak valid, return empty
+    if (photoPath.isEmpty) {
+      print('DEBUG _buildPhotoUrl - Empty photo path');
+      return '';
+    }
+    
+    // Jika hanya nama file atau path relatif, tambahkan base URL media
+    final result = 'http://127.0.0.1:8000/media/$photoPath';
+    print('DEBUG _buildPhotoUrl - Built URL: $result');
+    return result;
   }
 }

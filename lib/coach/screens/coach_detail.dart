@@ -7,6 +7,14 @@ class CoachDetailPage extends StatelessWidget {
 
   const CoachDetailPage({super.key, required this.coach});
 
+  /// Build photo URL dari berbagai format
+  String _buildPhotoUrl(String photoPath) {
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      return photoPath;
+    }
+    return 'http://127.0.0.1:8000/media/$photoPath';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -41,7 +49,7 @@ class CoachDetailPage extends StatelessWidget {
                       coach.fields.photo != null && coach.fields.photo!.isNotEmpty
                           ? DecorationImage(
                               image: NetworkImage(
-                                  'http://127.0.0.1:8000/media/${coach.fields.photo}'),
+                                  _buildPhotoUrl(coach.fields.photo!)),
                               fit: BoxFit.cover,
                             )
                           : null,
