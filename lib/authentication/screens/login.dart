@@ -4,6 +4,7 @@ import 'package:provider/provider.dart';
 import 'package:askmo/profile/models/user_state.dart';
 import 'package:askmo/authentication/screens/register.dart';
 import 'package:askmo/menu.dart';
+import 'package:askmo/user_info.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
 
@@ -292,16 +293,36 @@ class _LoginPageState extends State<LoginPage>
                                     );
 
                                     if (request.loggedIn) {
-                                      String uname = response['username'];
+                                      String username = response['username'];
                                       // store username in app state
                                       final userState = context
                                           .read<UserState>();
                                     
                                       // Reload data dari storage untuk memastikan perubahan terakhir ter-load
                                       await userState.reload();
-                                      await userState.setUsername(uname);
+                                      await userState.setUsername(username);
                                       
+                                      // SIMPAN DATA USER
+                                      
+                                      bool isStaff = response['is_staff'] ?? false;
+                                      
+                                      UserInfo.login(username, isStaff); // Simpan ke static variable
+
                                       if (context.mounted) {
+                                        ScaffoldMessenger.of(context)
+                                          ..hideCurrentSnackBar()
+                                          ..showSnackBar(
+                                            const SnackBar(
+                                              backgroundColor: Color(
+                                                0xFF571E88,
+                                              ),
+                                              content: Text(
+                                                "Login berhasil!",
+                                              ),
+                                            ),
+                                          );
+
+                                        // Navigasi ke menu
                                         Navigator.pushReplacement(
                                           context,
                                           MaterialPageRoute(
@@ -309,24 +330,6 @@ class _LoginPageState extends State<LoginPage>
                                                 const MenuPage(),
                                           ),
                                         );
-                                        ScaffoldMessenger.of(context)
-                                          ..hideCurrentSnackBar()
-                                          ..showSnackBar(
-                                            SnackBar(
-                                              backgroundColor: const Color(
-                                                0xFF571E88,
-                                              ),
-                                              content: Text(
-                                                "Selamat datang, $uname!",
-                                                style:
-                                                    GoogleFonts.plusJakartaSans(
-                                                      color: const Color(
-                                                        0xFFFFFFFF,
-                                                      ),
-                                                    ),
-                                              ),
-                                            ),
-                                          );
                                       }
                                     } else {
                                       if (context.mounted) {
