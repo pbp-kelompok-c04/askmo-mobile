@@ -4,6 +4,7 @@ import 'package:askmo/authentication/screens/login.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:askmo/profile/models/user_state.dart';
+import 'package:askmo/wishlist/models/wishlist_state.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -12,7 +13,6 @@ void main() async {
   await initializeDateFormatting('id_ID', null);
   runApp(const MyApp());
 }
-
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -28,6 +28,7 @@ class MyApp extends StatelessWidget {
           },
         ),
         ChangeNotifierProvider<UserState>(create: (_) => UserState()),
+        ChangeNotifierProvider<WishlistState>(create: (_) => WishlistState()),
       ],
       child: MaterialApp(
         title: 'ASKMO',

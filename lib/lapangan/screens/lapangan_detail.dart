@@ -1,6 +1,8 @@
 // lib/screens/lapangan_detail.dart
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:askmo/wishlist/models/wishlist_state.dart';
 import '../models/lapangan.dart';
 
 class LapanganDetailPage extends StatelessWidget {
@@ -26,6 +28,38 @@ class LapanganDetailPage extends StatelessWidget {
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          Consumer<WishlistState>(
+            builder: (context, wishlistState, child) {
+              final isWished = wishlistState.isWished(lapangan.id, 'lapangan');
+              return IconButton(
+                icon: Icon(
+                  isWished ? Icons.favorite : Icons.favorite_border,
+                  color: isWished ? Colors.red : Colors.white,
+                ),
+                onPressed: () {
+                  wishlistState.toggleWish(
+                    id: lapangan.id,
+                    type: 'lapangan',
+                    name: lapangan.nama,
+                    imageUrl: lapangan.thumbnail ?? '',
+                    category: lapangan.olahraga,
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isWished
+                            ? 'Dihapus dari Wishlist'
+                            : 'Ditambahkan ke Wishlist',
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Padding(
@@ -147,7 +181,7 @@ class LapanganDetailPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Details Section
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
@@ -170,7 +204,8 @@ class LapanganDetailPage extends StatelessWidget {
                   label: 'Kontak',
                   value: lapangan.kontak ?? "-",
                 ),
-                if (lapangan.fasilitas != null && lapangan.fasilitas!.isNotEmpty) ...[
+                if (lapangan.fasilitas != null &&
+                    lapangan.fasilitas!.isNotEmpty) ...[
                   const SizedBox(height: 16),
                   _buildDetailRow(
                     icon: Icons.check_circle_outline,
@@ -182,7 +217,7 @@ class LapanganDetailPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Price
           Text(
             'Rp ${lapangan.tarifPerSesi} / sesi',
@@ -193,7 +228,7 @@ class LapanganDetailPage extends StatelessWidget {
             ),
           ),
           const SizedBox(height: 24),
-          
+
           // Description
           Text(
             'Deskripsi',
@@ -212,7 +247,7 @@ class LapanganDetailPage extends StatelessWidget {
               height: 1.5,
             ),
           ),
-          
+
           // Peraturan (Optional)
           if (lapangan.peraturan != null && lapangan.peraturan!.isNotEmpty) ...[
             const SizedBox(height: 24),

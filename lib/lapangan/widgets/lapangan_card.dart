@@ -6,11 +6,13 @@ import '../models/lapangan.dart';
 class LapanganCard extends StatelessWidget {
   final Lapangan lapangan;
   final VoidCallback onTap;
+  final VoidCallback onBook;
 
   const LapanganCard({
     super.key,
     required this.lapangan,
     required this.onTap,
+    required this.onBook,
   });
 
   @override
@@ -142,6 +144,62 @@ class LapanganCard extends StatelessWidget {
                                     ),
                                   ),
                                 ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: onTap,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    side: BorderSide(
+                                      color: Colors.white.withOpacity(0.6),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  icon: const Icon(Icons.info_outline, size: 18),
+                                  label: Text(
+                                    'Detail',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: onBook,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF06005E),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.schedule,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                                  label: Text(
+                                    'Booking',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
                               ),
                             ],
                           ),

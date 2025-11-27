@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:askmo/wishlist/models/wishlist_state.dart';
 import 'package:askmo/coach/models/coach_model.dart';
 
 class CoachDetailPage extends StatelessWidget {
@@ -22,6 +24,41 @@ class CoachDetailPage extends StatelessWidget {
           'Detail Coach',
           style: GoogleFonts.plusJakartaSans(color: Colors.white),
         ),
+        actions: [
+          Consumer<WishlistState>(
+            builder: (context, wishlistState, child) {
+              final isWished = wishlistState.isWished(
+                coach.pk.toString(),
+                'coach',
+              );
+              return IconButton(
+                icon: Icon(
+                  isWished ? Icons.favorite : Icons.favorite_border,
+                  color: isWished ? Colors.red : Colors.white,
+                ),
+                onPressed: () {
+                  wishlistState.toggleWish(
+                    id: coach.pk.toString(),
+                    type: 'coach',
+                    name: coach.fields.name,
+                    imageUrl: coach.fields.photo ?? '',
+                    category: coach.fields.sportBranch,
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      content: Text(
+                        isWished
+                            ? 'Dihapus dari Wishlist'
+                            : 'Ditambahkan ke Wishlist',
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+        ],
       ),
       body: SingleChildScrollView(
         child: Column(
@@ -38,18 +75,19 @@ class CoachDetailPage extends StatelessWidget {
                   border: Border.all(color: const Color(0xFF571E88), width: 4),
                   color: Colors.grey[800],
                   image:
-                      coach.fields.photo != null && coach.fields.photo!.isNotEmpty
-                          ? DecorationImage(
-                              image: NetworkImage(
-                                  'http://127.0.0.1:8000/media/${coach.fields.photo}'),
-                              fit: BoxFit.cover,
-                            )
-                          : null,
+                      coach.fields.photo != null &&
+                          coach.fields.photo!.isNotEmpty
+                      ? DecorationImage(
+                          image: NetworkImage(
+                            'http://127.0.0.1:8000/media/${coach.fields.photo}',
+                          ),
+                          fit: BoxFit.cover,
+                        )
+                      : null,
                 ),
-                child:
-                    coach.fields.photo == null || coach.fields.photo!.isEmpty
-                        ? const Icon(Icons.person, color: Colors.white, size: 80)
-                        : null,
+                child: coach.fields.photo == null || coach.fields.photo!.isEmpty
+                    ? const Icon(Icons.person, color: Colors.white, size: 80)
+                    : null,
               ),
             ),
 
@@ -67,8 +105,10 @@ class CoachDetailPage extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Container(
-                    padding:
-                        const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
                     decoration: BoxDecoration(
                       color: const Color(0xFF571E88).withOpacity(0.2),
                       borderRadius: BorderRadius.circular(20),
@@ -102,12 +142,22 @@ class CoachDetailPage extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildInfoRow(
-                      Icons.location_on, "Lokasi", coach.fields.location),
+                    Icons.location_on,
+                    "Lokasi",
+                    coach.fields.location,
+                  ),
                   _buildDivider(),
                   _buildInfoRow(
-                      Icons.monetization_on, "Tarif", coach.fields.serviceFee),
+                    Icons.monetization_on,
+                    "Tarif",
+                    coach.fields.serviceFee,
+                  ),
                   _buildDivider(),
-                  _buildInfoRow(Icons.contact_phone, "Kontak", coach.fields.contact),
+                  _buildInfoRow(
+                    Icons.contact_phone,
+                    "Kontak",
+                    coach.fields.contact,
+                  ),
                   _buildDivider(),
                   const SizedBox(height: 10),
                   Text(
@@ -124,7 +174,9 @@ class CoachDetailPage extends StatelessWidget {
                         ? coach.fields.experience
                         : "-",
                     style: GoogleFonts.plusJakartaSans(
-                        color: Colors.grey[300], height: 1.5),
+                      color: Colors.grey[300],
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 20),
                   Text(
@@ -141,7 +193,9 @@ class CoachDetailPage extends StatelessWidget {
                         ? coach.fields.certifications
                         : "-",
                     style: GoogleFonts.plusJakartaSans(
-                        color: Colors.grey[300], height: 1.5),
+                      color: Colors.grey[300],
+                      height: 1.5,
+                    ),
                   ),
                   const SizedBox(height: 40), // Space for bottom navigation
                 ],
