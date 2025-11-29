@@ -1,6 +1,8 @@
 import 'dart:ui'; // Needed for ImageFilter
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:provider/provider.dart';
+import 'package:askmo/wishlist/models/wishlist_state.dart';
 import '../models/lapangan.dart';
 
 class LapanganDetailPage extends StatefulWidget {
@@ -119,6 +121,46 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          Consumer<WishlistState>(
+            builder: (context, wishlistState, child) {
+              final isWished = wishlistState.isWished(
+                widget.lapangan.id,
+                'lapangan',
+              );
+              return IconButton(
+                icon: Icon(
+                  isWished ? Icons.favorite : Icons.favorite_border,
+                  color: isWished ? Colors.red : Colors.white,
+                  size: 28,
+                ),
+                onPressed: () {
+                  wishlistState.toggleWish(
+                    id: widget.lapangan.id,
+                    type: 'lapangan',
+                    name: widget.lapangan.nama,
+                    imageUrl: widget.lapangan.thumbnail ?? '',
+                    location: '',
+                    category: widget.lapangan.olahraga,
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: const Color(0xFF571E88),
+                      content: Text(
+                        isWished
+                            ? 'Dihapus dari Wishlist'
+                            : 'Ditambahkan ke Wishlist',
+                        style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Stack(
         children: [
@@ -238,7 +280,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: AspectRatio(
-        aspectRatio: 16 / 9, // Slightly wider for hero-like feel
+        aspectRatio: 16 / 9,
         child: widget.lapangan.thumbnail != null &&
                 widget.lapangan.thumbnail!.isNotEmpty
             ? Image.network(

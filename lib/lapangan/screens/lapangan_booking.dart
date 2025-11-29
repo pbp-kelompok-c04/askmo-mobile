@@ -1,7 +1,10 @@
-import 'dart:ui'; // Needed for ImageFilter
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../models/lapangan.dart';
+import 'package:provider/provider.dart';
+import 'package:intl/intl.dart';
+import 'package:askmo/history/models/booking_history_state.dart';
 
 class LapanganBookingPage extends StatefulWidget {
   final Lapangan lapangan;
@@ -40,7 +43,6 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
   String _paymentMethod = 'Transfer Bank';
   bool _isProcessingPayment = false;
 
-  // Animation controllers for the background aura
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
@@ -49,7 +51,6 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
     super.initState();
     _selectedDay = _scheduleByDay.keys.first;
 
-    // Initialize Animation Controller
     _animationController = AnimationController(
       duration: const Duration(seconds: 15),
       vsync: this,
@@ -66,7 +67,6 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
     super.dispose();
   }
 
-  // Helper to convert text to Title Case (e.g. "sepakbola" -> "Sepakbola")
   String _toTitleCase(String text) {
     if (text.isEmpty) return text;
     return text.split(' ').map((word) {
@@ -767,6 +767,16 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
           color: Colors.white54,
           size: 32,
         ),
+      ),
+    );
+  }
+
+  BoxDecoration _sectionDecoration() {
+    return BoxDecoration(
+      color: const Color(0xFF353535),
+      borderRadius: BorderRadius.circular(16),
+      border: Border.all(
+        color: Colors.white.withOpacity(0.15),
       ),
     );
   }

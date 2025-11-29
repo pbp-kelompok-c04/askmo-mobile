@@ -75,4 +75,28 @@ class Lapangan {
         "peraturan": peraturan,
         "fasilitas": fasilitas,
       };
+
+  factory Lapangan.fromWishedItem({
+    required String id,
+    required String name,
+    required String imageUrl,
+    required String category,
+  }) {
+    return Lapangan(
+      id: id,
+      nama: name,
+      deskripsi: '',
+      olahraga: category,
+      thumbnail: imageUrl,
+      rating: 0.0,
+      refund: false,
+      tarifPerSesi: 'N/A',
+      kontak: null,
+      alamat: null,
+      kecamatan: null,
+      review: null,
+      peraturan: null,
+      fasilitas: null,
+    );
+  }
 }
