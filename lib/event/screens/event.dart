@@ -510,7 +510,7 @@ class _EventPageState extends State<EventPage> {
             child: Text(
               group,
               style: GoogleFonts.plusJakartaSans(
-                color: Colors.white70,
+                color: Color(0xFFA4E4FF),
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),

@@ -605,7 +605,7 @@ class _EventFormPageState extends State<EventFormPage> {
                   return Theme(
                     data: Theme.of(context).copyWith(
                       colorScheme: const ColorScheme.dark(
-                        primary: Color(0xFF571E88),
+                        primary: Color(0xFFA4E4FF),
                         onPrimary: Colors.white,
                         surface: Color(0xFF2A2A2A),
                         onSurface: Colors.white,

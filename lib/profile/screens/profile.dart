@@ -24,10 +24,10 @@ class _ProfilePageState extends State<ProfilePage>
   String _selectedTab = 'wishlist';
 
   final List<String> _avatars = [
-    'asset/avatar/default_avatar.png',
-    'asset/avatar/avatar1.png',
-    'asset/avatar/avatar2.png',
-    'asset/avatar/avatar3.png',
+    'assets/avatar/default_avatar.png',
+    'assets/avatar/avatar1.png',
+    'assets/avatar/avatar2.png',
+    'assets/avatar/avatar3.png',
   ];
 
   final Map<String, String> _sportChoices = {
@@ -122,7 +122,7 @@ class _ProfilePageState extends State<ProfilePage>
     EdgeInsets? padding,
     double radius = 16.0,
     double? height,
-    double opacity = 0.03, 
+    double opacity = 0.03,
   }) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(radius),
@@ -164,7 +164,7 @@ class _ProfilePageState extends State<ProfilePage>
     final userState = context.watch<UserState>();
     final String avatarPath = userState.avatarPath.isNotEmpty
         ? userState.avatarPath
-        : 'asset/avatar/default_avatar.png';
+        : 'assets/avatar/default_avatar.png';
     final String sportKey = userState.favoriteSport.isNotEmpty
         ? userState.favoriteSport
         : 'lainnya';
@@ -329,11 +329,11 @@ class _ProfilePageState extends State<ProfilePage>
     String imagePath;
 
     if (type == 'wishlist') {
-      imagePath = 'asset/image/wishlist_placeholder_1.png';
+      imagePath = 'assets/image/wishlist_placeholder_1.png';
     } else if (type == 'coach') {
-      imagePath = 'asset/image/coach_placeholder.png';
+      imagePath = 'assets/image/coach_placeholder.png';
     } else if (type == 'history') {
-      imagePath = 'asset/image/history_placeholder.png';
+      imagePath = 'assets/image/history_placeholder.png';
     } else {
       return Container(color: Colors.grey[800]);
     }
@@ -457,7 +457,7 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _sportIconWidget(String key) {
-    final path = 'asset/icon-olahraga/$key.png';
+    final path = 'assets/icon-olahraga/$key.png';
     return Image.asset(
       path,
       fit: BoxFit.contain,
@@ -624,7 +624,7 @@ class _ProfilePageState extends State<ProfilePage>
                                     : CircleAvatar(
                                         radius: 48,
                                         backgroundImage: const AssetImage(
-                                          'asset/avatar/default_avatar.png',
+                                          'assets/avatar/default_avatar.png',
                                         ),
                                       )),
                         ),
@@ -656,7 +656,7 @@ class _ProfilePageState extends State<ProfilePage>
                                         a,
                                         fit: BoxFit.cover,
                                         errorBuilder: (c, e, s) => Image.asset(
-                                          'asset/avatar/default_avatar.png',
+                                          'assets/avatar/default_avatar.png',
                                         ),
                                       ),
                                     ),
@@ -716,7 +716,7 @@ class _ProfilePageState extends State<ProfilePage>
                                       width: 28,
                                       height: 28,
                                       child: Image.asset(
-                                        'asset/icon-olahraga/${e.key}.png',
+                                        'assets/icon-olahraga/${e.key}.png',
                                         errorBuilder: (c, ex, st) => const Icon(
                                           Icons.sports,
                                           color: Colors.white,

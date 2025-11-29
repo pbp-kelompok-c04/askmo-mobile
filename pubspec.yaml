@@ -31,7 +31,7 @@ dependencies:
   flutter:
     sdk: flutter
 
-
+  google_sign_in: ^6.1.0
   # The following adds the Cupertino Icons font to your application.
   # Use with the CupertinoIcons class for iOS style icons.
   google_fonts: ^6.1.0 
@@ -59,7 +59,6 @@ dev_dependencies:
 
 # The following section is specific to Flutter packages.
 flutter:
-
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in
   # the material Icons class.
@@ -67,9 +66,10 @@ flutter:
 
   # Assets used by the app (images, avatars, icons)
   assets:
-    - asset/avatar/
-    - asset/image/
-    - asset/icon-olahraga/
+    - assets/avatar/
+    - assets/image/
+    - assets/icon-olahraga/
+    - assets/auth-icon/
 
   # To add assets to your application, add an assets section, like this:
   # assets:
