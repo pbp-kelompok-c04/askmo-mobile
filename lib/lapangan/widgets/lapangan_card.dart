@@ -7,12 +7,16 @@ class LapanganCard extends StatelessWidget {
   final Lapangan lapangan;
   final VoidCallback onTap;
   final VoidCallback onBook;
+  final bool showWishlistButton;
+  final VoidCallback? onWishlistRemove;
 
   const LapanganCard({
     super.key,
     required this.lapangan,
     required this.onTap,
     required this.onBook,
+    this.showWishlistButton = false,
+    this.onWishlistRemove,
   });
 
   @override
@@ -51,20 +55,46 @@ class LapanganCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Thumbnail Image
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: lapangan.thumbnail != null && lapangan.thumbnail!.isNotEmpty
-                            ? Image.network(
-                                lapangan.thumbnail!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    _buildPlaceholder(),
-                              )
-                            : _buildPlaceholder(),
-                      ),
+                    // Thumbnail Image with Wishlist Button
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: lapangan.thumbnail != null && lapangan.thumbnail!.isNotEmpty
+                                ? Image.network(
+                                    lapangan.thumbnail!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        _buildPlaceholder(),
+                                  )
+                                : _buildPlaceholder(),
+                          ),
+                        ),
+                        // Love button overlay (jika showWishlistButton = true)
+                        if (showWishlistButton)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: onWishlistRemove,
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withOpacity(0.6),
+                                ),
+                                child: const Icon(
+                                  Icons.favorite,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     Padding(
                       padding: const EdgeInsets.all(16),
@@ -79,7 +109,7 @@ class LapanganCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              lapangan.olahraga,
+                              toTitleCase(lapangan.olahraga),
                               style: GoogleFonts.plusJakartaSans(
                                 color: Colors.white,
                                 fontSize: 10,
@@ -228,4 +258,12 @@ class LapanganCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String toTitleCase(String text) {
+  if (text.isEmpty) return text;
+  return text.split(' ').map((word) {
+    if (word.isEmpty) return word;
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join(' ');
 }

@@ -1,8 +1,15 @@
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:askmo/profile/models/user_state.dart';
 import 'package:askmo/wishlist/models/wishlist_state.dart';
+import 'package:askmo/lapangan/screens/lapangan_detail.dart';
+import 'package:askmo/lapangan/models/lapangan.dart';
+import 'package:askmo/lapangan/widgets/lapangan_card.dart';
+import 'package:askmo/lapangan/screens/lapangan_booking.dart';
+import 'package:askmo/coach/screens/coach_detail.dart'; 
+import 'package:askmo/coach/models/coach_model.dart';
 import 'package:file_picker/file_picker.dart';
 import 'dart:typed_data';
 import 'dart:convert' show base64Encode, base64Decode;
@@ -18,17 +25,18 @@ class ProfilePage extends StatefulWidget {
 }
 
 class _ProfilePageState extends State<ProfilePage>
-    with SingleTickerProviderStateMixin {
+  with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
+  
   String _selectedTab = 'wishlist';
 
   final List<String> _avatars = [
-    'asset/avatar/default_avatar.png',
-    'asset/avatar/avatar1.png',
-    'asset/avatar/avatar2.png',
-    'asset/avatar/avatar3.png',
+    'assets/avatar/default_avatar.png',
+    'assets/avatar/avatar1.png',
+    'assets/avatar/avatar2.png',
+    'assets/avatar/avatar3.png',
   ];
 
   final Map<String, String> _sportChoices = {
@@ -62,6 +70,65 @@ class _ProfilePageState extends State<ProfilePage>
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  Future<void> _showUnwishlistDialog(
+    BuildContext context,
+    WishedItem item,
+    WishlistState wishlistState,
+  ) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.white.withOpacity(0.2)),
+        ),
+        title: Text(
+          'Hapus dari Wishlist',
+          style: GoogleFonts.plusJakartaSans(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Apakah Anda yakin ingin menghapus ${item.name} dari Wishlist?',
+          style: GoogleFonts.plusJakartaSans(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.plusJakartaSans(color: Colors.white70),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(backgroundColor: Colors.red),
+            child: Text(
+              'Hapus',
+              style: GoogleFonts.plusJakartaSans(color: Colors.white),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      await wishlistState.removeWish(item.id);
+      
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(
+          backgroundColor: const Color(0xFFFF5555),
+          content: Text(
+            '${item.name} berhasil dihapus dari Wishlist.',
+            style: GoogleFonts.plusJakartaSans(color: Colors.white),
+          ),
+        ),
+      );
+    }
   }
 
   Widget _buildBackgroundAura() {
@@ -158,12 +225,11 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  // --- Profile Column (Tanpa tombol aksi di bawah) ---
   Widget _buildProfileColumn() {
     final userState = context.watch<UserState>();
     final String avatarPath = userState.avatarPath.isNotEmpty
         ? userState.avatarPath
-        : 'asset/avatar/default_avatar.png';
+        : 'assets/avatar/default_avatar.png';
     final String sportKey = userState.favoriteSport.isNotEmpty
         ? userState.favoriteSport
         : 'lainnya';
@@ -215,7 +281,7 @@ class _ProfilePageState extends State<ProfilePage>
         ),
         const SizedBox(height: 12),
         SizedBox(
-          width: 300, // Batasi lebar tombol
+          width: 300, 
           child: Container(
             decoration: BoxDecoration(
               gradient: const LinearGradient(
@@ -247,7 +313,6 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  // --- Baris Menu Navigasi Horizontal ---
   Widget _buildTabsBar() {
     return Container(
       decoration: BoxDecoration(
@@ -328,11 +393,11 @@ class _ProfilePageState extends State<ProfilePage>
     String imagePath;
 
     if (type == 'wishlist') {
-      imagePath = 'asset/image/wishlist_placeholder_1.png';
+      imagePath = 'assets/image/wishlist_placeholder_1.png';
     } else if (type == 'coach') {
-      imagePath = 'asset/image/coach_placeholder.png';
+      imagePath = 'assets/image/coach_placeholder.png';
     } else if (type == 'history') {
-      imagePath = 'asset/image/history_placeholder.png';
+      imagePath = 'assets/image/history_placeholder.png';
     } else {
       return Container(color: Colors.grey[800]);
     }
@@ -351,104 +416,109 @@ class _ProfilePageState extends State<ProfilePage>
     required String category,
     required String imageUrl,
     required VoidCallback onRemove,
+    required VoidCallback onTap,
   }) {
-    return _glassContainer(
-      radius: 12,
-      height: 160,
-      opacity: 0.1,
-      child: Column(
-        children: [
-          // Image
-          Expanded(
-            child: Stack(
-              children: [
-                ClipRRect(
-                  borderRadius: const BorderRadius.only(
-                    topLeft: Radius.circular(12),
-                    topRight: Radius.circular(12),
-                  ),
-                  child: SizedBox(
-                    width: double.infinity,
-                    child: imageUrl.isNotEmpty
-                        ? Image.network(
-                            imageUrl,
-                            fit: BoxFit.cover,
-                            errorBuilder: (c, e, s) => const Icon(
+    return GestureDetector( 
+      onTap: onTap,
+      child: _glassContainer(
+        radius: 12,
+        height: 160,
+        opacity: 0.1,
+        child: Column(
+          children: [
+            // Image
+            Expanded(
+              child: Stack(
+                children: [
+                  ClipRRect(
+                    borderRadius: const BorderRadius.only(
+                      topLeft: Radius.circular(12),
+                      topRight: Radius.circular(12),
+                    ),
+                    child: SizedBox(
+                      width: double.infinity,
+                      child: imageUrl.isNotEmpty
+                          ? Image.network(
+                              imageUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (c, e, s) => const Icon(
+                                Icons.image_not_supported,
+                                color: Colors.grey,
+                              ),
+                            )
+                          : const Icon(
                               Icons.image_not_supported,
                               color: Colors.grey,
                             ),
-                          )
-                        : const Icon(
-                            Icons.image_not_supported,
-                            color: Colors.grey,
-                          ),
-                  ),
-                ),
-                // Overlay dark
-                Container(
-                  decoration: BoxDecoration(
-                    gradient: LinearGradient(
-                      begin: Alignment.topCenter,
-                      end: Alignment.bottomCenter,
-                      colors: [
-                        Colors.transparent,
-                        Colors.black.withValues(alpha: 0.5),
-                      ],
                     ),
                   ),
-                ),
-                // Love button
-                Positioned(
-                  top: 8,
-                  right: 8,
-                  child: GestureDetector(
-                    onTap: onRemove,
-                    child: Container(
-                      width: 32,
-                      height: 32,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        color: Colors.black.withValues(alpha: 0.6),
-                      ),
-                      child: const Icon(
-                        Icons.favorite,
-                        color: Colors.red,
-                        size: 16,
+                  // Overlay dark
+                  Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.topCenter,
+                        end: Alignment.bottomCenter,
+                        colors: [
+                          Colors.transparent,
+                          Colors.black.withOpacity(0.5),
+                        ],
                       ),
                     ),
                   ),
-                ),
-              ],
-            ),
-          ),
-          // Content
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  title,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white,
-                    fontSize: 13,
-                    fontWeight: FontWeight.w600,
+                  
+                  // wishlist button
+                  Positioned(
+                    top: 8,
+                    right: 8,
+                    child: GestureDetector(
+                      onTap: onRemove,
+                      child: Container(
+                        width: 32,
+                        height: 32,
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          color: Colors.black.withOpacity(0.6),
+                        ),
+                        child: const Icon(
+                          Icons.favorite,
+                          color: Colors.red,
+                          size: 16,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
-                const SizedBox(height: 2),
-                Text(
-                  category,
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.grey[400],
-                    fontSize: 11,
-                  ),
-                ),
-              ],
+                ],
+              ),
             ),
-          ),
-        ],
+            // Content
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    title,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white,
+                      fontSize: 13,
+                      fontWeight: FontWeight.w600,
+                    ),
+                  ),
+                  const SizedBox(height: 2),
+                  Text(
+                    category,
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.grey[400],
+                      fontSize: 11,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }
@@ -458,86 +528,132 @@ class _ProfilePageState extends State<ProfilePage>
     required String name,
     required String sportBranch,
     required String photoUrl,
-    required VoidCallback onRemove,
+    required String location,
+    required VoidCallback onRemove, 
+    required VoidCallback onTap,
   }) {
-    return _glassContainer(
-      radius: 12,
-      opacity: 0.1,
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Stack(
-            alignment: Alignment.center,
-            children: [
-              // Avatar
-              Container(
-                width: 80,
-                height: 80,
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  border: Border.all(color: const Color(0xFF7E57C2), width: 3),
-                  image: photoUrl.isNotEmpty
-                      ? DecorationImage(
-                          image: NetworkImage(photoUrl),
-                          fit: BoxFit.cover,
-                        )
+    return GestureDetector(
+      onTap: onTap,
+      child: _glassContainer(
+        radius: 12,
+        opacity: 0.1,
+        padding: const EdgeInsets.all(16.0), 
+        child: Stack(
+          alignment: Alignment.center,
+          children: [
+            Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              crossAxisAlignment: CrossAxisAlignment.center, 
+              children: [
+                // Avatar (Thumbnail Coach)
+                Container(
+                  width: 80,
+                  height: 80,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    border: Border.all(color: const Color(0xFF7E57C2), width: 3),
+                    color: Colors.grey[900],
+                    image: photoUrl.isNotEmpty
+                        ? DecorationImage(
+                            image: NetworkImage(photoUrl),
+                            fit: BoxFit.cover,
+                          )
+                        : null,
+                  ),
+                  child: photoUrl.isEmpty
+                      ? const Icon(Icons.person, color: Colors.grey, size: 40)
                       : null,
                 ),
-                child: photoUrl.isEmpty
-                    ? const Icon(Icons.person, color: Colors.grey)
-                    : null,
-              ),
-              // Love button overlay
-              Positioned(
-                top: 0,
-                right: 0,
-                child: GestureDetector(
-                  onTap: onRemove,
-                  child: Container(
-                    width: 28,
-                    height: 28,
-                    decoration: BoxDecoration(
-                      shape: BoxShape.circle,
-                      color: Colors.black.withValues(alpha: 0.6),
+                const SizedBox(height: 12),
+                // Nama Coach
+                Text(
+                  name,
+                  maxLines: 1,
+                  textAlign: TextAlign.center,
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white,
+                    fontSize: 14,
+                    fontWeight: FontWeight.w600,
+                  ),
+                  overflow: TextOverflow.ellipsis,
+                ),
+                const SizedBox(height: 6),
+                // Cabang Olahraga
+                Container(
+                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
+                  decoration: BoxDecoration(
+                    color: const Color(0xFF06005E),
+                    borderRadius: BorderRadius.circular(999),
+                    boxShadow: [
+                      BoxShadow(
+                        color: const Color(0xFF06005E).withOpacity(0.4),
+                        blurRadius: 8,
+                        offset: const Offset(0, 2),
+                      )
+                    ],
+                  ),
+                  child: Text(
+                    sportBranch,
+                    style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white,
+                      fontSize: 10,
+                      fontWeight: FontWeight.w500,
                     ),
-                    child: const Icon(
-                      Icons.favorite,
-                      color: Colors.red,
-                      size: 14,
+                  ),
+                ),
+                const SizedBox(height: 6),
+                // lokasi Coach
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    const Icon(Icons.location_on, color: Colors.white70, size: 12),
+                    const SizedBox(width: 4),
+                    Text(
+                      location,
+                      maxLines: 1,
+                      textAlign: TextAlign.center,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white70,
+                        fontSize: 11,
+                        fontWeight: FontWeight.w300,
+                      ),
+                      overflow: TextOverflow.ellipsis,
+                    ),
+                  ],
+                ),
+                const SizedBox(height: 6),
+              ],
+            ),
+
+            // Unwishlist
+            Positioned(
+              top: 0,
+              right: 0,
+              child: GestureDetector(
+                onTap: onRemove,
+                child: ClipOval(
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 5, sigmaY: 5),
+                    child: Container(
+                      width: 32, 
+                      height: 32, 
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.2),
+                        shape: BoxShape.circle,
+                        border: Border.all(color: Colors.white.withOpacity(0.3), width: 0.8),
+                      ),
+                      child: const Icon(
+                        Icons.favorite,
+                        color: Colors.red,
+                        size: 18,
+                      ),
                     ),
                   ),
                 ),
               ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          Text(
-            name,
-            maxLines: 2,
-            textAlign: TextAlign.center,
-            style: GoogleFonts.plusJakartaSans(
-              color: Colors.white,
-              fontSize: 13,
-              fontWeight: FontWeight.w600,
             ),
-          ),
-          const SizedBox(height: 6),
-          Container(
-            padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-            decoration: BoxDecoration(
-              border: Border.all(color: const Color(0xFF7E57C2), width: 1),
-              borderRadius: BorderRadius.circular(4),
-            ),
-            child: Text(
-              sportBranch,
-              style: GoogleFonts.plusJakartaSans(
-                color: const Color(0xFF00BCD4),
-                fontSize: 10,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -590,86 +706,283 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _buildTabContent(String tabKey) {
-    return Consumer<WishlistState>(
-      builder: (context, wishlistState, child) {
-        if (tabKey == 'wishlist') {
-          final lapanganItems = wishlistState.getWishedByType('lapangan');
-          if (lapanganItems.isEmpty) {
-            return _buildEmptyState(
-              message:
-                  'Tidak ada Lapangan yang di-Wishlist. Ayo temukan Lapangan favoritmu!',
-            );
-          }
-          return SingleChildScrollView(
-            child: Column(
-              children: lapanganItems.map((item) {
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 12),
-                  child: _buildLapanganWishlistCard(
-                    title: item.name,
-                    category: item.category,
-                    imageUrl: item.imageUrl,
-                    onRemove: () => wishlistState.removeWish(item.id),
-                  ),
-                );
-              }).toList(),
-            ),
-          );
-        } else if (tabKey == 'coach') {
-          final coachItems = wishlistState.getWishedByType('coach');
-          if (coachItems.isEmpty) {
-            return _buildEmptyState(
-              message:
-                  'Tidak ada Coach dalam daftar favorit. Cari Coach terbaik sekarang!',
-            );
-          }
-          return GridView.builder(
-            gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-              crossAxisCount: 2,
-              crossAxisSpacing: 12,
-              mainAxisSpacing: 12,
-            ),
-            itemCount: coachItems.length,
-            itemBuilder: (context, index) {
-              final item = coachItems[index];
-              return _buildCoachWishlistCard(
-                name: item.name,
-                sportBranch: item.category,
-                photoUrl: item.imageUrl,
-                onRemove: () => wishlistState.removeWish(item.id),
-              );
-            },
-          );
-        } else if (tabKey == 'history') {
-          if (!_hasHistoryItems) {
-            return _buildEmptyState(
-              message:
-                  'Anda belum memiliki riwayat booking. Booking lapangan pertamamu!',
-            );
-          }
-          return Column(
-            children: [
-              _buildCard(
-                title: 'Booking History - Voli',
-                type: 'history',
-                onTap: () {},
-              ),
-            ],
-          );
-        } else {
-          return const Center(
-            child: Text(
-              'Konten tidak tersedia',
-              style: TextStyle(color: Colors.white54),
-            ),
+  return Consumer<WishlistState>(
+    builder: (context, wishlistState, child) {
+      if (tabKey == 'wishlist') {
+        final lapanganItems = wishlistState.getWishedByType('lapangan');
+        if (lapanganItems.isEmpty) {
+          return _buildEmptyState(
+            message:
+                'Tidak ada Lapangan yang di-Wishlist. Ayo temukan Lapangan favoritmu!',
           );
         }
-      },
-    );
+
+        return FutureBuilder<List<Lapangan>>(
+          future: _fetchLapanganDetails(lapanganItems),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(color: Color(0xFF571E88)),
+              );
+            }
+
+            if (snapshot.hasError || !snapshot.hasData) {
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: lapanganItems.length,
+                itemBuilder: (context, index) {
+                  final item = lapanganItems[index];
+                  final lapanganDummy = Lapangan.fromWishedItem(
+                    id: item.id,
+                    name: item.name,
+                    imageUrl: item.imageUrl,
+                    category: item.category,
+                  );
+
+                  return LapanganCard(
+                    lapangan: lapanganDummy,
+                    showWishlistButton: true,
+                    onWishlistRemove: () => _showUnwishlistDialog(context, item, wishlistState),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LapanganDetailPage(lapangan: lapanganDummy),
+                        ),
+                      );
+                    },
+                    onBook: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LapanganBookingPage(lapangan: lapanganDummy),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            }
+
+            final lapanganList = snapshot.data!;
+            return ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: lapanganList.length,
+              itemBuilder: (context, index) {
+                final lapangan = lapanganList[index];
+                final wishItem = lapanganItems.firstWhere(
+                  (item) => item.id == lapangan.id,
+                );
+
+                return LapanganCard(
+                  lapangan: lapangan,
+                  showWishlistButton: true,
+                  onWishlistRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LapanganDetailPage(lapangan: lapangan),
+                      ),
+                    );
+                  },
+                  onBook: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => LapanganBookingPage(lapangan: lapangan),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      } else if (tabKey == 'coach') {
+        final coachItems = wishlistState.getWishedByType('coach');
+        if (coachItems.isEmpty) {
+          return _buildEmptyState(
+            message:
+                'Tidak ada Coach dalam daftar favorit. Cari Coach terbaik sekarang!',
+          );
+        }
+        
+        return FutureBuilder<List<Coach>>(
+          future: _fetchCoachDetails(coachItems),
+          builder: (context, snapshot) {
+            if (snapshot.connectionState == ConnectionState.waiting) {
+              return const Center(
+                child: CircularProgressIndicator(color: Color(0xFF571E88)),
+              );
+            }
+
+            if (snapshot.hasError || !snapshot.hasData) {
+              // Fallback: gunakan data minimal dari wishlist
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                ),
+                itemCount: coachItems.length,
+                itemBuilder: (context, index) {
+                  final item = coachItems[index];
+                  return _buildCoachWishlistCard(
+                    name: item.name,
+                    sportBranch: item.category,
+                    photoUrl: item.imageUrl,
+                    location: item.location,
+                    onRemove: () => _showUnwishlistDialog(context, item, wishlistState),
+                    onTap: () {
+                      final coachDummy = Coach(
+                        model: 'coach.coach',
+                        pk: int.tryParse(item.id) ?? 0,
+                        fields: Fields(
+                          name: item.name,
+                          sportBranch: item.category,
+                          location: '',
+                          contact: '',
+                          experience: '',
+                          certifications: '',
+                          serviceFee: '',
+                          photo: item.imageUrl,
+                        ),
+                      );
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CoachDetailPage(coach: coachDummy),
+                        ),
+                      );
+                    },
+                  );
+                },
+              );
+            }
+
+            // Gunakan data lengkap dari backend
+            final coachList = snapshot.data!;
+            return GridView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                crossAxisCount: 2,
+                crossAxisSpacing: 12,
+                mainAxisSpacing: 12,
+              ),
+              itemCount: coachList.length,
+              itemBuilder: (context, index) {
+                final coach = coachList[index];
+                final wishItem = coachItems.firstWhere(
+                  (item) => item.id == coach.pk.toString(),
+                );
+                
+                return _buildCoachWishlistCard(
+                  name: coach.fields.name,
+                  sportBranch: coach.fields.sportBranch,
+                  photoUrl: coach.fields.photo,
+                  location: coach.fields.location,
+                  onRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
+                  onTap: () {
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => CoachDetailPage(coach: coach),
+                      ),
+                    );
+                  },
+                );
+              },
+            );
+          },
+        );
+      } else if (tabKey == 'history') {
+        if (!_hasHistoryItems) {
+          return _buildEmptyState(
+            message:
+                'Anda belum memiliki riwayat booking. Booking lapangan pertamamu!',
+          );
+        }
+        return Column(
+          children: [
+            _buildCard(
+              title: 'Booking History - Voli',
+              type: 'history',
+              onTap: () {},
+            ),
+          ],
+        );
+      } else {
+        return const Center(
+          child: Text(
+            'Konten tidak tersedia',
+            style: TextStyle(color: Colors.white54),
+          ),
+        );
+      }
+    },
+  );
+}
+
+Future<List<Lapangan>> _fetchLapanganDetails(List<WishedItem> wishedItems) async {
+  try {
+    final request = context.read<CookieRequest>();
+    final response = await request.get('http://127.0.0.1:8000/json/');
+    
+    if (response != null) {
+      List<Lapangan> allLapangan = [];
+      for (var d in response) {
+        if (d != null) {
+          allLapangan.add(Lapangan.fromJson(d));
+        }
+      }
+      
+      List<Lapangan> wishedLapangan = allLapangan.where((lapangan) {
+        return wishedItems.any((item) => item.id == lapangan.id);
+      }).toList();
+      
+      return wishedLapangan;
+    }
+  } catch (e) {
+    print('Error fetching lapangan details: $e');
   }
+  
+  return [];
+}
+
+Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
+  try {
+    final request = context.read<CookieRequest>();
+    final response = await request.get('http://127.0.0.1:8000/coach/json/');
+    
+    if (response != null) {
+      List<Coach> allCoaches = [];
+      for (var d in response) {
+        if (d != null) {
+          allCoaches.add(Coach.fromJson(d));
+        }
+      }
+      
+      List<Coach> wishedCoaches = allCoaches.where((coach) {
+        return wishedItems.any((item) => item.id == coach.pk.toString());
+      }).toList();
+      
+      return wishedCoaches;
+    }
+  } catch (e) {
+    print('Error fetching coach details: $e');
+  }
+  
+  return [];
+}
 
   Widget _sportIconWidget(String key) {
-    final path = 'asset/icon-olahraga/$key.png';
+    final path = 'assets/icon-olahraga/$key.png';
     return Image.asset(
       path,
       fit: BoxFit.contain,
@@ -693,7 +1006,6 @@ class _ProfilePageState extends State<ProfilePage>
           expand: false,
           initialChildSize: 0.85,
           builder: (context, ctrl) {
-            // use local state inside the sheet
             String tempAvatar = initialAvatar;
             String tempSport = initialSport;
             Uint8List? pickedBytes;
@@ -703,39 +1015,125 @@ class _ProfilePageState extends State<ProfilePage>
 
             return StatefulBuilder(
               builder: (context, setModalState) {
-                Future<void> pickImage() async {
-                  final result = await FilePicker.platform.pickFiles(
-                    type: FileType.image,
-                    withData: true,
+                // Method untuk memilih foto dari galeri atau file
+                Future<void> showImageSourcePicker() async {
+                  await showModalBottomSheet(
+                    context: context,
+                    backgroundColor: const Color(0xFF2A2A2A),
+                    shape: const RoundedRectangleBorder(
+                      borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+                    ),
+                    builder: (BuildContext context) {
+                      return SafeArea(
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 20),
+                          child: Column(
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Text(
+                                'Profile photo',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.white,
+                                  fontSize: 18,
+                                  fontWeight: FontWeight.bold,
+                                ),
+                              ),
+                              const SizedBox(height: 20),
+                              ListTile(
+                                leading: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(Icons.photo_library, color: Colors.white),
+                                ),
+                                title: Text(
+                                  'Gallery',
+                                  style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                                ),
+                                onTap: () async {
+                                  Navigator.pop(context);
+                                  final result = await FilePicker.platform.pickFiles(
+                                    type: FileType.image,
+                                    withData: true,
+                                  );
+                                  if (result != null && result.files.isNotEmpty) {
+                                    pickedBytes = result.files.first.bytes;
+                                    if (pickedBytes != null) {
+                                      tempAvatar = 'data:image/${result.files.first.extension};base64,${base64Encode(pickedBytes!)}';
+                                      setModalState(() {});
+                                    }
+                                  }
+                                },
+                              ),
+                              ListTile(
+                                leading: Container(
+                                  padding: const EdgeInsets.all(8),
+                                  decoration: BoxDecoration(
+                                    color: Colors.white.withOpacity(0.1),
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
+                                  child: const Icon(Icons.emoji_emotions, color: Colors.white),
+                                ),
+                                title: Text(
+                                  'Avatar',
+                                  style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                                ),
+                                onTap: () {
+                                  Navigator.pop(context);
+                                  _showAvatarSelection(setModalState, (avatar) {
+                                    pickedBytes = null;
+                                    tempAvatar = avatar;
+                                  });
+                                },
+                              ),
+                              if (tempAvatar.isNotEmpty && tempAvatar != 'assets/avatar/default_avatar.png')
+                                ListTile(
+                                  leading: Container(
+                                    padding: const EdgeInsets.all(8),
+                                    decoration: BoxDecoration(
+                                      color: Colors.red.withOpacity(0.1),
+                                      borderRadius: BorderRadius.circular(8),
+                                    ),
+                                    child: const Icon(Icons.delete, color: Colors.red),
+                                  ),
+                                  title: Text(
+                                    'Delete',
+                                    style: GoogleFonts.plusJakartaSans(color: Colors.red),
+                                  ),
+                                  onTap: () {
+                                    Navigator.pop(context);
+                                    pickedBytes = null;
+                                    tempAvatar = 'assets/avatar/default_avatar.png';
+                                    setModalState(() {});
+                                  },
+                                ),
+                            ],
+                          ),
+                        ),
+                      );
+                    },
                   );
-                  if (result != null && result.files.isNotEmpty) {
-                    pickedBytes = result.files.first.bytes;
-                    if (pickedBytes != null) {
-                      tempAvatar =
-                          'data:image/${result.files.first.extension};base64,' +
-                          base64Encode(pickedBytes!);
-                      setModalState(() {});
-                    }
-                  }
                 }
 
-                void selectAvatarAsset(String assetPath) {
-                  pickedBytes = null;
-                  tempAvatar = assetPath;
-                  setModalState(() {});
+                ImageProvider getCurrentAvatar() {
+                  if (pickedBytes != null) {
+                    return MemoryImage(pickedBytes!);
+                  } else if (tempAvatar.startsWith('data:')) {
+                    return MemoryImage(base64Decode(tempAvatar.split(',').last));
+                  } else if (tempAvatar.isNotEmpty) {
+                    return AssetImage(tempAvatar);
+                  }
+                  return const AssetImage('assets/avatar/default_avatar.png');
                 }
 
                 return Container(
-                  decoration: BoxDecoration(
-                    color: const Color(0xFF1A1A1A),
-                    borderRadius: const BorderRadius.vertical(
-                      top: Radius.circular(16),
-                    ),
+                  decoration: const BoxDecoration(
+                    color: Color(0xFF1A1A1A),
+                    borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                   ),
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 16,
-                    vertical: 20,
-                  ),
+                  padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 20),
                   child: SingleChildScrollView(
                     controller: ctrl,
                     child: Column(
@@ -764,6 +1162,40 @@ class _ProfilePageState extends State<ProfilePage>
                         ),
                         const SizedBox(height: 18),
 
+                        // Username (Read-only)
+                        Text(
+                          'Username',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white,
+                            fontSize: 14,
+                          ),
+                        ),
+                        const SizedBox(height: 8),
+                        Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
+                          decoration: BoxDecoration(
+                            color: const Color(0xFF2A2A2A),
+                            borderRadius: BorderRadius.circular(8),
+                            border: Border.all(color: Colors.white.withOpacity(0.1)),
+                          ),
+                          child: Row(
+                            children: [
+                              Expanded(
+                                child: Text(
+                                  userState.username,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: Colors.white70,
+                                    fontSize: 15,
+                                  ),
+                                ),
+                              ),
+                              const Icon(Icons.lock_outline, color: Colors.white38, size: 18),
+                            ],
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+
+                        // Name (Editable)
                         Text(
                           'Name',
                           style: GoogleFonts.plusJakartaSans(
@@ -775,111 +1207,62 @@ class _ProfilePageState extends State<ProfilePage>
                         TextField(
                           controller: nameController,
                           style: const TextStyle(color: Colors.white),
-                          decoration: const InputDecoration(
-                            hintText: 'Name',
-                            hintStyle: TextStyle(color: Colors.white54),
+                          decoration: InputDecoration(
+                            hintText: 'Enter your name',
+                            hintStyle: const TextStyle(color: Colors.white54),
                             filled: true,
-                            fillColor: Color(0xFF111111),
-                            border: OutlineInputBorder(),
+                            fillColor: const Color(0xFF111111),
+                            border: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                            ),
+                            enabledBorder: OutlineInputBorder(
+                              borderRadius: BorderRadius.circular(8),
+                              borderSide: BorderSide(color: Colors.white.withOpacity(0.1)),
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 18),
+
+                        // Avatar
+                        Text(
+                          'Avatar',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white,
+                            fontSize: 16,
+                            fontWeight: FontWeight.w600,
                           ),
                         ),
                         const SizedBox(height: 12),
-
-                        Row(
-                          children: [
-                            Expanded(
-                              child: Text(
-                                'Avatar',
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: Colors.white,
-                                  fontSize: 16,
-                                  fontWeight: FontWeight.w600,
-                                ),
-                              ),
-                            ),
-                            TextButton.icon(
-                              onPressed: pickImage,
-                              icon: const Icon(
-                                Icons.upload_file,
-                                color: Colors.white,
-                              ),
-                              label: const Text(
-                                'Upload',
-                                style: TextStyle(color: Colors.white),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 8),
                         Center(
-                          child: pickedBytes != null
-                              ? CircleAvatar(
-                                  radius: 48,
-                                  backgroundImage: MemoryImage(pickedBytes!),
-                                )
-                              : (tempAvatar.isNotEmpty
-                                    ? (tempAvatar.startsWith('data:')
-                                          ? CircleAvatar(
-                                              radius: 48,
-                                              backgroundImage: MemoryImage(
-                                                base64Decode(
-                                                  tempAvatar.split(',').last,
-                                                ),
-                                              ),
-                                            )
-                                          : CircleAvatar(
-                                              radius: 48,
-                                              backgroundImage:
-                                                  AssetImage(tempAvatar)
-                                                      as ImageProvider,
-                                            ))
-                                    : CircleAvatar(
-                                        radius: 48,
-                                        backgroundImage: const AssetImage(
-                                          'asset/avatar/default_avatar.png',
-                                        ),
-                                      )),
-                        ),
-                        const SizedBox(height: 12),
-
-                        Wrap(
-                          spacing: 12,
-                          runSpacing: 12,
-                          children: _avatars
-                              .map(
-                                (a) => GestureDetector(
-                                  onTap: () => selectAvatarAsset(a),
+                          child: GestureDetector(
+                            onTap: showImageSourcePicker,
+                            child: Stack(
+                              children: [
+                                CircleAvatar(
+                                  radius: 60,
+                                  backgroundImage: getCurrentAvatar(),
+                                ),
+                                Positioned(
+                                  bottom: 0,
+                                  right: 0,
                                   child: Container(
-                                    width: 72,
-                                    height: 72,
+                                    padding: const EdgeInsets.all(8),
                                     decoration: BoxDecoration(
+                                      color: const Color(0xFF6C5CE7),
                                       shape: BoxShape.circle,
-                                      border: Border.all(
-                                        color:
-                                            tempAvatar == a &&
-                                                !tempAvatar.startsWith('data:')
-                                            ? const Color(0xFF6C5CE7)
-                                            : Colors.transparent,
-                                        width: 3,
-                                      ),
+                                      border: Border.all(color: const Color(0xFF1A1A1A), width: 3),
                                     ),
-                                    child: ClipOval(
-                                      child: Image.asset(
-                                        a,
-                                        fit: BoxFit.cover,
-                                        errorBuilder: (c, e, s) => Image.asset(
-                                          'asset/avatar/default_avatar.png',
-                                        ),
-                                      ),
-                                    ),
+                                    child: const Icon(Icons.edit, color: Colors.white, size: 16),
                                   ),
                                 ),
-                              )
-                              .toList(),
+                              ],
+                            ),
+                          ),
                         ),
+                        const SizedBox(height: 24),
 
-                        const SizedBox(height: 18),
-
+                        // Favorite Sport
                         Text(
                           'Favorite Sport',
                           style: GoogleFonts.plusJakartaSans(
@@ -893,34 +1276,17 @@ class _ProfilePageState extends State<ProfilePage>
                           children: _sportChoices.entries.map((e) {
                             final selected = tempSport == e.key;
                             return GestureDetector(
-                              onTap: () =>
-                                  setModalState(() => tempSport = e.key),
+                              onTap: () => setModalState(() => tempSport = e.key),
                               child: Container(
                                 margin: const EdgeInsets.symmetric(vertical: 6),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 12,
-                                  horizontal: 12,
-                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 12, horizontal: 12),
                                 decoration: BoxDecoration(
                                   color: const Color(0xFF2A2A2A),
                                   borderRadius: BorderRadius.circular(10),
                                   border: Border.all(
-                                    color: selected
-                                        ? const Color(0xFF6C5CE7)
-                                        : Colors.transparent,
+                                    color: selected ? const Color(0xFF6C5CE7) : Colors.transparent,
                                     width: 2,
                                   ),
-                                  boxShadow: selected
-                                      ? [
-                                          BoxShadow(
-                                            color: Colors.purple.withOpacity(
-                                              0.08,
-                                            ),
-                                            blurRadius: 8,
-                                            offset: const Offset(0, 6),
-                                          ),
-                                        ]
-                                      : null,
                                 ),
                                 child: Row(
                                   children: [
@@ -928,27 +1294,15 @@ class _ProfilePageState extends State<ProfilePage>
                                       width: 28,
                                       height: 28,
                                       child: Image.asset(
-                                        'asset/icon-olahraga/${e.key}.png',
-                                        errorBuilder: (c, ex, st) => const Icon(
-                                          Icons.sports,
-                                          color: Colors.white,
-                                        ),
+                                        'assets/icon-olahraga/${e.key}.png',
+                                        errorBuilder: (c, ex, st) => const Icon(Icons.sports, color: Colors.white),
                                       ),
                                     ),
                                     const SizedBox(width: 12),
                                     Expanded(
-                                      child: Text(
-                                        e.value,
-                                        style: const TextStyle(
-                                          color: Colors.white,
-                                        ),
-                                      ),
+                                      child: Text(e.value, style: const TextStyle(color: Colors.white)),
                                     ),
-                                    if (selected)
-                                      const Icon(
-                                        Icons.check,
-                                        color: Color(0xFF6C5CE7),
-                                      ),
+                                    if (selected) const Icon(Icons.check, color: Color(0xFF6C5CE7)),
                                   ],
                                 ),
                               ),
@@ -977,9 +1331,7 @@ class _ProfilePageState extends State<ProfilePage>
                                 await userState.setFavoriteSport(tempSport);
                                 if (pickedBytes != null) {
                                   final b64 = base64Encode(pickedBytes!);
-                                  await userState.setAvatarPath(
-                                    'data:image/png;base64,' + b64,
-                                  );
+                                  await userState.setAvatarPath('data:image/png;base64,$b64');
                                 } else if (tempAvatar.isNotEmpty) {
                                   await userState.setAvatarPath(tempAvatar);
                                 }
@@ -991,18 +1343,14 @@ class _ProfilePageState extends State<ProfilePage>
                                       backgroundColor: const Color(0xFF571E88),
                                       content: Text(
                                         'Profil diperbarui',
-                                        style: GoogleFonts.plusJakartaSans(
-                                          color: Colors.white,
-                                        ),
+                                        style: GoogleFonts.plusJakartaSans(color: Colors.white),
                                       ),
                                     ),
                                   );
                                 }
                               },
                               style: ElevatedButton.styleFrom(
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 14,
-                                ),
+                                padding: const EdgeInsets.symmetric(vertical: 14),
                                 shape: const StadiumBorder(),
                                 backgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
@@ -1022,10 +1370,7 @@ class _ProfilePageState extends State<ProfilePage>
                           alignment: Alignment.centerRight,
                           child: TextButton(
                             onPressed: () => Navigator.pop(context),
-                            child: const Text(
-                              'Tutup',
-                              style: TextStyle(color: Colors.white70),
-                            ),
+                            child: const Text('Tutup', style: TextStyle(color: Colors.white70)),
                           ),
                         ),
                       ],
@@ -1035,6 +1380,63 @@ class _ProfilePageState extends State<ProfilePage>
               },
             );
           },
+        );
+      },
+    );
+  }
+
+  // Method untuk menampilkan pilihan avatar
+  void _showAvatarSelection(StateSetter setModalState, Function(String) onAvatarSelected) {
+    showModalBottomSheet(
+      context: context,
+      backgroundColor: const Color(0xFF2A2A2A),
+      shape: const RoundedRectangleBorder(
+        borderRadius: BorderRadius.vertical(top: Radius.circular(20)),
+      ),
+      builder: (BuildContext context) {
+        return SafeArea(
+          child: Padding(
+            padding: const EdgeInsets.all(20),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Text(
+                  'Choose Avatar',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white,
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 20),
+                Wrap(
+                  spacing: 16,
+                  runSpacing: 16,
+                  alignment: WrapAlignment.center,
+                  children: _avatars.map((avatarPath) {
+                    return GestureDetector(
+                      onTap: () {
+                        onAvatarSelected(avatarPath);
+                        Navigator.pop(context);
+                        setModalState(() {});
+                      },
+                      child: Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          border: Border.all(color: Colors.white.withOpacity(0.3), width: 2),
+                        ),
+                        child: CircleAvatar(
+                          radius: 40,
+                          backgroundImage: AssetImage(avatarPath),
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+                const SizedBox(height: 20),
+              ],
+            ),
+          ),
         );
       },
     );

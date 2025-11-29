@@ -461,6 +461,17 @@ class _CoachPageState extends State<CoachPage> {
     );
   }
 
+  String _toTitleCase(String text) {
+    if (text.isEmpty) return text;
+    return text
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
+  }
+
   Widget _buildCoachList() {
     if (_isLoading) {
       return const SliverFillRemaining(
@@ -613,7 +624,7 @@ class _CoachPageState extends State<CoachPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            coach.fields.sportBranch,
+                            _toTitleCase(coach.fields.sportBranch),
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               color: Colors.white,

@@ -4,9 +4,10 @@ import 'dart:convert';
 
 class WishedItem {
   final String id;
-  final String type; // 'lapangan' atau 'coach'
+  final String type;
   final String name;
   final String imageUrl;
+  final String location;
   final String category;
 
   WishedItem({
@@ -15,6 +16,7 @@ class WishedItem {
     required this.name,
     required this.imageUrl,
     required this.category,
+    required this.location,
   });
 
   Map<String, dynamic> toJson() => {
@@ -22,6 +24,7 @@ class WishedItem {
     'type': type,
     'name': name,
     'imageUrl': imageUrl,
+    'location': location,
     'category': category,
   };
 
@@ -30,6 +33,7 @@ class WishedItem {
     type: json['type'],
     name: json['name'],
     imageUrl: json['imageUrl'],
+    location: json['location'],
     category: json['category'],
   );
 }
@@ -67,6 +71,7 @@ class WishlistState extends ChangeNotifier {
     required String id,
     required String type,
     required String name,
+    required String location,
     required String imageUrl,
     required String category,
   }) async {
@@ -82,6 +87,7 @@ class WishlistState extends ChangeNotifier {
           id: id,
           type: type,
           name: name,
+          location: location,
           imageUrl: imageUrl,
           category: category,
         ),
