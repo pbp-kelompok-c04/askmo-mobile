@@ -92,6 +92,7 @@ class _LoginPageState extends State<LoginPage>
 
       await userState.reload();
       await userState.setUsername(response['username']);
+      await userState.setUserId((response['user_id'] ?? 0) as int);
 
       final bool isStaff = response['is_staff'] ?? false;
       UserInfo.login(response['username'], isStaff);
@@ -159,9 +160,7 @@ class _LoginPageState extends State<LoginPage>
 
     try {
       final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        return;
-      }
+      if (googleUser == null) return;
 
       final googleAuth = await googleUser.authentication;
       final String? idToken = googleAuth.idToken;
@@ -178,26 +177,27 @@ class _LoginPageState extends State<LoginPage>
         return;
       }
 
-      final payload = {
-        if (idToken != null) 'id_token': idToken,
-        if (idToken == null && accessToken != null) 'access_token': accessToken,
-        'mode': 'login',
-      };
+      final payload = <String, String>{};
+      if (idToken != null) {
+        payload['id_token'] = idToken;
+      } else if (accessToken != null) {
+        payload['access_token'] = accessToken;
+      }
 
-      final response = await request.postJson(
+      final response = await request.login(
         "http://localhost:8000/auth/google-login/",
-        jsonEncode(payload),
+        payload,
       );
 
-      if (response['status'] == true) {
-        final username = response['username'] ?? googleUser.email;
-        final bool isStaff = response['is_staff'] ?? false;
-
+      if (request.loggedIn) {
         final userState = context.read<UserState>();
-        await userState.reload();
-        await userState.setUsername(username);
 
-        UserInfo.login(username, isStaff);
+        await userState.reload();
+        await userState.setUsername(response['username']);
+        await userState.setUserId((response['user_id'] ?? 0) as int);
+
+        final bool isStaff = response['is_staff'] ?? false;
+        UserInfo.login(response['username'], isStaff);
 
         if (!mounted) return;
 
@@ -206,7 +206,7 @@ class _LoginPageState extends State<LoginPage>
           ..showSnackBar(
             const SnackBar(
               backgroundColor: Color(0xFF571E88),
-              content: Text('Login dengan Google berhasil'),
+              content: Text('Login berhasil!'),
             ),
           );
 
@@ -216,12 +216,12 @@ class _LoginPageState extends State<LoginPage>
         );
       } else {
         if (!mounted) return;
-        final String errorMessage =
-            response['error']?.toString() ?? 'Login dengan Google gagal';
+        final msg =
+            response['message']?.toString() ?? 'Login dengan Google gagal';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: const Color(0xFFFF5555),
-            content: Text(errorMessage),
+            content: Text(msg),
           ),
         );
       }

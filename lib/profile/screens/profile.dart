@@ -1011,7 +1011,7 @@ Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
             String tempSport = initialSport;
             Uint8List? pickedBytes;
             final TextEditingController nameController = TextEditingController(
-              text: initialName.isNotEmpty ? initialName : userState.username,
+              text: initialName.isNotEmpty ? initialName : UserInfo.username,
             );
 
             return StatefulBuilder(
