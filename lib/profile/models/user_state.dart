@@ -6,15 +6,16 @@ class UserState extends ChangeNotifier {
   String _name = '';
   String _avatarPath = '';
   String _favoriteSport = '';
+  int _userId = 0;
   bool _isLoaded = false;
 
   String get username => _username;
   String get name => _name;
   String get avatarPath => _avatarPath;
   String get favoriteSport => _favoriteSport;
+  int get userId => _userId;
   bool get isLoaded => _isLoaded;
 
-  // Display name: gunakan name jika ada, fallback ke username
   String get displayName => _name.isNotEmpty ? _name : _username;
 
   UserState() {
@@ -27,6 +28,7 @@ class UserState extends ChangeNotifier {
     _name = prefs.getString('name') ?? '';
     _avatarPath = prefs.getString('avatarPath') ?? '';
     _favoriteSport = prefs.getString('favoriteSport') ?? '';
+    _userId = prefs.getInt('userId') ?? 0;
     _isLoaded = true;
     notifyListeners();
   }
@@ -37,10 +39,17 @@ class UserState extends ChangeNotifier {
     await prefs.setString('name', _name);
     await prefs.setString('avatarPath', _avatarPath);
     await prefs.setString('favoriteSport', _favoriteSport);
+    await prefs.setInt('userId', _userId);
   }
 
   Future<void> setUsername(String uname) async {
     _username = uname;
+    await _saveToStorage();
+    notifyListeners();
+  }
+
+  Future<void> setUserId(int id) async {
+    _userId = id;
     await _saveToStorage();
     notifyListeners();
   }
@@ -63,7 +72,6 @@ class UserState extends ChangeNotifier {
     notifyListeners();
   }
 
-  // Reload data dari storage (gunakan setelah login baru)
   Future<void> reload() async {
     await _loadFromStorage();
   }
@@ -73,8 +81,15 @@ class UserState extends ChangeNotifier {
     _name = '';
     _avatarPath = '';
     _favoriteSport = '';
+    _userId = 0;
+
     final prefs = await SharedPreferences.getInstance();
     await prefs.remove('username');
+    await prefs.remove('name');
+    await prefs.remove('avatarPath');
+    await prefs.remove('favoriteSport');
+    await prefs.remove('userId');
+
     notifyListeners();
   }
 }
