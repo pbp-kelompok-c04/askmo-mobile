@@ -1,7 +1,7 @@
-// lib/screens/lapangan_detail.dart
+import 'package:askmo/feat/review/screens/review_list_page.dart';
+import 'package:askmo/lapangan/models/lapangan.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/lapangan.dart';
 
 class LapanganDetailPage extends StatelessWidget {
   final Lapangan lapangan;
@@ -34,11 +34,13 @@ class LapanganDetailPage extends StatelessWidget {
             decoration: BoxDecoration(
               color: const Color(0xFF353535),
               borderRadius: BorderRadius.circular(16),
-              border: Border.all(color: Colors.white.withOpacity(0.2)),
+              border: Border.all(color: Colors.white24),
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
-              children: [_buildImageAndInfo(context)],
+              children: [
+                _buildImageAndInfo(context),
+              ],
             ),
           ),
         ),
@@ -50,8 +52,12 @@ class LapanganDetailPage extends StatelessWidget {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 600) {
+          // Mobile: vertikal
           return Column(
-            children: [_buildThumbnail(), _buildLapanganInfo(context)],
+            children: [
+              _buildThumbnail(),
+              _buildLapanganInfo(context),
+            ],
           );
         } else {
           return IntrinsicHeight(
@@ -79,9 +85,7 @@ class LapanganDetailPage extends StatelessWidget {
               ? Image.network(
                   lapangan.thumbnail!,
                   fit: BoxFit.cover,
-                  errorBuilder: (context, error, stackTrace) {
-                    return _buildPlaceholder();
-                  },
+                  errorBuilder: (_, __, ___) => _buildPlaceholder(),
                 )
               : _buildPlaceholder(),
         ),
@@ -110,7 +114,7 @@ class LapanganDetailPage extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Sport Tag
+          // TAG
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
             decoration: BoxDecoration(
@@ -126,8 +130,10 @@ class LapanganDetailPage extends StatelessWidget {
               ),
             ),
           ),
+
           const SizedBox(height: 16),
-          // Nama Lapangan
+
+          // NAMA LENGKAP
           Text(
             lapangan.nama,
             style: GoogleFonts.plusJakartaSans(
@@ -137,8 +143,10 @@ class LapanganDetailPage extends StatelessWidget {
               height: 1.2,
             ),
           ),
+
           const SizedBox(height: 8),
-          // Lokasi
+
+          // LOKASI
           Text(
             'Lokasi: ${lapangan.alamat ?? "-"}',
             style: GoogleFonts.plusJakartaSans(
@@ -146,9 +154,10 @@ class LapanganDetailPage extends StatelessWidget {
               fontSize: 18,
             ),
           ),
+
           const SizedBox(height: 24),
-          
-          // Details Section
+
+          // DETAIL
           Container(
             padding: const EdgeInsets.symmetric(vertical: 16),
             decoration: BoxDecoration(
@@ -166,24 +175,27 @@ class LapanganDetailPage extends StatelessWidget {
                 ),
                 const SizedBox(height: 16),
                 _buildDetailRow(
-                  icon: Icons.contact_phone,
+                  icon: Icons.phone,
                   label: 'Kontak',
                   value: lapangan.kontak ?? "-",
                 ),
-                if (lapangan.fasilitas != null && lapangan.fasilitas!.isNotEmpty) ...[
-                  const SizedBox(height: 16),
-                  _buildDetailRow(
-                    icon: Icons.check_circle_outline,
-                    label: 'Fasilitas',
-                    value: lapangan.fasilitas!,
-                  ),
-                ],
+                if (lapangan.fasilitas != null &&
+                    lapangan.fasilitas!.isNotEmpty)
+                  ...[
+                    const SizedBox(height: 16),
+                    _buildDetailRow(
+                      icon: Icons.check_circle_outline,
+                      label: 'Fasilitas',
+                      value: lapangan.fasilitas!,
+                    ),
+                  ],
               ],
             ),
           ),
+
           const SizedBox(height: 24),
-          
-          // Price
+
+          // HARGA
           Text(
             'Rp ${lapangan.tarifPerSesi} / sesi',
             style: GoogleFonts.plusJakartaSans(
@@ -192,9 +204,10 @@ class LapanganDetailPage extends StatelessWidget {
               fontWeight: FontWeight.bold,
             ),
           ),
+
           const SizedBox(height: 24),
-          
-          // Description
+
+          // DESKRIPSI
           Text(
             'Deskripsi',
             style: GoogleFonts.plusJakartaSans(
@@ -212,28 +225,40 @@ class LapanganDetailPage extends StatelessWidget {
               height: 1.5,
             ),
           ),
-          
-          // Peraturan (Optional)
-          if (lapangan.peraturan != null && lapangan.peraturan!.isNotEmpty) ...[
-            const SizedBox(height: 24),
-            Text(
-              'Peraturan',
-              style: GoogleFonts.plusJakartaSans(
-                color: Colors.white,
-                fontSize: 18,
-                fontWeight: FontWeight.bold,
+
+          const SizedBox(height: 24),
+
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              style: ElevatedButton.styleFrom(
+                backgroundColor: const Color(0xFF571E88),
+                padding: const EdgeInsets.symmetric(vertical: 16),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => ReviewListPage(
+                      lapanganId: lapangan.id, // UUID string
+                      lapanganName: lapangan.nama,
+                    ),
+                  ),
+                );
+              },
+              child: Text(
+                'Lihat Rating & Review',
+                style: GoogleFonts.plusJakartaSans(
+                  color: Colors.white,
+                  fontWeight: FontWeight.bold,
+                  fontSize: 16,
+                ),
               ),
             ),
-            const SizedBox(height: 8),
-            Text(
-              lapangan.peraturan!,
-              style: GoogleFonts.plusJakartaSans(
-                color: Colors.grey[300],
-                fontSize: 16,
-                height: 1.5,
-              ),
-            ),
-          ],
+          ),
         ],
       ),
     );
