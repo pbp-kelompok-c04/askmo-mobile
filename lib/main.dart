@@ -3,6 +3,7 @@ import 'package:askmo/authentication/screens/login.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:askmo/profile/models/user_state.dart';
+import 'package:askmo/wishlist/models/wishlist_state.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 
@@ -23,6 +24,7 @@ class MyApp extends StatelessWidget {
       providers: [
         Provider<CookieRequest>(create: (_) => CookieRequest()),
         ChangeNotifierProvider<UserState>(create: (_) => UserState()),
+        ChangeNotifierProvider<WishlistState>(create: (_) => WishlistState()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
