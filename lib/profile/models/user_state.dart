@@ -6,6 +6,7 @@ class UserState extends ChangeNotifier {
   String _name = '';
   String _avatarPath = '';
   String _favoriteSport = '';
+  int _userId = 0;
   bool _isLoaded = false;
   bool _isEmailLogin = false; // Track jika login dengan email
 
@@ -13,10 +14,10 @@ class UserState extends ChangeNotifier {
   String get name => _name;
   String get avatarPath => _avatarPath;
   String get favoriteSport => _favoriteSport;
+  int get userId => _userId;
   bool get isLoaded => _isLoaded;
   bool get isEmailLogin => _isEmailLogin;
 
-  // Display name: gunakan name jika ada, fallback ke username
   String get displayName => _name.isNotEmpty ? _name : _username;
 
   String _getPrefKey(String suffix) {
@@ -39,6 +40,7 @@ class UserState extends ChangeNotifier {
       _name = prefs.getString(_getPrefKey('name')) ?? '';
       _avatarPath = prefs.getString(_getPrefKey('avatarPath')) ?? '';
       _favoriteSport = prefs.getString(_getPrefKey('favoriteSport')) ?? '';
+      _userId = prefs.getInt('userId') ?? 0;
       
       // Jika name masih kosong dan login dengan email, set dari email
       if (_name.isEmpty && _isEmailLogin) {
@@ -48,6 +50,7 @@ class UserState extends ChangeNotifier {
       _name = '';
       _avatarPath = '';
       _favoriteSport = '';
+      _userId = 0;
     }
 
     _isLoaded = true;
@@ -63,6 +66,7 @@ class UserState extends ChangeNotifier {
       await prefs.setString(_getPrefKey('name'), _name);
       await prefs.setString(_getPrefKey('avatarPath'), _avatarPath);
       await prefs.setString(_getPrefKey('favoriteSport'), _favoriteSport);
+      await prefs.setInt(_getPrefKey('userId'), _userId);
     }
   }
 
@@ -94,6 +98,12 @@ class UserState extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> setUserId(int id) async {
+    _userId = id;
+    await _saveToStorage();
+    notifyListeners();
+  }
+
   Future<void> setName(String newName) async {
     _name = newName;
     await _saveToStorage();
@@ -116,16 +126,27 @@ class UserState extends ChangeNotifier {
     await _loadFromStorage();
   }
 
-  Future<void> clear() async {
+Future<void> clear() async {
+    final prefs = await SharedPreferences.getInstance();
+    final oldUsername = _username;
+
     _username = '';
     _name = '';
     _avatarPath = '';
     _favoriteSport = '';
+    _userId = 0;
     _isEmailLogin = false;
 
-    final prefs = await SharedPreferences.getInstance();
     await prefs.remove('username');
- 
+
+    if (oldUsername.isNotEmpty) {
+      await prefs.remove('${oldUsername}_isEmailLogin');
+      await prefs.remove('${oldUsername}_name');
+      await prefs.remove('${oldUsername}_avatarPath');
+      await prefs.remove('${oldUsername}_favoriteSport');
+      await prefs.remove('${oldUsername}_userId');
+    }
+  
     notifyListeners();
   }
 }
