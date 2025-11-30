@@ -450,7 +450,7 @@ class _EventFormPageState extends State<EventFormPage> {
             ),
           ),
           child: DropdownButtonFormField<String>(
-            value: _selectedOlahraga,
+            initialValue: _selectedOlahraga,
             dropdownColor: const Color(0xFF2A2A2A),
             style: GoogleFonts.plusJakartaSans(color: Colors.white),
             decoration: InputDecoration(
@@ -529,7 +529,7 @@ class _EventFormPageState extends State<EventFormPage> {
             ),
           ),
           child: DropdownButtonFormField<String>(
-            value: _selectedLokasi.isEmpty ? '' : _selectedLokasi,
+            initialValue: _selectedLokasi.isEmpty ? '' : _selectedLokasi,
             dropdownColor: const Color(0xFF2A2A2A),
             style: GoogleFonts.plusJakartaSans(color: Colors.white),
             decoration: InputDecoration(

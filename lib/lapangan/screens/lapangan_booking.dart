@@ -252,7 +252,7 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
                 ),
                 child: Text(
                   // Apply Title Case here
-                  _toTitleCase('${widget.lapangan.olahraga}'),
+                  _toTitleCase(widget.lapangan.olahraga),
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.white,
                     fontSize: 12,
