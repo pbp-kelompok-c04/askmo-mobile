@@ -6,11 +6,17 @@ import '../models/lapangan.dart';
 class LapanganCard extends StatelessWidget {
   final Lapangan lapangan;
   final VoidCallback onTap;
+  final VoidCallback onBook;
+  final bool showWishlistButton;
+  final VoidCallback? onWishlistRemove;
 
   const LapanganCard({
     super.key,
     required this.lapangan,
     required this.onTap,
+    required this.onBook,
+    this.showWishlistButton = false,
+    this.onWishlistRemove,
   });
 
   @override
@@ -49,20 +55,46 @@ class LapanganCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    // Thumbnail Image
-                    ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: AspectRatio(
-                        aspectRatio: 16 / 9,
-                        child: lapangan.thumbnail != null && lapangan.thumbnail!.isNotEmpty
-                            ? Image.network(
-                                lapangan.thumbnail!,
-                                fit: BoxFit.cover,
-                                errorBuilder: (context, error, stackTrace) =>
-                                    _buildPlaceholder(),
-                              )
-                            : _buildPlaceholder(),
-                      ),
+                    // Thumbnail Image with Wishlist Button
+                    Stack(
+                      children: [
+                        ClipRRect(
+                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                          child: AspectRatio(
+                            aspectRatio: 16 / 9,
+                            child: lapangan.thumbnail != null && lapangan.thumbnail!.isNotEmpty
+                                ? Image.network(
+                                    lapangan.thumbnail!,
+                                    fit: BoxFit.cover,
+                                    errorBuilder: (context, error, stackTrace) =>
+                                        _buildPlaceholder(),
+                                  )
+                                : _buildPlaceholder(),
+                          ),
+                        ),
+                        // Love button overlay (jika showWishlistButton = true)
+                        if (showWishlistButton)
+                          Positioned(
+                            top: 8,
+                            right: 8,
+                            child: GestureDetector(
+                              onTap: onWishlistRemove,
+                              child: Container(
+                                width: 36,
+                                height: 36,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  color: Colors.black.withOpacity(0.6),
+                                ),
+                                child: const Icon(
+                                  Icons.favorite,
+                                  color: Colors.red,
+                                  size: 20,
+                                ),
+                              ),
+                            ),
+                          ),
+                      ],
                     ),
                     Padding(
                       padding: const EdgeInsets.all(16),
@@ -77,7 +109,7 @@ class LapanganCard extends StatelessWidget {
                               borderRadius: BorderRadius.circular(6),
                             ),
                             child: Text(
-                              lapangan.olahraga,
+                              toTitleCase(lapangan.olahraga),
                               style: GoogleFonts.plusJakartaSans(
                                 color: Colors.white,
                                 fontSize: 10,
@@ -145,6 +177,62 @@ class LapanganCard extends StatelessWidget {
                               ),
                             ],
                           ),
+                          const SizedBox(height: 12),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: OutlinedButton.icon(
+                                  onPressed: onTap,
+                                  style: OutlinedButton.styleFrom(
+                                    foregroundColor: Colors.white,
+                                    side: BorderSide(
+                                      color: Colors.white.withOpacity(0.6),
+                                    ),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  icon: const Icon(Icons.info_outline, size: 18),
+                                  label: Text(
+                                    'Detail',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: onBook,
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF06005E),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 12,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(10),
+                                    ),
+                                  ),
+                                  icon: const Icon(
+                                    Icons.schedule,
+                                    size: 18,
+                                    color: Colors.white,
+                                  ),
+                                  label: Text(
+                                    'Booking',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white,
+                                      fontWeight: FontWeight.w700,
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
                         ],
                       ),
                     ),
@@ -170,4 +258,12 @@ class LapanganCard extends StatelessWidget {
       ),
     );
   }
+}
+
+String toTitleCase(String text) {
+  if (text.isEmpty) return text;
+  return text.split(' ').map((word) {
+    if (word.isEmpty) return word;
+    return word[0].toUpperCase() + word.substring(1).toLowerCase();
+  }).join(' ');
 }

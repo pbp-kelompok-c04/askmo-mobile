@@ -1,30 +1,27 @@
-import 'dart:ui'; // Needed for ImageFilter
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:askmo/feat/review/screens/review_list_page.dart';
 import 'package:askmo/wishlist/models/wishlist_state.dart';
-import '../models/lapangan.dart';
+import '../models/coach_model.dart';
 
-class LapanganDetailPage extends StatefulWidget {
-  final Lapangan lapangan;
+class CoachDetailPage extends StatefulWidget {
+  final Coach coach;
 
-  const LapanganDetailPage({super.key, required this.lapangan});
+  const CoachDetailPage({super.key, required this.coach});
 
   @override
-  State<LapanganDetailPage> createState() => _LapanganDetailPageState();
+  State<CoachDetailPage> createState() => _CoachDetailPageState();
 }
 
-class _LapanganDetailPageState extends State<LapanganDetailPage>
+class _CoachDetailPageState extends State<CoachDetailPage>
     with SingleTickerProviderStateMixin {
-  // Animation controllers for the background aura
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
-    // Initialize Animation Controller
     _animationController = AnimationController(
       duration: const Duration(seconds: 15),
       vsync: this,
@@ -41,7 +38,6 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     super.dispose();
   }
 
-  // Helper to convert text to Title Case
   String _toTitleCase(String text) {
     if (text.isEmpty) return text;
     return text.split(' ').map((word) {
@@ -50,7 +46,6 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     }).join(' ');
   }
 
-  // Background Aura Widget
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -116,7 +111,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
           onPressed: () => Navigator.pop(context),
         ),
         title: Text(
-          'Detail Lapangan',
+          'Detail Coach',
           style: GoogleFonts.plusJakartaSans(
             color: Colors.white,
             fontWeight: FontWeight.bold,
@@ -126,8 +121,8 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
           Consumer<WishlistState>(
             builder: (context, wishlistState, child) {
               final isWished = wishlistState.isWished(
-                widget.lapangan.id,
-                'lapangan',
+                widget.coach.pk.toString(),
+                'coach',
               );
               return IconButton(
                 icon: Icon(
@@ -137,12 +132,12 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                 ),
                 onPressed: () {
                   wishlistState.toggleWish(
-                    id: widget.lapangan.id,
-                    type: 'lapangan',
-                    name: widget.lapangan.nama,
-                    imageUrl: widget.lapangan.thumbnail ?? '',
-                    location: '',
-                    category: widget.lapangan.olahraga,
+                    id: widget.coach.pk.toString(),
+                    type: 'coach',
+                    name: widget.coach.fields.name,
+                    imageUrl: widget.coach.fields.photo,
+                    location: widget.coach.fields.location,
+                    category: widget.coach.fields.sportBranch,
                   );
                   ScaffoldMessenger.of(context).showSnackBar(
                     SnackBar(
@@ -196,25 +191,28 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 1. Nama Lapangan (First)
+                        // 1. Nama Coach (First)
                         Text(
-                          widget.lapangan.nama,
+                          widget.coach.fields.name,
                           style: GoogleFonts.plusJakartaSans(
                             color: Colors.white,
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
-                            height: 1.1, // Reduced line height slightly
+                            height: 1.1,
                           ),
                         ),
-
+                        
+                        // Narrow spacing
                         const SizedBox(height: 6),
 
-                        // Sport Tag (Title Case)
+                        // Sport Branch Tag (Title Case) - WARNA SAMA DENGAN LAPANGAN
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 12, vertical: 6),
+                            horizontal: 12,
+                            vertical: 6,
+                          ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF06005E),
+                            color: const Color(0xFF06005E), // WARNA SAMA
                             borderRadius: BorderRadius.circular(999),
                             boxShadow: [
                               BoxShadow(
@@ -225,7 +223,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                             ],
                           ),
                           child: Text(
-                            _toTitleCase(widget.lapangan.olahraga),
+                            _toTitleCase(widget.coach.fields.sportBranch),
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white,
                               fontSize: 12,
@@ -235,34 +233,36 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                         ),
                         const SizedBox(height: 24),
 
-                        // 2. Alamat (Second)
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(
-                              Icons.location_on,
-                              color: Colors.white70,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                widget.lapangan.alamat ?? "-",
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: Colors.white70,
-                                  fontSize: 16,
+                        // 2. Location (Second)
+                        if (widget.coach.fields.location.isNotEmpty)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.location_on,
+                                color: Colors.white70,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  widget.coach.fields.location,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: Colors.white70,
+                                    fontSize: 16,
+                                  ),
                                 ),
                               ),
-                            ),
-                          ],
-                        ),
+                            ],
+                          ),
+                        if (widget.coach.fields.location.isNotEmpty)
+                          const SizedBox(height: 24),
+
+                        // 3. Photo (Third)
+                        _buildPhoto(),
                         const SizedBox(height: 24),
 
-                        // 3. Pictures (Third)
-                        _buildThumbnail(),
-                        const SizedBox(height: 24),
-
-                        // 4. Other Details + Review Button
+                        // 4. Other Details
                         _buildDetailsSection(),
                       ],
                     ),
@@ -276,15 +276,14 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     );
   }
 
-  Widget _buildThumbnail() {
+  Widget _buildPhoto() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: AspectRatio(
-        aspectRatio: 16 / 9,
-        child: widget.lapangan.thumbnail != null &&
-                widget.lapangan.thumbnail!.isNotEmpty
+        aspectRatio: 16 / 9, // Slightly wider for hero-like feel
+        child: widget.coach.fields.photo.isNotEmpty
             ? Image.network(
-                widget.lapangan.thumbnail!,
+                widget.coach.fields.photo,
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return _buildPlaceholder();
@@ -302,8 +301,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.image_not_supported,
-                color: Colors.white54, size: 40),
+            const Icon(Icons.person, color: Colors.white54, size: 40),
             const SizedBox(height: 8),
             Text(
               'Foto tidak tersedia',
@@ -323,24 +321,29 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         // Info Rows
-        _buildDetailRow(
-          icon: Icons.star,
-          label: 'Rating',
-          value: '${widget.lapangan.rating} / 5.0',
-        ),
-        const SizedBox(height: 16),
-        _buildDetailRow(
-          icon: Icons.contact_phone,
-          label: 'Kontak',
-          value: widget.lapangan.kontak ?? "-",
-        ),
-        if (widget.lapangan.fasilitas != null &&
-            widget.lapangan.fasilitas!.isNotEmpty) ...[
-          const SizedBox(height: 16),
+        if (widget.coach.fields.contact.isNotEmpty) ...[
           _buildDetailRow(
-            icon: Icons.check_circle_outline,
-            label: 'Fasilitas',
-            value: widget.lapangan.fasilitas!,
+            icon: Icons.contact_phone,
+            label: 'Kontak',
+            value: widget.coach.fields.contact,
+          ),
+          const SizedBox(height: 16),
+        ],
+        
+        if (widget.coach.fields.experience.isNotEmpty) ...[
+          _buildDetailRow(
+            icon: Icons.work_outline,
+            label: 'Pengalaman',
+            value: widget.coach.fields.experience,
+          ),
+          const SizedBox(height: 16),
+        ],
+
+        if (widget.coach.fields.certifications.isNotEmpty) ...[
+          _buildDetailRow(
+            icon: Icons.card_membership,
+            label: 'Sertifikasi',
+            value: widget.coach.fields.certifications,
           ),
         ],
 
@@ -348,93 +351,16 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
         const Divider(color: Colors.white24),
         const SizedBox(height: 24),
 
-        // Price
-        Text(
-          'Rp ${widget.lapangan.tarifPerSesi} / sesi',
-          style: GoogleFonts.plusJakartaSans(
-            color: const Color(0xFFA4E4FF),
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 24),
-
-        // Description
-        Text(
-          'Deskripsi',
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          widget.lapangan.deskripsi,
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.white70,
-            fontSize: 15,
-            height: 1.5,
-          ),
-        ),
-
-        // Peraturan (Optional)
-        if (widget.lapangan.peraturan != null &&
-            widget.lapangan.peraturan!.isNotEmpty) ...[
-          const SizedBox(height: 24),
+        if (widget.coach.fields.serviceFee.isNotEmpty) ...[
           Text(
-            'Peraturan',
+            'Rp ${widget.coach.fields.serviceFee} / Sesi',
             style: GoogleFonts.plusJakartaSans(
-              color: Colors.white,
-              fontSize: 18,
+              color: const Color(0xFFA4E4FF), 
+              fontSize: 28, 
               fontWeight: FontWeight.bold,
             ),
           ),
-          const SizedBox(height: 8),
-          Text(
-            widget.lapangan.peraturan!,
-            style: GoogleFonts.plusJakartaSans(
-              color: Colors.white70,
-              fontSize: 15,
-              height: 1.5,
-            ),
-          ),
         ],
-
-        const SizedBox(height: 24),
-
-        // Button: Lihat Rating & Review
-        SizedBox(
-          width: double.infinity,
-          child: ElevatedButton(
-            style: ElevatedButton.styleFrom(
-              backgroundColor: const Color(0xFF571E88),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
-            ),
-            onPressed: () {
-              Navigator.push(
-                context,
-                MaterialPageRoute(
-                  builder: (_) => ReviewListPage(
-                    lapanganId: widget.lapangan.id, // UUID string
-                    lapanganName: widget.lapangan.nama,
-                  ),
-                ),
-              );
-            },
-            child: Text(
-              'Lihat Rating & Review',
-              style: GoogleFonts.plusJakartaSans(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
-          ),
-        ),
       ],
     );
   }
@@ -474,5 +400,9 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
         ),
       ],
     );
+  }
+
+  Widget _buildDivider() {
+    return Divider(color: Colors.grey.withOpacity(0.2), height: 1);
   }
 }
