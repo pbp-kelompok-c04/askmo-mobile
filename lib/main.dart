@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'menu.dart'; // Import the menu we created in Step 2
+// Import the menu we created in Step 2
 import 'package:askmo/authentication/screens/login.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';

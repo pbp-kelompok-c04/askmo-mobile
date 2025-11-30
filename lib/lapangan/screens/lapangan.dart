@@ -435,7 +435,7 @@ class _LapanganPageState extends State<LapanganPage> {
     });
 
     return DropdownButtonFormField<String>(
-      value: _selectedLocation,
+      initialValue: _selectedLocation,
       dropdownColor: const Color(0xFF4F4F4F),
       style: GoogleFonts.plusJakartaSans(color: Colors.white),
       decoration: InputDecoration(
@@ -465,7 +465,7 @@ class _LapanganPageState extends State<LapanganPage> {
 
   Widget _buildSportDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedSport,
+      initialValue: _selectedSport,
       dropdownColor: const Color(0xFF4F4F4F),
       style: GoogleFonts.plusJakartaSans(color: Colors.white),
       decoration: InputDecoration(

@@ -1,3 +1,4 @@
+import 'package:askmo/chatbot/screens/gemini_chat_screen.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui';
@@ -160,6 +161,30 @@ class _MenuPageState extends State<MenuPage>
           ),
         ],
       ),
+      floatingActionButton: _selectedIndex == 0 // Tampilkan hanya di halaman Beranda (index 0)
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 90.0), // Padding agar di atas BottomNavBar (tinggi 90)
+              child: FloatingActionButton(
+                onPressed: () {
+                  // Navigasi ke Chatbot Screen
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const GeminiChatScreen(),
+                    ),
+                  );
+                },
+                backgroundColor: const Color(0xFFA4E4FF), // Warna Biru Terang (secondary/highlight color)
+                foregroundColor: Colors.black,
+                elevation: 4,
+                shape: const CircleBorder(),
+                child: const Icon(Icons.psychology_alt_rounded, size: 28), // Icon AI/Coach
+              ),
+            )
+          : null,
+      
+      // PENTING: Atur lokasi FAB di akhir Body agar berada di atas BottomNavBar
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
       bottomNavigationBar: Container(
         margin: const EdgeInsets.only(top: 0.0),
         height: 90, // Increased height for taller navbar
