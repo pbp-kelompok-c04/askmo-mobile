@@ -2,6 +2,7 @@ import 'dart:ui'; // Needed for ImageFilter
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
+import 'package:askmo/feat/review/screens/review_list_page.dart';
 import 'package:askmo/wishlist/models/wishlist_state.dart';
 import '../models/lapangan.dart';
 
@@ -205,8 +206,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                             height: 1.1, // Reduced line height slightly
                           ),
                         ),
-                        
-                        // Narrow spacing
+
                         const SizedBox(height: 6),
 
                         // Sport Tag (Title Case)
@@ -262,7 +262,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                         _buildThumbnail(),
                         const SizedBox(height: 24),
 
-                        // 4. Other Details
+                        // 4. Other Details + Review Button
                         _buildDetailsSection(),
                       ],
                     ),
@@ -353,7 +353,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
           'Rp ${widget.lapangan.tarifPerSesi} / sesi',
           style: GoogleFonts.plusJakartaSans(
             color: const Color(0xFFA4E4FF),
-            fontSize: 28, // Adjusted for glass container
+            fontSize: 28,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -400,6 +400,41 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
             ),
           ),
         ],
+
+        const SizedBox(height: 24),
+
+        // Button: Lihat Rating & Review
+        SizedBox(
+          width: double.infinity,
+          child: ElevatedButton(
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(0xFF571E88),
+              padding: const EdgeInsets.symmetric(vertical: 16),
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(12),
+              ),
+            ),
+            onPressed: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (_) => ReviewListPage(
+                    lapanganId: widget.lapangan.id, // UUID string
+                    lapanganName: widget.lapangan.nama,
+                  ),
+                ),
+              );
+            },
+            child: Text(
+              'Lihat Rating & Review',
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 16,
+              ),
+            ),
+          ),
+        ),
       ],
     );
   }
