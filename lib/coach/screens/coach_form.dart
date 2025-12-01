@@ -39,49 +39,122 @@ class _CoachFormPageState extends State<CoachFormPage> {
 
   final Map<String, List<String>> _locationOptions = {
     'Jakarta Pusat': [
-      'Cempaka Putih', 'Gambir', 'Johar Baru', 'Kemayoran', 'Menteng',
-      'Sawah Besar', 'Senen', 'Tanah Abang',
+      'Cempaka Putih',
+      'Gambir',
+      'Johar Baru',
+      'Kemayoran',
+      'Menteng',
+      'Sawah Besar',
+      'Senen',
+      'Tanah Abang',
     ],
     'Jakarta Utara': [
-      'Cilincing', 'Kelapa Gading', 'Koja', 'Pademangan',
-      'Penjaringan', 'Tanjung Priok',
+      'Cilincing',
+      'Kelapa Gading',
+      'Koja',
+      'Pademangan',
+      'Penjaringan',
+      'Tanjung Priok',
     ],
     'Jakarta Timur': [
-      'Cakung', 'Cipayung', 'Ciracas', 'Duren Sawit', 'Jatinegara',
-      'Kramat Jati', 'Makasar', 'Matraman', 'Pasar Rebo', 'Pulo Gadung',
+      'Cakung',
+      'Cipayung',
+      'Ciracas',
+      'Duren Sawit',
+      'Jatinegara',
+      'Kramat Jati',
+      'Makasar',
+      'Matraman',
+      'Pasar Rebo',
+      'Pulo Gadung',
     ],
     'Jakarta Selatan': [
-      'Cilandak', 'Jagakarsa', 'Kebayoran Baru', 'Kebayoran Lama',
-      'Mampang Prapatan', 'Pancoran', 'Pasar Minggu', 'Pesanggrahan',
-      'Setiabudi', 'Tebet',
+      'Cilandak',
+      'Jagakarsa',
+      'Kebayoran Baru',
+      'Kebayoran Lama',
+      'Mampang Prapatan',
+      'Pancoran',
+      'Pasar Minggu',
+      'Pesanggrahan',
+      'Setiabudi',
+      'Tebet',
     ],
     'Jakarta Barat': [
-      'Cengkareng', 'Grogol Petamburan', 'Kalideres', 'Kebon Jeruk',
-      'Kembangan', 'Palmerah', 'Taman Sari', 'Tambora',
+      'Cengkareng',
+      'Grogol Petamburan',
+      'Kalideres',
+      'Kebon Jeruk',
+      'Kembangan',
+      'Palmerah',
+      'Taman Sari',
+      'Tambora',
     ],
     'Kepulauan Seribu': ['Kepulauan Seribu Selatan', 'Kepulauan Seribu Utara'],
     'Tangerang Kota': [
-      'Batuceper', 'Benda', 'Cibodas', 'Ciledug', 'Cipondoh', 'Jatiuwung',
-      'Karangtengah', 'Karawaci', 'Larangan', 'Neglasari', 'Periuk',
-      'Pinang', 'Tangerang',
+      'Batuceper',
+      'Benda',
+      'Cibodas',
+      'Ciledug',
+      'Cipondoh',
+      'Jatiuwung',
+      'Karangtengah',
+      'Karawaci',
+      'Larangan',
+      'Neglasari',
+      'Periuk',
+      'Pinang',
+      'Tangerang',
     ],
     'Tangerang Selatan': [
-      'Ciputat', 'Ciputat Timur', 'Pamulang', 'Pondok Aren', 'Serpong',
-      'Serpong Utara', 'Setu',
+      'Ciputat',
+      'Ciputat Timur',
+      'Pamulang',
+      'Pondok Aren',
+      'Serpong',
+      'Serpong Utara',
+      'Setu',
     ],
     'Bekasi': [
-      'Bantargebang', 'Bekasi Barat', 'Bekasi Selatan', 'Bekasi Timur',
-      'Bekasi Utara', 'Jatiasih', 'Jatisampurna', 'Medansatria',
-      'Mustikajaya', 'Pondok Gede', 'Pondokmelati', 'Rawalumbu',
+      'Bantargebang',
+      'Bekasi Barat',
+      'Bekasi Selatan',
+      'Bekasi Timur',
+      'Bekasi Utara',
+      'Jatiasih',
+      'Jatisampurna',
+      'Medansatria',
+      'Mustikajaya',
+      'Pondok Gede',
+      'Pondokmelati',
+      'Rawalumbu',
     ],
     'Bogor': [
-      'Bogor Barat', 'Bogor Selatan', 'Bogor Tengah', 'Bogor Timur',
-      'Bogor Utara', 'Bojonggede', 'Caringin', 'Ciampea', 'Ciawi',
-      'Cisarua', 'Gunung Putri', 'Jonggol', 'Parung',
+      'Bogor Barat',
+      'Bogor Selatan',
+      'Bogor Tengah',
+      'Bogor Timur',
+      'Bogor Utara',
+      'Bojonggede',
+      'Caringin',
+      'Ciampea',
+      'Ciawi',
+      'Cisarua',
+      'Gunung Putri',
+      'Jonggol',
+      'Parung',
     ],
     'Depok': [
-      'Beji', 'Bojongsari', 'Cilodong', 'Cimanggis', 'Cinere', 'Cipayung',
-      'Limo', 'Sawangan', 'Sukmajaya', 'Tapos',
+      'Beji',
+      'Bojongsari',
+      'Cilodong',
+      'Cimanggis',
+      'Cinere',
+      'Cipayung',
+      'Limo',
+      'Sawangan',
+      'Sukmajaya',
+      'Tapos',
     ],
   };
 
@@ -158,7 +231,10 @@ class _CoachFormPageState extends State<CoachFormPage> {
               SafeArea(
                 bottom: false,
                 child: Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 8),
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 8,
+                    vertical: 8,
+                  ),
                   child: Row(
                     children: [
                       IconButton(
@@ -247,7 +323,9 @@ class _CoachFormPageState extends State<CoachFormPage> {
                                 if (_selectedLocation.isEmpty) {
                                   ScaffoldMessenger.of(context).showSnackBar(
                                     const SnackBar(
-                                      content: Text('Pilih lokasi terlebih dahulu'),
+                                      content: Text(
+                                        'Pilih lokasi terlebih dahulu',
+                                      ),
                                     ),
                                   );
                                   return;
@@ -256,25 +334,28 @@ class _CoachFormPageState extends State<CoachFormPage> {
                                 try {
                                   // Kirim URL lengkap foto, bukan hanya nama file
                                   String photoValue = _thumbnailController.text;
-                                  
+
                                   final requestData = <String, String>{
                                     'name': _nameController.text,
                                     'sport_branch': _selectedSportBranch,
                                     'location': _selectedLocation,
                                     'contact': _contactController.text,
                                     'experience': _experienceController.text,
-                                    'certifications': _certificationsController.text,
+                                    'certifications':
+                                        _certificationsController.text,
                                     'service_fee': _serviceFeeController.text,
                                     'photo': photoValue, // Kirim URL lengkap
                                   };
-                                  
-                                  print('DEBUG: Sending request data: $requestData');
-                                  
+
+                                  print(
+                                    'DEBUG: Sending request data: $requestData',
+                                  );
+
                                   final response = await request.postJson(
                                     "http://localhost:8000/coach/create-flutter/",
                                     jsonEncode(requestData),
                                   );
-                                  
+
                                   print('DEBUG: Response: $response');
 
                                   if (!mounted) return;
@@ -282,7 +363,9 @@ class _CoachFormPageState extends State<CoachFormPage> {
                                   if (response['status'] == 'success') {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        backgroundColor: const Color(0xFF571E88),
+                                        backgroundColor: const Color(
+                                          0xFF571E88,
+                                        ),
                                         content: Text(
                                           'Coach berhasil ditambahkan!',
                                           style: GoogleFonts.plusJakartaSans(
@@ -300,7 +383,9 @@ class _CoachFormPageState extends State<CoachFormPage> {
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        backgroundColor: const Color(0xFFFF5555),
+                                        backgroundColor: const Color(
+                                          0xFFFF5555,
+                                        ),
                                         content: Text(
                                           'Gagal menambahkan coach: ${response['message'] ?? response['errors']}',
                                           style: GoogleFonts.plusJakartaSans(
@@ -474,10 +559,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
 
   Widget _buildLocationDropdown() {
     List<DropdownMenuItem<String>> items = [
-      const DropdownMenuItem<String>(
-        value: '',
-        child: Text('Pilih lokasi'),
-      ),
+      const DropdownMenuItem<String>(value: '', child: Text('Pilih lokasi')),
     ];
 
     _locationOptions.forEach((group, locations) {
@@ -496,10 +578,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
         ),
       );
       for (var loc in locations) {
-        items.add(DropdownMenuItem<String>(
-          value: loc,
-          child: Text(loc),
-        ));
+        items.add(DropdownMenuItem<String>(value: loc, child: Text(loc)));
       }
     });
 
@@ -605,8 +684,11 @@ class _CoachFormPageState extends State<CoachFormPage> {
                       return Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.broken_image,
-                              color: Colors.white54, size: 30),
+                          const Icon(
+                            Icons.broken_image,
+                            color: Colors.white54,
+                            size: 30,
+                          ),
                           const SizedBox(height: 4),
                           Text(
                             'Gagal memuat',
@@ -625,7 +707,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
                           color: const Color(0xFF571E88),
                           value: loadingProgress.expectedTotalBytes != null
                               ? loadingProgress.cumulativeBytesLoaded /
-                                  loadingProgress.expectedTotalBytes!
+                                    loadingProgress.expectedTotalBytes!
                               : null,
                         ),
                       );

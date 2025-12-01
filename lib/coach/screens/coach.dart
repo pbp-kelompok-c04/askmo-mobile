@@ -6,7 +6,8 @@ import 'dart:ui'; // Untuk ImageFilter
 import 'package:askmo/coach/models/coach_model.dart';
 import 'package:askmo/coach/screens/coach_detail.dart';
 import 'package:askmo/coach/screens/coach_form.dart';
-import 'package:askmo/user_info.dart'; // Import UserInfo untuk cek admin
+import 'package:askmo/coach/screens/coach_edit_form.dart'; // Pastikan file ini ada
+import 'package:askmo/user_info.dart'; // Import UserInfo
 
 class CoachPage extends StatefulWidget {
   const CoachPage({super.key});
@@ -25,7 +26,7 @@ class _CoachPageState extends State<CoachPage> {
   String? _selectedLocation;
   String? _selectedSport;
 
-  // Opsi Lokasi (Sama seperti LapanganPage agar konsisten)
+  // Data Lokasi
   final List<Map<String, String>> _locationGroups = [
     {'group': 'Jakarta Pusat', 'value': 'Cempaka Putih'},
     {'group': 'Jakarta Pusat', 'value': 'Gambir'},
@@ -128,6 +129,7 @@ class _CoachPageState extends State<CoachPage> {
     {'group': 'Depok', 'value': 'Tapos'},
   ];
 
+  // Data Olahraga (Value = lowercase database, Label = Tampilan User)
   final List<Map<String, String>> _sportOptions = [
     {'value': 'sepakbola', 'label': 'Sepak Bola'},
     {'value': 'basket', 'label': 'Basket'},
@@ -143,9 +145,6 @@ class _CoachPageState extends State<CoachPage> {
   @override
   void initState() {
     super.initState();
-    print('DEBUG CoachPage - UserInfo.isAdmin: ${UserInfo.isAdmin}');
-    print('DEBUG CoachPage - UserInfo.username: ${UserInfo.username}');
-    print('DEBUG CoachPage - UserInfo.isLoggedIn: ${UserInfo.isLoggedIn}');
     _fetchCoach();
   }
 
@@ -153,6 +152,25 @@ class _CoachPageState extends State<CoachPage> {
   void dispose() {
     _searchController.dispose();
     super.dispose();
+  }
+
+  /// Helper untuk memformat nama olahraga agar rapi (Contoh: "tenis" -> "Tenis")
+  String _formatSportLabel(String rawValue) {
+    // 1. Cek apakah value ada di map _sportOptions, jika ada kembalikan Label-nya
+    for (var option in _sportOptions) {
+      if (option['value']!.toLowerCase() == rawValue.toLowerCase()) {
+        return option['label']!;
+      }
+    }
+    // 2. Jika tidak ada di map (misal data kustom), lakukan Capitalize setiap kata
+    if (rawValue.isEmpty) return rawValue;
+    return rawValue
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return '';
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
   }
 
   Future<void> _fetchCoach() async {
@@ -163,17 +181,13 @@ class _CoachPageState extends State<CoachPage> {
 
     try {
       final request = context.read<CookieRequest>();
-      // Ganti URL ini dengan 10.0.2.2 untuk emulator Android
+      // Pastikan URL ini benar dan server Django berjalan
       final response = await request.get('http://127.0.0.1:8000/coach/json/');
 
       if (response != null) {
-        print('DEBUG _fetchCoach - Raw response: $response');
-        
         List<Coach> listData = [];
         for (var d in response) {
           if (d != null) {
-            print('DEBUG _fetchCoach - Processing item: $d');
-            print('DEBUG _fetchCoach - Fields data: ${d["fields"]}');
             listData.add(Coach.fromJson(d));
           }
         }
@@ -190,18 +204,6 @@ class _CoachPageState extends State<CoachPage> {
       }
     } catch (e) {
       print('Error fetching coach: $e');
-      if (context.mounted) {
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            backgroundColor: const Color(0xFFFF5555),
-            content: Text(
-              'Gagal mengambil data coach. Pastikan server berjalan.',
-              style: GoogleFonts.plusJakartaSans(color: Colors.white),
-            ),
-            duration: const Duration(seconds: 5),
-          ),
-        );
-      }
       setState(() {
         _hasError = true;
         _isLoading = false;
@@ -212,20 +214,23 @@ class _CoachPageState extends State<CoachPage> {
   void _applyFilters() {
     setState(() {
       _filteredCoach = _coachList.where((coach) {
-        // 1. Filter by Name
-        bool matchesSearch = _searchController.text.isEmpty ||
+        // Filter by Name
+        bool matchesSearch =
+            _searchController.text.isEmpty ||
             coach.fields.name.toLowerCase().contains(
-                  _searchController.text.toLowerCase(),
-                );
+              _searchController.text.toLowerCase(),
+            );
 
-        // 2. Filter by Location
-        bool matchesLocation = _selectedLocation == null ||
-            coach.fields.location
-                .toLowerCase()
-                .contains(_selectedLocation!.toLowerCase());
+        // Filter by Location
+        bool matchesLocation =
+            _selectedLocation == null ||
+            coach.fields.location.toLowerCase().contains(
+              _selectedLocation!.toLowerCase(),
+            );
 
-        // 3. Filter by Sport
-        bool matchesSport = _selectedSport == null ||
+        // Filter by Sport
+        bool matchesSport =
+            _selectedSport == null ||
             coach.fields.sportBranch.toLowerCase() ==
                 _selectedSport!.toLowerCase();
 
@@ -234,128 +239,219 @@ class _CoachPageState extends State<CoachPage> {
     });
   }
 
+  // Fungsi Hapus Coach langsung dari Card (Icon Sampah)
+  Future<void> _deleteCoachFromCard(Coach coach) async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A), // Background Gelap
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.white.withOpacity(0.2)),
+        ),
+        title: Text(
+          'Hapus Coach',
+          style: GoogleFonts.plusJakartaSans(
+            color: Colors.white, // Title Putih
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Yakin ingin menghapus "${coach.fields.name}"?',
+          style: GoogleFonts.plusJakartaSans(
+            color: Colors.white70,
+          ), // Content Putih/Abu terang
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.white70,
+              ), // Button text putih
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: const Color(
+                0xFFFF5555,
+              ), // Warna Merah sesuai Event Detail
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Hapus',
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ), // Text putih
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      final request = context.read<CookieRequest>();
+      try {
+        final response = await request.post(
+          'http://127.0.0.1:8000/coach/delete-coach-ajax/${coach.pk}/',
+          {},
+        );
+        if (context.mounted && response['status'] == 'success') {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(const SnackBar(content: Text("Berhasil dihapus")));
+          _fetchCoach();
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text("Gagal: $e")));
+        }
+      }
+    }
+  }
+
+  /// Build photo URL dari berbagai format
+  String _buildPhotoUrl(String photoPath) {
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      return photoPath;
+    }
+    if (photoPath.isEmpty) return '';
+    return 'http://127.0.0.1:8000/media/$photoPath';
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      
-      // Tampilkan FAB hanya jika user adalah Admin
-      floatingActionButton: UserInfo.isAdmin 
+
+      // Floating Action Button (Hanya Admin)
+      floatingActionButton: UserInfo.isAdmin
           ? Padding(
               padding: const EdgeInsets.only(bottom: 20.0),
               child: FloatingActionButton(
                 backgroundColor: const Color(0xFF571E88),
-                onPressed: () {
+                onPressed: () async {
                   // Navigasi ke form tambah coach
-                  Navigator.push(
+                  final result = await Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CoachFormPage()),
+                    MaterialPageRoute(
+                      builder: (context) => const CoachFormPage(),
+                    ),
                   );
+                  // Refresh jika berhasil tambah
+                  if (result == true) {
+                    _fetchCoach();
+                  }
                 },
                 child: const Icon(Icons.add, color: Colors.white),
               ),
             )
-          : null, // Null berarti tidak ada tombol
+          : null,
 
       body: SafeArea(
-        child: Stack(
-          children: [
-            CustomScrollView(
-              slivers: [
-                // Header
-                SliverToBoxAdapter(
-                  child: Padding(
-                    padding: const EdgeInsets.only(top: 0, bottom: 25),
-                    child: Column(
-                      children: [
-                        Text(
-                          'COACH',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white,
-                            fontSize: 40,
-                            fontWeight: FontWeight.bold,
-                          ),
-                        ),
-                        const SizedBox(height: 8),
-                        Text(
-                          'Temukan pelatih olahraga di sekitarmu!',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white,
-                            fontSize: 14,
-                          ),
-                          textAlign: TextAlign.center,
-                        ),
-                      ],
+        child: CustomScrollView(
+          slivers: [
+            // Header
+            SliverToBoxAdapter(
+              child: Padding(
+                padding: const EdgeInsets.only(top: 0, bottom: 25),
+                child: Column(
+                  children: [
+                    Text(
+                      'COACH',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 40,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
+                    const SizedBox(height: 8),
+                    Text(
+                      'Temukan pelatih olahraga di sekitarmu!',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 14,
+                      ),
+                      textAlign: TextAlign.center,
+                    ),
+                  ],
                 ),
-                // Search & Filter Box
-                SliverToBoxAdapter(
-                  child: Container(
-                    margin: const EdgeInsets.symmetric(horizontal: 16),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(12),
-                      child: BackdropFilter(
-                        filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
-                        child: Container(
-                          padding: const EdgeInsets.all(16),
-                          decoration: BoxDecoration(
-                            gradient: LinearGradient(
-                              colors: [
-                                Colors.white.withOpacity(0.1),
-                                Colors.white.withOpacity(0.05),
-                              ],
-                              begin: Alignment.topLeft,
-                              end: Alignment.bottomRight,
-                            ),
-                            borderRadius: BorderRadius.circular(12),
-                            border: Border.all(
-                              color: Colors.white.withOpacity(0.2),
-                              width: 1.5,
-                            ),
-                          ),
-                          child: Column(
-                            children: [
-                              _buildSearchField(),
-                              const SizedBox(height: 12),
-                              _buildLocationDropdown(),
-                              const SizedBox(height: 12),
-                              _buildSportDropdown(),
-                              const SizedBox(height: 12),
-                              SizedBox(
-                                width: double.infinity,
-                                child: ElevatedButton(
-                                  onPressed: _applyFilters,
-                                  style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF06005E),
-                                    padding: const EdgeInsets.symmetric(
-                                      vertical: 16,
-                                    ),
-                                    shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(8),
-                                    ),
-                                  ),
-                                  child: Text(
-                                    'Cari',
-                                    style: GoogleFonts.plusJakartaSans(
-                                      color: Colors.white,
-                                      fontWeight: FontWeight.w600,
-                                    ),
-                                  ),
+              ),
+            ),
+
+            // Search & Filter Box
+            SliverToBoxAdapter(
+              child: Container(
+                margin: const EdgeInsets.symmetric(horizontal: 16),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(12),
+                  child: BackdropFilter(
+                    filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+                    child: Container(
+                      padding: const EdgeInsets.all(16),
+                      decoration: BoxDecoration(
+                        gradient: LinearGradient(
+                          colors: [
+                            Colors.white.withOpacity(0.1),
+                            Colors.white.withOpacity(0.05),
+                          ],
+                          begin: Alignment.topLeft,
+                          end: Alignment.bottomRight,
+                        ),
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.2),
+                          width: 1.5,
+                        ),
+                      ),
+                      child: Column(
+                        children: [
+                          _buildSearchField(),
+                          const SizedBox(height: 12),
+                          _buildLocationDropdown(),
+                          const SizedBox(height: 12),
+                          _buildSportDropdown(),
+                          const SizedBox(height: 12),
+                          SizedBox(
+                            width: double.infinity,
+                            child: ElevatedButton(
+                              onPressed: _applyFilters,
+                              style: ElevatedButton.styleFrom(
+                                backgroundColor: const Color(0xFF06005E),
+                                padding: const EdgeInsets.symmetric(
+                                  vertical: 16,
+                                ),
+                                shape: RoundedRectangleBorder(
+                                  borderRadius: BorderRadius.circular(8),
                                 ),
                               ),
-                            ],
+                              child: Text(
+                                'Cari',
+                                style: GoogleFonts.plusJakartaSans(
+                                  color: Colors.white,
+                                  fontWeight: FontWeight.w600,
+                                ),
+                              ),
+                            ),
                           ),
-                        ),
+                        ],
                       ),
                     ),
                   ),
                 ),
-                const SliverToBoxAdapter(child: SizedBox(height: 24)),
-                // List of Coach
-                _buildCoachList(),
-              ],
+              ),
             ),
+            const SliverToBoxAdapter(child: SizedBox(height: 24)),
+
+            // List of Coach
+            _buildCoachList(),
           ],
         ),
       ),
@@ -413,11 +509,7 @@ class _CoachPageState extends State<CoachPage> {
           ),
         ),
       ],
-      onChanged: (value) {
-        setState(() {
-          _selectedLocation = value;
-        });
-      },
+      onChanged: (value) => setState(() => _selectedLocation = value),
     );
   }
 
@@ -453,11 +545,7 @@ class _CoachPageState extends State<CoachPage> {
           ),
         ),
       ],
-      onChanged: (value) {
-        setState(() {
-          _selectedSport = value;
-        });
-      },
+      onChanged: (value) => setState(() => _selectedSport = value),
     );
   }
 
@@ -527,14 +615,6 @@ class _CoachPageState extends State<CoachPage> {
                   fontSize: 16,
                 ),
               ),
-              const SizedBox(height: 8),
-              Text(
-                'Coba ubah filter pencarian',
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white70,
-                  fontSize: 14,
-                ),
-              ),
             ],
           ),
         ),
@@ -546,18 +626,20 @@ class _CoachPageState extends State<CoachPage> {
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final coach = _filteredCoach[index];
-          
-          // DEBUG: Print foto value
-          print('DEBUG: Coach ${coach.fields.name} - Photo: ${coach.fields.photo}');
-          
+
           return GestureDetector(
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              // Menuju Detail Page
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => CoachDetailPage(coach: coach),
                 ),
               );
+              // Jika result == true (ada perubahan), refresh list
+              if (result == true) {
+                _fetchCoach();
+              }
             },
             child: Container(
               margin: const EdgeInsets.only(bottom: 16),
@@ -579,28 +661,37 @@ class _CoachPageState extends State<CoachPage> {
               ),
               child: Row(
                 children: [
-                  // Avatar / Foto Coach
+                  // Avatar
                   Container(
                     width: 80,
                     height: 80,
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.grey[800],
-                      image: coach.fields.photo.isNotEmpty
+                      image:
+                          coach.fields.photo != null &&
+                              coach.fields.photo!.isNotEmpty
                           ? DecorationImage(
                               image: NetworkImage(
-                                  _buildPhotoUrl(coach.fields.photo)),
+                                _buildPhotoUrl(coach.fields.photo!),
+                              ),
                               fit: BoxFit.cover,
                             )
                           : null,
                     ),
-                    child: coach.fields.photo.isEmpty
-                        ? const Icon(Icons.person,
-                            color: Colors.white, size: 40)
+                    child:
+                        coach.fields.photo == null ||
+                            coach.fields.photo!.isEmpty
+                        ? const Icon(
+                            Icons.person,
+                            color: Colors.white,
+                            size: 40,
+                          )
                         : null,
                   ),
                   const SizedBox(width: 16),
-                  // Informasi Singkat
+
+                  // Info
                   Expanded(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
@@ -616,13 +707,18 @@ class _CoachPageState extends State<CoachPage> {
                         const SizedBox(height: 4),
                         Container(
                           padding: const EdgeInsets.symmetric(
-                              horizontal: 8, vertical: 4),
+                            horizontal: 8,
+                            vertical: 4,
+                          ),
                           decoration: BoxDecoration(
                             color: const Color(0xFF571E88),
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            _toTitleCase(coach.fields.sportBranch),
+                            // ---------------------------------------------------
+                            // PERBAIKAN DI SINI: PANGGIL _formatSportLabel
+                            // ---------------------------------------------------
+                            _formatSportLabel(coach.fields.sportBranch),
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
                               color: Colors.white,
@@ -633,8 +729,11 @@ class _CoachPageState extends State<CoachPage> {
                         const SizedBox(height: 8),
                         Row(
                           children: [
-                            const Icon(Icons.location_on,
-                                size: 14, color: Colors.grey),
+                            const Icon(
+                              Icons.location_on,
+                              size: 14,
+                              color: Colors.grey,
+                            ),
                             const SizedBox(width: 4),
                             Expanded(
                               child: Text(
@@ -651,7 +750,46 @@ class _CoachPageState extends State<CoachPage> {
                       ],
                     ),
                   ),
-                  const Icon(Icons.chevron_right, color: Colors.white54),
+
+                  if (UserInfo.isAdmin)
+                    Column(
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        // Tombol Edit
+                        IconButton(
+                          icon: const Icon(Icons.edit, color: Colors.white70),
+                          tooltip: 'Edit Coach',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () async {
+                            final result = await Navigator.push(
+                              context,
+                              MaterialPageRoute(
+                                builder: (context) =>
+                                    CoachEditFormPage(coach: coach),
+                              ),
+                            );
+                            if (result == true) {
+                              _fetchCoach();
+                            }
+                          },
+                        ),
+                        const SizedBox(height: 12),
+                        // Tombol Hapus
+                        IconButton(
+                          icon: const Icon(
+                            Icons.delete,
+                            color: Colors.redAccent,
+                          ),
+                          tooltip: 'Hapus Coach',
+                          padding: EdgeInsets.zero,
+                          constraints: const BoxConstraints(),
+                          onPressed: () => _deleteCoachFromCard(coach),
+                        ),
+                      ],
+                    )
+                  else
+                    const Icon(Icons.chevron_right, color: Colors.white54),
                 ],
               ),
             ),
@@ -659,26 +797,5 @@ class _CoachPageState extends State<CoachPage> {
         }, childCount: _filteredCoach.length),
       ),
     );
-  }
-
-  String _buildPhotoUrl(String photoPath) {
-    print('DEBUG _buildPhotoUrl - Input: $photoPath');
-    
-    // Jika sudah URL lengkap (http/https), kembalikan as-is
-    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
-      print('DEBUG _buildPhotoUrl - Already full URL: $photoPath');
-      return photoPath;
-    }
-    
-    // Jika kosong atau tidak valid, return empty
-    if (photoPath.isEmpty) {
-      print('DEBUG _buildPhotoUrl - Empty photo path');
-      return '';
-    }
-    
-    // Jika hanya nama file atau path relatif, tambahkan base URL media
-    final result = 'http://127.0.0.1:8000/media/$photoPath';
-    print('DEBUG _buildPhotoUrl - Built URL: $result');
-    return result;
   }
 }

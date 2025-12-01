@@ -1,9 +1,12 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:askmo/coach/models/coach_model.dart';
+import 'package:askmo/coach/screens/coach_edit_form.dart';
+import 'package:askmo/user_info.dart';
 import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:askmo/wishlist/models/wishlist_state.dart';
-import '../models/coach_model.dart';
 
 class CoachDetailPage extends StatefulWidget {
   final Coach coach;
@@ -22,6 +25,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
   @override
   void initState() {
     super.initState();
+    // Animasi Aura
     _animationController = AnimationController(
       duration: const Duration(seconds: 15),
       vsync: this,
@@ -38,6 +42,19 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     super.dispose();
   }
 
+  /// Helper untuk memformat nama olahraga (Contoh: "voli" -> "Voli")
+  String _formatSportLabel(String rawValue) {
+    if (rawValue.isEmpty) return rawValue;
+    return rawValue
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return '';
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
+  }
+
+  /// Helper umum untuk mengubah teks menjadi Title Case (disimpan jika nanti butuh)
   String _toTitleCase(String text) {
     if (text.isEmpty) return text;
     return text.split(' ').map((word) {
@@ -46,6 +63,15 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     }).join(' ');
   }
 
+  /// Helper untuk membangun URL foto coach
+  String _buildPhotoUrl(String photoPath) {
+    if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
+      return photoPath;
+    }
+    return 'http://127.0.0.1:8000/media/$photoPath';
+  }
+
+  /// Background aura animasi untuk tampilan detail
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -98,11 +124,88 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     );
   }
 
+  Future<void> _deleteCoach() async {
+    final confirmed = await showDialog<bool>(
+      context: context,
+      builder: (context) => AlertDialog(
+        backgroundColor: const Color(0xFF2A2A2A),
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(12),
+          side: BorderSide(color: Colors.white.withOpacity(0.2)),
+        ),
+        title: Text(
+          'Hapus Coach',
+          style: GoogleFonts.plusJakartaSans(
+            color: Colors.white,
+            fontWeight: FontWeight.bold,
+          ),
+        ),
+        content: Text(
+          'Yakin hapus "${widget.coach.fields.name}"?',
+          style: GoogleFonts.plusJakartaSans(color: Colors.white70),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: Text(
+              'Batal',
+              style: GoogleFonts.plusJakartaSans(color: Colors.white70),
+            ),
+          ),
+          ElevatedButton(
+            onPressed: () => Navigator.pop(context, true),
+            style: ElevatedButton.styleFrom(
+              backgroundColor: Colors.red,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(8),
+              ),
+            ),
+            child: Text(
+              'Hapus',
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ),
+        ],
+      ),
+    );
+
+    if (confirmed == true && context.mounted) {
+      try {
+        final request = context.read<CookieRequest>();
+        final response = await request.post(
+          'http://127.0.0.1:8000/coach/delete-coach-ajax/${widget.coach.pk}/',
+          {},
+        );
+
+        if (context.mounted) {
+          if (response['status'] == 'success') {
+            Navigator.pop(context, true); // Sukses
+          } else {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(response['message'] ?? 'Gagal menghapus')),
+            );
+          }
+        }
+      } catch (e) {
+        if (context.mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.red,
+              content: Text('Error: $e. Cek URL server!'),
+            ),
+          );
+        }
+      }
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: Colors.black,
-      extendBodyBehindAppBar: true,
+      backgroundColor: Colors.black, // Fallback color
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -131,11 +234,16 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                   size: 28,
                 ),
                 onPressed: () {
+                  final photoPath = widget.coach.fields.photo;
+                  final imageUrl = (photoPath != null && photoPath.isNotEmpty)
+                      ? _buildPhotoUrl(photoPath)
+                      : null;
+
                   wishlistState.toggleWish(
                     id: widget.coach.pk.toString(),
                     type: 'coach',
                     name: widget.coach.fields.name,
-                    imageUrl: widget.coach.fields.photo,
+                    imageUrl: imageUrl,
                     location: widget.coach.fields.location,
                     category: widget.coach.fields.sportBranch,
                   );
@@ -191,7 +299,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 1. Nama Coach (First)
+                        // 1. Nama Coach
                         Text(
                           widget.coach.fields.name,
                           style: GoogleFonts.plusJakartaSans(
@@ -201,29 +309,29 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                             height: 1.1,
                           ),
                         ),
-                        
-                        // Narrow spacing
+
                         const SizedBox(height: 6),
 
-                        // Sport Branch Tag (Title Case) - WARNA SAMA DENGAN LAPANGAN
+                        // Sport Branch Tag (pakai _formatSportLabel)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF06005E), // WARNA SAMA
+                            color: const Color(0xFF06005E),
                             borderRadius: BorderRadius.circular(999),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF06005E).withOpacity(0.4),
+                                color:
+                                    const Color(0xFF06005E).withOpacity(0.4),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               )
                             ],
                           ),
                           child: Text(
-                            _toTitleCase(widget.coach.fields.sportBranch),
+                            _formatSportLabel(widget.coach.fields.sportBranch),
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white,
                               fontSize: 12,
@@ -231,9 +339,10 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                             ),
                           ),
                         ),
+
                         const SizedBox(height: 24),
 
-                        // 2. Location (Second)
+                        // 2. Lokasi
                         if (widget.coach.fields.location.isNotEmpty)
                           Row(
                             crossAxisAlignment: CrossAxisAlignment.start,
@@ -258,12 +367,87 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                         if (widget.coach.fields.location.isNotEmpty)
                           const SizedBox(height: 24),
 
-                        // 3. Photo (Third)
+                        // 3. Foto
                         _buildPhoto(),
                         const SizedBox(height: 24),
 
-                        // 4. Other Details
+                        // 4. Detail lain
                         _buildDetailsSection(),
+
+                        // 5. Tombol Edit & Delete (Admin Only)
+                        if (UserInfo.isAdmin) ...[
+                          const SizedBox(height: 32),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            CoachEditFormPage(
+                                          coach: widget.coach,
+                                        ),
+                                      ),
+                                    );
+                                    if (result == true && context.mounted) {
+                                      Navigator.pop(context, true);
+                                    }
+                                  },
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                  ),
+                                  label: Text(
+                                    'Edit Coach',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF571E88),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: _deleteCoach,
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.white,
+                                  ),
+                                  label: Text(
+                                    'Hapus Coach',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFFF5555),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
@@ -277,13 +461,15 @@ class _CoachDetailPageState extends State<CoachDetailPage>
   }
 
   Widget _buildPhoto() {
+    final photoPath = widget.coach.fields.photo;
+
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
       child: AspectRatio(
-        aspectRatio: 16 / 9, // Slightly wider for hero-like feel
-        child: widget.coach.fields.photo.isNotEmpty
+        aspectRatio: 16 / 9,
+        child: (photoPath != null && photoPath.isNotEmpty)
             ? Image.network(
-                widget.coach.fields.photo,
+                _buildPhotoUrl(photoPath),
                 fit: BoxFit.cover,
                 errorBuilder: (context, error, stackTrace) {
                   return _buildPlaceholder();
@@ -320,7 +506,6 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Info Rows
         if (widget.coach.fields.contact.isNotEmpty) ...[
           _buildDetailRow(
             icon: Icons.contact_phone,
@@ -329,7 +514,6 @@ class _CoachDetailPageState extends State<CoachDetailPage>
           ),
           const SizedBox(height: 16),
         ],
-        
         if (widget.coach.fields.experience.isNotEmpty) ...[
           _buildDetailRow(
             icon: Icons.work_outline,
@@ -338,7 +522,6 @@ class _CoachDetailPageState extends State<CoachDetailPage>
           ),
           const SizedBox(height: 16),
         ],
-
         if (widget.coach.fields.certifications.isNotEmpty) ...[
           _buildDetailRow(
             icon: Icons.card_membership,
@@ -346,17 +529,15 @@ class _CoachDetailPageState extends State<CoachDetailPage>
             value: widget.coach.fields.certifications,
           ),
         ],
-
         const SizedBox(height: 24),
         const Divider(color: Colors.white24),
         const SizedBox(height: 24),
-
         if (widget.coach.fields.serviceFee.isNotEmpty) ...[
           Text(
             'Rp ${widget.coach.fields.serviceFee} / Sesi',
             style: GoogleFonts.plusJakartaSans(
-              color: const Color(0xFFA4E4FF), 
-              fontSize: 28, 
+              color: const Color(0xFFA4E4FF),
+              fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -400,9 +581,5 @@ class _CoachDetailPageState extends State<CoachDetailPage>
         ),
       ],
     );
-  }
-
-  Widget _buildDivider() {
-    return Divider(color: Colors.grey.withOpacity(0.2), height: 1);
   }
 }
