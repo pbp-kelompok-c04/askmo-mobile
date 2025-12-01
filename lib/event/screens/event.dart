@@ -3,6 +3,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
+
+import 'package:askmo/profile/models/user_state.dart';
 import '../models/event.dart';
 import '../widgets/event_card.dart';
 import 'event_detail.dart';
@@ -26,7 +28,6 @@ class _EventPageState extends State<EventPage> {
   String? _selectedLocation;
   String? _selectedSport;
 
-  // Grouped location options for filter
   final Map<String, List<String>> _locationOptions = {
     'Jakarta Pusat': [
       'Cempaka Putih',
@@ -180,13 +181,12 @@ class _EventPageState extends State<EventPage> {
 
     try {
       final request = context.read<CookieRequest>();
-      // Endpoint Django yang benar sesuai urls.py
       final response = await request.get(
         'http://localhost:8000/get-events-json/',
       );
 
       if (response != null && response['events'] != null) {
-        List<Event> events = [];
+        final List<Event> events = [];
         for (var d in response['events']) {
           if (d != null) {
             events.add(Event.fromJson(d));
@@ -228,17 +228,17 @@ class _EventPageState extends State<EventPage> {
     setState(() {
       String? trimmedLocation = _selectedLocation?.trim();
       _filteredEvents = _events.where((event) {
-        bool matchesSearch =
+        final matchesSearch =
             _searchController.text.isEmpty ||
             event.nama.toLowerCase().contains(
               _searchController.text.toLowerCase(),
             );
 
-        bool matchesLocation =
+        final matchesLocation =
             trimmedLocation == null ||
             event.lokasi.toLowerCase().contains(trimmedLocation.toLowerCase());
 
-        bool matchesSport =
+        final matchesSport =
             _selectedSport == null ||
             event.olahraga.toLowerCase() == _selectedSport!.toLowerCase();
 
@@ -305,54 +305,58 @@ class _EventPageState extends State<EventPage> {
           {},
         );
 
-        if (context.mounted) {
-          if (response['status'] == 'success') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.green,
-                content: Text(
-                  'Event berhasil dihapus',
-                  style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                ),
+        if (!context.mounted) return;
+
+        if (response['status'] == 'success') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.green,
+              content: Text(
+                'Event berhasil dihapus',
+                style: GoogleFonts.plusJakartaSans(color: Colors.white),
               ),
-            );
-            _fetchEvents();
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.red,
-                content: Text(
-                  response['message'] ?? 'Gagal menghapus event',
-                  style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                ),
-              ),
-            );
-          }
-        }
-      } catch (e) {
-        if (context.mounted) {
+            ),
+          );
+          _fetchEvents();
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Colors.red,
               content: Text(
-                'Terjadi kesalahan: $e',
+                response['message'] ?? 'Gagal menghapus event',
                 style: GoogleFonts.plusJakartaSans(color: Colors.white),
               ),
             ),
           );
         }
+      } catch (e) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red,
+            content: Text(
+              'Terjadi kesalahan: $e',
+              style: GoogleFonts.plusJakartaSans(color: Colors.white),
+            ),
+          ),
+        );
       }
     }
   }
 
+  bool _isOwner(UserState userState, Event event) {
+    if (userState.userId == 0) return false;
+    return event.userId == userState.userId;
+  }
+
   @override
   Widget build(BuildContext context) {
+    final userState = context.watch<UserState>();
+
     return Stack(
       children: [
-        // Content - Full scrollable
         CustomScrollView(
           slivers: [
-            // Header
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.only(top: 24, bottom: 24),
@@ -379,7 +383,6 @@ class _EventPageState extends State<EventPage> {
                 ),
               ),
             ),
-            // Search & Filter Box
             SliverToBoxAdapter(
               child: Container(
                 margin: const EdgeInsets.symmetric(horizontal: 16),
@@ -442,14 +445,12 @@ class _EventPageState extends State<EventPage> {
               ),
             ),
             const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            // Event List
-            _buildEventList(),
+            _buildEventList(userState),
           ],
         ),
-        // Floating Action Button
         Positioned(
           right: 16,
-          bottom: 32, // Lowered from 90 to 32 for better placement
+          bottom: 110,
           child: FloatingActionButton.extended(
             onPressed: () async {
               final result = await Navigator.push(
@@ -510,7 +511,7 @@ class _EventPageState extends State<EventPage> {
             child: Text(
               group,
               style: GoogleFonts.plusJakartaSans(
-                color: Colors.white70,
+                color: const Color(0xFFA4E4FF),
                 fontWeight: FontWeight.bold,
                 fontSize: 13,
               ),
@@ -529,7 +530,7 @@ class _EventPageState extends State<EventPage> {
     });
 
     return DropdownButtonFormField<String>(
-      value: _selectedLocation,
+      initialValue: _selectedLocation,
       dropdownColor: const Color(0xFF4F4F4F),
       style: GoogleFonts.plusJakartaSans(color: Colors.white),
       decoration: InputDecoration(
@@ -558,7 +559,7 @@ class _EventPageState extends State<EventPage> {
 
   Widget _buildSportDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedSport,
+      initialValue: _selectedSport,
       dropdownColor: const Color(0xFF4F4F4F),
       style: GoogleFonts.plusJakartaSans(color: Colors.white),
       decoration: InputDecoration(
@@ -596,7 +597,7 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
-  Widget _buildEventList() {
+  Widget _buildEventList(UserState userState) {
     if (_isLoading) {
       return const SliverFillRemaining(
         child: Center(
@@ -672,18 +673,24 @@ class _EventPageState extends State<EventPage> {
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final event = _filteredEvents[index];
+          final isOwner = _isOwner(userState, event);
+
           return EventCard(
             event: event,
-            onTap: () {
-              Navigator.push(
+            onTap: () async {
+              final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => EventDetailPage(event: event),
                 ),
               );
+
+              if (result == true) {
+                _fetchEvents();
+              }
             },
-            onEdit: () => _editEvent(event),
-            onDelete: () => _deleteEvent(event),
+            onEdit: isOwner ? () => _editEvent(event) : null,
+            onDelete: isOwner ? () => _deleteEvent(event) : null,
           );
         }, childCount: _filteredEvents.length),
       ),

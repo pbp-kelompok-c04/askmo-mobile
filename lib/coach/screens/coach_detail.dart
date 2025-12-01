@@ -1,3 +1,4 @@
+import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:askmo/coach/models/coach_model.dart';
@@ -5,7 +6,7 @@ import 'package:askmo/coach/screens/coach_edit_form.dart';
 import 'package:askmo/user_info.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
-import 'dart:ui'; // Diperlukan untuk ImageFilter
+import 'package:askmo/wishlist/models/wishlist_state.dart';
 
 class CoachDetailPage extends StatefulWidget {
   final Coach coach;
@@ -53,6 +54,16 @@ class _CoachDetailPageState extends State<CoachDetailPage>
         .join(' ');
   }
 
+  /// Helper umum untuk mengubah teks menjadi Title Case (disimpan jika nanti butuh)
+  String _toTitleCase(String text) {
+    if (text.isEmpty) return text;
+    return text.split(' ').map((word) {
+      if (word.isEmpty) return word;
+      return word[0].toUpperCase() + word.substring(1).toLowerCase();
+    }).join(' ');
+  }
+
+  /// Helper untuk membangun URL foto coach
   String _buildPhotoUrl(String photoPath) {
     if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
       return photoPath;
@@ -60,7 +71,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     return 'http://127.0.0.1:8000/media/$photoPath';
   }
 
-  // WIDGET AURA BACKGROUND
+  /// Background aura animasi untuk tampilan detail
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -209,261 +220,238 @@ class _CoachDetailPageState extends State<CoachDetailPage>
             fontWeight: FontWeight.bold,
           ),
         ),
+        actions: [
+          Consumer<WishlistState>(
+            builder: (context, wishlistState, child) {
+              final isWished = wishlistState.isWished(
+                widget.coach.pk.toString(),
+                'coach',
+              );
+              return IconButton(
+                icon: Icon(
+                  isWished ? Icons.favorite : Icons.favorite_border,
+                  color: isWished ? Colors.red : Colors.white,
+                  size: 28,
+                ),
+                onPressed: () {
+                  final photoPath = widget.coach.fields.photo;
+                  final imageUrl = (photoPath != null && photoPath.isNotEmpty)
+                      ? _buildPhotoUrl(photoPath)
+                      : null;
+
+                  wishlistState.toggleWish(
+                    id: widget.coach.pk.toString(),
+                    type: 'coach',
+                    name: widget.coach.fields.name,
+                    imageUrl: imageUrl,
+                    location: widget.coach.fields.location,
+                    category: widget.coach.fields.sportBranch,
+                  );
+                  ScaffoldMessenger.of(context).showSnackBar(
+                    SnackBar(
+                      backgroundColor: const Color(0xFF571E88),
+                      content: Text(
+                        isWished
+                            ? 'Dihapus dari Wishlist'
+                            : 'Ditambahkan ke Wishlist',
+                        style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                      ),
+                      duration: const Duration(seconds: 2),
+                    ),
+                  );
+                },
+              );
+            },
+          ),
+          const SizedBox(width: 8),
+        ],
       ),
       body: Stack(
         children: [
-          // 1. BACKGROUND AURA
+          // 1. Background Aura
           Positioned.fill(child: _buildBackgroundAura()),
 
-          // 2. KONTEN
-          SingleChildScrollView(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16.0),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Center(
-                    child: Container(
-                      margin: const EdgeInsets.symmetric(vertical: 20),
-                      width: 150,
-                      height: 150,
-                      decoration: BoxDecoration(
-                        shape: BoxShape.circle,
-                        border: Border.all(
-                          color: const Color(0xFF571E88),
-                          width: 4,
-                        ),
-                        color: Colors.grey[800],
-                        image:
-                            widget.coach.fields.photo != null &&
-                                widget.coach.fields.photo!.isNotEmpty
-                            ? DecorationImage(
-                                image: NetworkImage(
-                                  _buildPhotoUrl(widget.coach.fields.photo!),
-                                ),
-                                fit: BoxFit.cover,
-                              )
-                            : null,
+          // 2. Main Content
+          SafeArea(
+            child: SingleChildScrollView(
+              padding: const EdgeInsets.all(16),
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+                  child: Container(
+                    padding: const EdgeInsets.all(24),
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.1),
+                          Colors.white.withOpacity(0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
                       ),
-                      child:
-                          widget.coach.fields.photo == null ||
-                              widget.coach.fields.photo!.isEmpty
-                          ? const Icon(
-                              Icons.person,
-                              color: Colors.white,
-                              size: 80,
-                            )
-                          : null,
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1.5,
+                      ),
                     ),
-                  ),
-                  Center(
                     child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
+                        // 1. Nama Coach
                         Text(
                           widget.coach.fields.name,
                           style: GoogleFonts.plusJakartaSans(
-                            fontSize: 24,
-                            fontWeight: FontWeight.bold,
                             color: Colors.white,
+                            fontSize: 32,
+                            fontWeight: FontWeight.bold,
+                            height: 1.1,
                           ),
                         ),
-                        const SizedBox(height: 8),
+
+                        const SizedBox(height: 6),
+
+                        // Sport Branch Tag (pakai _formatSportLabel)
                         Container(
                           padding: const EdgeInsets.symmetric(
                             horizontal: 12,
                             vertical: 6,
                           ),
                           decoration: BoxDecoration(
-                            color: const Color(0xFF571E88).withOpacity(0.8),
-                            borderRadius: BorderRadius.circular(20),
-                            border: Border.all(color: const Color(0xFF571E88)),
+                            color: const Color(0xFF06005E),
+                            borderRadius: BorderRadius.circular(999),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF571E88).withOpacity(0.3),
+                                color:
+                                    const Color(0xFF06005E).withOpacity(0.4),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
-                              ),
+                              )
                             ],
                           ),
                           child: Text(
-                            // Format nama olahraga jadi Title Case (Voli)
                             _formatSportLabel(widget.coach.fields.sportBranch),
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white,
+                              fontSize: 12,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                         ),
+
+                        const SizedBox(height: 24),
+
+                        // 2. Lokasi
+                        if (widget.coach.fields.location.isNotEmpty)
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              const Icon(
+                                Icons.location_on,
+                                color: Colors.white70,
+                                size: 20,
+                              ),
+                              const SizedBox(width: 8),
+                              Expanded(
+                                child: Text(
+                                  widget.coach.fields.location,
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: Colors.white70,
+                                    fontSize: 16,
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        if (widget.coach.fields.location.isNotEmpty)
+                          const SizedBox(height: 24),
+
+                        // 3. Foto
+                        _buildPhoto(),
+                        const SizedBox(height: 24),
+
+                        // 4. Detail lain
+                        _buildDetailsSection(),
+
+                        // 5. Tombol Edit & Delete (Admin Only)
+                        if (UserInfo.isAdmin) ...[
+                          const SizedBox(height: 32),
+                          Row(
+                            children: [
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: () async {
+                                    final result = await Navigator.push(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) =>
+                                            CoachEditFormPage(
+                                          coach: widget.coach,
+                                        ),
+                                      ),
+                                    );
+                                    if (result == true && context.mounted) {
+                                      Navigator.pop(context, true);
+                                    }
+                                  },
+                                  icon: const Icon(
+                                    Icons.edit,
+                                    color: Colors.white,
+                                  ),
+                                  label: Text(
+                                    'Edit Coach',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFF571E88),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                              const SizedBox(width: 16),
+                              Expanded(
+                                child: ElevatedButton.icon(
+                                  onPressed: _deleteCoach,
+                                  icon: const Icon(
+                                    Icons.delete,
+                                    color: Colors.white,
+                                  ),
+                                  label: Text(
+                                    'Hapus Coach',
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white,
+                                      fontSize: 16,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                  style: ElevatedButton.styleFrom(
+                                    backgroundColor: const Color(0xFFFF5555),
+                                    padding: const EdgeInsets.symmetric(
+                                      vertical: 16,
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12),
+                                    ),
+                                  ),
+                                ),
+                              ),
+                            ],
+                          ),
+                        ],
                       ],
                     ),
                   ),
-                  const SizedBox(height: 30),
-
-                  // CONTAINER GLASSMORPHISM
-                  ClipRRect(
-                    borderRadius: BorderRadius.circular(16),
-                    child: BackdropFilter(
-                      filter: ImageFilter.blur(sigmaX: 10.0, sigmaY: 10.0),
-                      child: Container(
-                        padding: const EdgeInsets.all(24),
-                        decoration: BoxDecoration(
-                          color: const Color(
-                            0xFF353535,
-                          ).withOpacity(0.6), // Transparan gelap
-                          borderRadius: BorderRadius.circular(16),
-                          border: Border.all(
-                            color: Colors.white.withOpacity(0.2),
-                          ),
-                        ),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            _buildInfoRow(
-                              Icons.location_on,
-                              "Lokasi",
-                              widget.coach.fields.location,
-                            ),
-                            Divider(color: Colors.grey.withOpacity(0.2)),
-                            _buildInfoRow(
-                              Icons.monetization_on,
-                              "Tarif",
-                              widget.coach.fields.serviceFee,
-                            ),
-                            Divider(color: Colors.grey.withOpacity(0.2)),
-                            _buildInfoRow(
-                              Icons.contact_phone,
-                              "Kontak",
-                              widget.coach.fields.contact,
-                            ),
-                            Divider(color: Colors.grey.withOpacity(0.2)),
-                            const SizedBox(height: 16),
-                            Text(
-                              "Pengalaman",
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              widget.coach.fields.experience.isNotEmpty
-                                  ? widget.coach.fields.experience
-                                  : "-",
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.grey[300],
-                                height: 1.5,
-                              ),
-                            ),
-                            const SizedBox(height: 24),
-                            Text(
-                              "Sertifikasi",
-                              style: GoogleFonts.plusJakartaSans(
-                                fontSize: 18,
-                                fontWeight: FontWeight.bold,
-                                color: Colors.white,
-                              ),
-                            ),
-                            const SizedBox(height: 8),
-                            Text(
-                              widget.coach.fields.certifications.isNotEmpty
-                                  ? widget.coach.fields.certifications
-                                  : "-",
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.grey[300],
-                                height: 1.5,
-                              ),
-                            ),
-
-                            // TOMBOL EDIT & DELETE (ADMIN ONLY)
-                            if (UserInfo.isAdmin) ...[
-                              const SizedBox(height: 32),
-                              Row(
-                                children: [
-                                  Expanded(
-                                    child: ElevatedButton.icon(
-                                      onPressed: () async {
-                                        final result = await Navigator.push(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                CoachEditFormPage(
-                                                  coach: widget.coach,
-                                                ),
-                                          ),
-                                        );
-                                        if (result == true && context.mounted)
-                                          Navigator.pop(context, true);
-                                      },
-                                      icon: const Icon(
-                                        Icons.edit,
-                                        color: Colors.white,
-                                      ),
-                                      label: Text(
-                                        'Edit Event', // Text Putih
-                                        style: GoogleFonts.plusJakartaSans(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(
-                                          0xFF571E88,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 16,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                  const SizedBox(width: 16),
-                                  Expanded(
-                                    child: ElevatedButton.icon(
-                                      onPressed: _deleteCoach,
-                                      icon: const Icon(
-                                        Icons.delete,
-                                        color: Colors.white,
-                                      ),
-                                      label: Text(
-                                        'Hapus Event', // Text Putih
-                                        style: GoogleFonts.plusJakartaSans(
-                                          color: Colors.white,
-                                          fontSize: 16,
-                                          fontWeight: FontWeight.w600,
-                                        ),
-                                      ),
-                                      style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(
-                                          0xFFFF5555,
-                                        ),
-                                        padding: const EdgeInsets.symmetric(
-                                          vertical: 16,
-                                        ),
-                                        shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(
-                                            12,
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                  ),
-                                ],
-                              ),
-                            ],
-                            const SizedBox(height: 10),
-                          ],
-                        ),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 40),
-                ],
+                ),
               ),
             ),
           ),
@@ -472,44 +460,126 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     );
   }
 
-  Widget _buildInfoRow(IconData icon, String label, String value) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(vertical: 12),
-      child: Row(
-        children: [
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: const Color(0xFF571E88).withOpacity(0.1),
-              borderRadius: BorderRadius.circular(10),
+  Widget _buildPhoto() {
+    final photoPath = widget.coach.fields.photo;
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(12),
+      child: AspectRatio(
+        aspectRatio: 16 / 9,
+        child: (photoPath != null && photoPath.isNotEmpty)
+            ? Image.network(
+                _buildPhotoUrl(photoPath),
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return _buildPlaceholder();
+                },
+              )
+            : _buildPlaceholder(),
+      ),
+    );
+  }
+
+  Widget _buildPlaceholder() {
+    return Container(
+      color: Colors.white.withOpacity(0.1),
+      child: Center(
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            const Icon(Icons.person, color: Colors.white54, size: 40),
+            const SizedBox(height: 8),
+            Text(
+              'Foto tidak tersedia',
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.white54,
+                fontSize: 14,
+              ),
             ),
-            child: Icon(icon, color: const Color(0xFFA4E4FF), size: 24),
+          ],
+        ),
+      ),
+    );
+  }
+
+  Widget _buildDetailsSection() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (widget.coach.fields.contact.isNotEmpty) ...[
+          _buildDetailRow(
+            icon: Icons.contact_phone,
+            label: 'Kontak',
+            value: widget.coach.fields.contact,
           ),
-          const SizedBox(width: 16),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  label,
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.grey,
-                    fontSize: 12,
-                  ),
-                ),
-                Text(
-                  value.isNotEmpty ? value : "-",
-                  style: GoogleFonts.plusJakartaSans(
-                    color: Colors.white,
-                    fontSize: 16,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
+          const SizedBox(height: 16),
+        ],
+        if (widget.coach.fields.experience.isNotEmpty) ...[
+          _buildDetailRow(
+            icon: Icons.work_outline,
+            label: 'Pengalaman',
+            value: widget.coach.fields.experience,
+          ),
+          const SizedBox(height: 16),
+        ],
+        if (widget.coach.fields.certifications.isNotEmpty) ...[
+          _buildDetailRow(
+            icon: Icons.card_membership,
+            label: 'Sertifikasi',
+            value: widget.coach.fields.certifications,
+          ),
+        ],
+        const SizedBox(height: 24),
+        const Divider(color: Colors.white24),
+        const SizedBox(height: 24),
+        if (widget.coach.fields.serviceFee.isNotEmpty) ...[
+          Text(
+            'Rp ${widget.coach.fields.serviceFee} / Sesi',
+            style: GoogleFonts.plusJakartaSans(
+              color: const Color(0xFFA4E4FF),
+              fontSize: 28,
+              fontWeight: FontWeight.bold,
             ),
           ),
         ],
-      ),
+      ],
+    );
+  }
+
+  Widget _buildDetailRow({
+    required IconData icon,
+    required String label,
+    required String value,
+  }) {
+    return Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Icon(icon, color: Colors.white70, size: 20),
+        const SizedBox(width: 12),
+        Expanded(
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(
+                label,
+                style: GoogleFonts.plusJakartaSans(
+                  color: Colors.white70,
+                  fontSize: 13,
+                ),
+              ),
+              const SizedBox(height: 4),
+              Text(
+                value,
+                style: GoogleFonts.plusJakartaSans(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ],
     );
   }
 }

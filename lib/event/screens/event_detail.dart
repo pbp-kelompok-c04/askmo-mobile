@@ -3,7 +3,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'dart:ui';
+import 'dart:ui'; // Diperlukan untuk ImageFilter
+
+import 'package:askmo/profile/models/user_state.dart';
 import '../models/event.dart';
 import 'event_edit_form.dart';
 
@@ -38,6 +40,11 @@ class _EventDetailPageState extends State<EventDetailPage>
   void dispose() {
     _animationController.dispose();
     super.dispose();
+  }
+
+  bool _isOwner(UserState userState) {
+    if (userState.userId == 0) return false;
+    return widget.event.userId == userState.userId;
   }
 
   Widget _buildBackgroundAura() {
@@ -94,6 +101,9 @@ class _EventDetailPageState extends State<EventDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    final userState = context.watch<UserState>();
+    final isOwner = _isOwner(userState);
+
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -113,21 +123,42 @@ class _EventDetailPageState extends State<EventDetailPage>
       ),
       body: Stack(
         children: [
+          // 1. Background Aura
           Positioned.fill(child: _buildBackgroundAura()),
+
+          // 2. Main Content
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF353535),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [_buildImageAndInfo(context)],
+              // --- MULAI EDIT GLASSMORPHISM ---
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.1),
+                          Colors.white.withOpacity(0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [_buildImageAndInfo(context, isOwner)],
+                    ),
+                  ),
                 ),
               ),
+              // --- SELESAI EDIT GLASSMORPHISM ---
             ),
           ),
         ],
@@ -135,12 +166,12 @@ class _EventDetailPageState extends State<EventDetailPage>
     );
   }
 
-  Widget _buildImageAndInfo(BuildContext context) {
+  Widget _buildImageAndInfo(BuildContext context, bool isOwner) {
     return LayoutBuilder(
       builder: (context, constraints) {
         if (constraints.maxWidth < 600) {
           return Column(
-            children: [_buildThumbnail(), _buildEventInfo(context)],
+            children: [_buildThumbnail(), _buildEventInfo(context, isOwner)],
           );
         } else {
           return IntrinsicHeight(
@@ -148,7 +179,7 @@ class _EventDetailPageState extends State<EventDetailPage>
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 Expanded(child: _buildThumbnail()),
-                Expanded(child: _buildEventInfo(context)),
+                Expanded(child: _buildEventInfo(context, isOwner)),
               ],
             ),
           );
@@ -237,7 +268,7 @@ class _EventDetailPageState extends State<EventDetailPage>
     );
   }
 
-  Widget _buildEventInfo(BuildContext context) {
+  Widget _buildEventInfo(BuildContext context, bool isOwner) {
     return Padding(
       padding: const EdgeInsets.all(32),
       child: Column(
@@ -296,7 +327,7 @@ class _EventDetailPageState extends State<EventDetailPage>
                   ).format(widget.event.tanggal),
                 ),
                 if (widget.event.jam != null &&
-                    widget.event.jam!.toString().isNotEmpty) ...[
+                    widget.event.jam.toString().isNotEmpty) ...[
                   const SizedBox(height: 16),
                   _buildDetailRow(
                     icon: Icons.access_time,
@@ -341,64 +372,66 @@ class _EventDetailPageState extends State<EventDetailPage>
             ),
           ),
           const SizedBox(height: 32),
-          Row(
-            children: [
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () async {
-                    final result = await Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) =>
-                            EventEditFormPage(event: widget.event),
+
+          if (isOwner)
+            Row(
+              children: [
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () async {
+                      final result = await Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) =>
+                              EventEditFormPage(event: widget.event),
+                        ),
+                      );
+                      if (result == true && context.mounted) {
+                        Navigator.pop(context, true);
+                      }
+                    },
+                    icon: const Icon(Icons.edit, color: Colors.white),
+                    label: Text(
+                      'Edit Event',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
                       ),
-                    );
-                    if (result == true && context.mounted) {
-                      Navigator.pop(context, true);
-                    }
-                  },
-                  icon: const Icon(Icons.edit, color: Colors.white),
-                  label: Text(
-                    'Edit Event',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFF571E88),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFF571E88),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
-              ),
-              const SizedBox(width: 16),
-              Expanded(
-                child: ElevatedButton.icon(
-                  onPressed: () => _deleteEvent(context),
-                  icon: const Icon(Icons.delete, color: Colors.white),
-                  label: Text(
-                    'Hapus Event',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white,
-                      fontSize: 16,
-                      fontWeight: FontWeight.w600,
+                const SizedBox(width: 16),
+                Expanded(
+                  child: ElevatedButton.icon(
+                    onPressed: () => _deleteEvent(context),
+                    icon: const Icon(Icons.delete, color: Colors.white),
+                    label: Text(
+                      'Hapus Event',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontSize: 16,
+                        fontWeight: FontWeight.w600,
+                      ),
                     ),
-                  ),
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: const Color(0xFFFF5555),
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(12),
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: const Color(0xFFFF5555),
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(
+                        borderRadius: BorderRadius.circular(12),
+                      ),
                     ),
                   ),
                 ),
-              ),
-            ],
-          ),
+              ],
+            ),
         ],
       ),
     );
@@ -452,42 +485,41 @@ class _EventDetailPageState extends State<EventDetailPage>
           {},
         );
 
-        if (context.mounted) {
-          if (response['status'] == 'success') {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.green,
-                content: Text(
-                  'Event berhasil dihapus',
-                  style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                ),
+        if (!context.mounted) return;
+
+        if (response['status'] == 'success') {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              backgroundColor: Colors.green,
+              content: Text(
+                'Event berhasil dihapus',
+                style: GoogleFonts.plusJakartaSans(color: Colors.white),
               ),
-            );
-            Navigator.pop(context, true);
-          } else {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                backgroundColor: Colors.red,
-                content: Text(
-                  response['message'] ?? 'Gagal menghapus event',
-                  style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                ),
-              ),
-            );
-          }
-        }
-      } catch (e) {
-        if (context.mounted) {
+            ),
+          );
+          Navigator.pop(context, true);
+        } else {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
               backgroundColor: Colors.red,
               content: Text(
-                'Terjadi kesalahan: $e',
+                response['message'] ?? 'Gagal menghapus event',
                 style: GoogleFonts.plusJakartaSans(color: Colors.white),
               ),
             ),
           );
         }
+      } catch (e) {
+        if (!context.mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: Colors.red,
+            content: Text(
+              'Terjadi kesalahan: $e',
+              style: GoogleFonts.plusJakartaSans(color: Colors.white),
+            ),
+          ),
+        );
       }
     }
   }

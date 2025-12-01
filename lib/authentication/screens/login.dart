@@ -1,11 +1,15 @@
+import 'dart:convert';
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:askmo/profile/models/user_state.dart';
 import 'package:askmo/authentication/screens/register.dart';
 import 'package:askmo/menu.dart';
 import 'package:askmo/user_info.dart';
 import 'package:google_fonts/google_fonts.dart';
-import 'dart:ui';
+import 'package:google_sign_in/google_sign_in.dart';
 
 void main() {
   runApp(const LoginApp());
@@ -43,8 +47,15 @@ class _LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
+
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    clientId:
+        '312722822760-ddcvk4fbt7sm7mefo8hb812lukfsb6ff.apps.googleusercontent.com',
+    scopes: ['email', 'profile', 'openid'],
+  );
 
   @override
   void initState() {
@@ -62,7 +73,167 @@ class _LoginPageState extends State<LoginPage>
   @override
   void dispose() {
     _animationController.dispose();
+    _usernameController.dispose();
+    _passwordController.dispose();
     super.dispose();
+  }
+
+  Future<void> _loginWithUsernamePassword(CookieRequest request) async {
+    final username = _usernameController.text.trim();
+    final password = _passwordController.text.trim();
+
+    final response = await request.login("http://localhost:8000/auth/login/", {
+      'username': username,
+      'password': password,
+    });
+
+    if (request.loggedIn) {
+      final userState = context.read<UserState>();
+
+      await userState.reload();
+      await userState.setUsername(response['username']);
+      await userState.setUserId((response['user_id'] ?? 0) as int);
+
+      final bool isStaff = response['is_staff'] ?? false;
+      UserInfo.login(response['username'], isStaff);
+
+      if (!mounted) return;
+
+      ScaffoldMessenger.of(context)
+        ..hideCurrentSnackBar()
+        ..showSnackBar(
+          const SnackBar(
+            backgroundColor: Color(0xFF571E88),
+            content: Text("Login berhasil!"),
+          ),
+        );
+
+      Navigator.pushReplacement(
+        context,
+        MaterialPageRoute(builder: (context) => const MenuPage()),
+      );
+    } else {
+      if (!mounted) return;
+      showDialog(
+        context: context,
+        builder: (context) => AlertDialog(
+          backgroundColor: const Color(0xFF1E1E1E),
+          shape: RoundedRectangleBorder(
+            borderRadius: BorderRadius.circular(12.0),
+            side: BorderSide(
+              color: const Color(0xFF571E88).withOpacity(0.5),
+              width: 1.5,
+            ),
+          ),
+          title: Text(
+            'Login Gagal',
+            style: GoogleFonts.plusJakartaSans(
+              color: const Color(0xFFFFFFFF),
+              fontWeight: FontWeight.bold,
+            ),
+          ),
+          content: Text(
+            'Username atau kata sandi salah. Silakan coba lagi.',
+            style: GoogleFonts.plusJakartaSans(color: const Color(0xFFFFFFFF)),
+          ),
+          actions: [
+            TextButton(
+              style: TextButton.styleFrom(
+                foregroundColor: const Color(0xFF571E88),
+              ),
+              child: Text(
+                'OK',
+                style: GoogleFonts.plusJakartaSans(fontWeight: FontWeight.bold),
+              ),
+              onPressed: () {
+                Navigator.pop(context);
+              },
+            ),
+          ],
+        ),
+      );
+    }
+  }
+
+  Future<void> _loginWithGoogle() async {
+    final request = context.read<CookieRequest>();
+
+    try {
+      final googleUser = await _googleSignIn.signIn();
+      if (googleUser == null) return;
+
+      final googleAuth = await googleUser.authentication;
+      final String? idToken = googleAuth.idToken;
+      final String? accessToken = googleAuth.accessToken;
+
+      if (idToken == null && accessToken == null) {
+        if (!mounted) return;
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            backgroundColor: Color(0xFFFF5555),
+            content: Text('Tidak ada token yang diterima dari Google'),
+          ),
+        );
+        return;
+      }
+
+      final payload = <String, String>{};
+      if (idToken != null) {
+        payload['id_token'] = idToken;
+      } else if (accessToken != null) {
+        payload['access_token'] = accessToken;
+      }
+
+      final response = await request.login(
+        "http://localhost:8000/auth/google-login/",
+        payload,
+      );
+
+      if (request.loggedIn) {
+        final userState = context.read<UserState>();
+
+        await userState.reload();
+        await userState.setUsername(response['username']);
+        await userState.setUserId((response['user_id'] ?? 0) as int);
+
+        final bool isStaff = response['is_staff'] ?? false;
+        UserInfo.login(response['username'], isStaff);
+
+        if (!mounted) return;
+
+        ScaffoldMessenger.of(context)
+          ..hideCurrentSnackBar()
+          ..showSnackBar(
+            const SnackBar(
+              backgroundColor: Color(0xFF571E88),
+              content: Text('Login berhasil!'),
+            ),
+          );
+
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MenuPage()),
+        );
+      } else {
+        if (!mounted) return;
+        final msg =
+            response['message']?.toString() ?? 'Login dengan Google gagal';
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            backgroundColor: const Color(0xFFFF5555),
+            content: Text(msg),
+          ),
+        );
+      }
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(
+          backgroundColor: Color(0xFFFF5555),
+          content: Text('Terjadi kesalahan saat login dengan Google'),
+        ),
+      );
+    }
   }
 
   @override
@@ -74,13 +245,11 @@ class _LoginPageState extends State<LoginPage>
         color: Colors.black,
         child: Stack(
           children: [
-            // Animated aura effects
             AnimatedBuilder(
               animation: _pulseAnimation,
               builder: (context, child) {
                 return Stack(
                   children: [
-                    // First aura - top left
                     Positioned(
                       top: -150,
                       left: -150,
@@ -101,7 +270,6 @@ class _LoginPageState extends State<LoginPage>
                         ),
                       ),
                     ),
-                    // Second aura - bottom right
                     Positioned(
                       bottom: -200,
                       right: -200,
@@ -126,7 +294,6 @@ class _LoginPageState extends State<LoginPage>
                 );
               },
             ),
-            // Content
             Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -167,8 +334,9 @@ class _LoginPageState extends State<LoginPage>
                               ),
                               Text(
                                 'Selamat datang kembali di ASKMO',
+                                textAlign: TextAlign.center,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 14.0,
+                                  fontSize: 12.0,
                                   color: const Color(0xFFFFFFFF),
                                 ),
                               ),
@@ -277,112 +445,8 @@ class _LoginPageState extends State<LoginPage>
                                   borderRadius: BorderRadius.circular(8.0),
                                 ),
                                 child: ElevatedButton(
-                                  onPressed: () async {
-                                    String username = _usernameController.text;
-                                    String password = _passwordController.text;
-
-                                    // Untuk Android emulator gunakan http://10.0.2.2/
-                                    // Untuk Chrome gunakan http://localhost:8000
-                                    final response = await request.login(
-                                      "http://localhost:8000/auth/login/",
-                                      {
-                                        'username': username,
-                                        'password': password,
-                                      },
-                                    );
-
-                                    if (request.loggedIn) {
-                                      // SIMPAN DATA USER
-                                      String username = response['username'];
-                                      bool isStaff = response['is_staff'] ?? false;
-                                      
-                                      UserInfo.login(username, isStaff); // Simpan ke static variable
-
-                                      if (context.mounted) {
-                                        ScaffoldMessenger.of(context)
-                                          ..hideCurrentSnackBar()
-                                          ..showSnackBar(
-                                            const SnackBar(
-                                              backgroundColor: Color(
-                                                0xFF571E88,
-                                              ),
-                                              content: Text(
-                                                "Login berhasil!",
-                                              ),
-                                            ),
-                                          );
-
-                                        // Navigasi ke menu
-                                        Navigator.pushReplacement(
-                                          context,
-                                          MaterialPageRoute(
-                                            builder: (context) =>
-                                                const MenuPage(),
-                                          ),
-                                        );
-                                      }
-                                    } else {
-                                      if (context.mounted) {
-                                        showDialog(
-                                          context: context,
-                                          builder: (context) => AlertDialog(
-                                            backgroundColor: const Color(
-                                              0xFF1E1E1E,
-                                            ),
-                                            shape: RoundedRectangleBorder(
-                                              borderRadius:
-                                                  BorderRadius.circular(12.0),
-                                              side: BorderSide(
-                                                color: const Color(
-                                                  0xFF571E88,
-                                                ).withOpacity(0.5),
-                                                width: 1.5,
-                                              ),
-                                            ),
-                                            title: Text(
-                                              'Login Gagal',
-                                              style:
-                                                  GoogleFonts.plusJakartaSans(
-                                                    color: const Color(
-                                                      0xFFFFFFFF,
-                                                    ),
-                                                    fontWeight: FontWeight.bold,
-                                                  ),
-                                            ),
-                                            content: Text(
-                                              'Username atau kata sandi salah. Silakan coba lagi.',
-                                              style:
-                                                  GoogleFonts.plusJakartaSans(
-                                                    color: const Color(
-                                                      0xFFFFFFFF,
-                                                    ),
-                                                  ),
-                                            ),
-                                            actions: [
-                                              TextButton(
-                                                style: TextButton.styleFrom(
-                                                  foregroundColor: const Color(
-                                                    0xFF571E88,
-                                                  ),
-                                                ),
-                                                child: Text(
-                                                  'OK',
-                                                  style:
-                                                      GoogleFonts.plusJakartaSans(
-                                                        fontWeight:
-                                                            FontWeight.bold,
-                                                      ),
-                                                ),
-                                                onPressed: () {
-                                                  Navigator.pop(context);
-                                                },
-                                              ),
-                                            ],
-                                          ),
-                                        );
-                                      }
-                                    }
-                                  },
+                                  onPressed: () =>
+                                      _loginWithUsernamePassword(request),
                                   style: ElevatedButton.styleFrom(
                                     foregroundColor: const Color(0xFFFFFFFF),
                                     minimumSize: const Size(
@@ -398,8 +462,80 @@ class _LoginPageState extends State<LoginPage>
                                   child: const Text('Masuk'),
                                 ),
                               ),
+                              const SizedBox(height: 16.0),
+                              Row(
+                                children: [
+                                  Expanded(
+                                    child: Container(
+                                      height: 1,
+                                      color: Colors.white.withOpacity(0.3),
+                                    ),
+                                  ),
+                                  Padding(
+                                    padding: const EdgeInsets.symmetric(
+                                      horizontal: 8.0,
+                                    ),
+                                    child: Text(
+                                      'atau',
+                                      style: GoogleFonts.plusJakartaSans(
+                                        color: Colors.white70,
+                                      ),
+                                    ),
+                                  ),
+                                  Expanded(
+                                    child: Container(
+                                      height: 1,
+                                      color: Colors.white.withOpacity(0.3),
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              const SizedBox(height: 16.0),
+                              SizedBox(
+                                width: double.infinity,
+                                height: 50,
+                                child: OutlinedButton.icon(
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(
+                                      color: Colors.white.withOpacity(0.6),
+                                    ),
+                                    shape: RoundedRectangleBorder(
+                                      borderRadius: BorderRadius.circular(12.0),
+                                    ),
+                                    backgroundColor: Colors.white.withOpacity(
+                                      0.1,
+                                    ),
+                                  ),
+                                  onPressed: _loginWithGoogle,
+                                  icon: Container(
+                                    width: 24,
+                                    height: 24,
+                                    decoration: const BoxDecoration(
+                                      shape: BoxShape.circle,
+                                      color: Colors.white,
+                                    ),
+                                    child: Center(
+                                      child: Image.asset(
+                                        'assets/auth-icon/google.png',
+                                        width: 18,
+                                        height: 18,
+                                        fit: BoxFit.contain,
+                                      ),
+                                    ),
+                                  ),
+                                  label: Text(
+                                    'Masuk dengan Google',
+                                    textAlign: TextAlign.center,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: const Color(0xFFFFFFFF),
+                                      fontSize: 14.0,
+                                      fontWeight: FontWeight.w600,
+                                    ),
+                                  ),
+                                ),
+                              ),
                               const SizedBox(height: 36.0),
-                              _RegisterLink(),
+                              const _RegisterLink(),
                             ],
                           ),
                         ),
@@ -434,30 +570,34 @@ class _RegisterLinkState extends State<_RegisterLink> {
       onExit: (_) => setState(() => _isHovered = false),
       child: GestureDetector(
         onTap: () {
+          ScaffoldMessenger.of(context).clearSnackBars();
           Navigator.push(
             context,
             MaterialPageRoute(builder: (context) => const RegisterPage()),
           );
         },
-        child: RichText(
-          text: TextSpan(
-            text: 'Belum punya akun? ',
-            style: GoogleFonts.plusJakartaSans(
-              color: const Color(0xFFFFFFFF),
-              fontSize: 16.0,
-            ),
-            children: [
-              TextSpan(
-                text: 'Daftar akun disini!',
-                style: GoogleFonts.plusJakartaSans(
-                  color: _isHovered
-                      ? const Color.fromARGB(255, 110, 106, 114)
-                      : const Color(0xFFA4E4FF),
-                  fontSize: 16.0,
-                  decoration: TextDecoration.underline,
-                ),
+        child: Center(
+          child: RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              text: 'Belum punya akun? ',
+              style: GoogleFonts.plusJakartaSans(
+                color: const Color(0xFFFFFFFF),
+                fontSize: 14.0,
               ),
-            ],
+              children: [
+                TextSpan(
+                  text: 'Daftar akun di sini!',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: _isHovered
+                        ? const Color.fromARGB(255, 110, 106, 114)
+                        : const Color(0xFFA4E4FF),
+                    fontSize: 14.0,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

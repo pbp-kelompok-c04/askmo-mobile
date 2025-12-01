@@ -48,15 +48,16 @@ class Fields {
   });
 
   factory Fields.fromJson(Map<String, dynamic> json) => Fields(
-    name: json["name"],
-    sportBranch: json["sport_branch"],
-    location: json["location"],
-    contact: json["contact"],
-    experience: json["experience"],
-    certifications: json["certifications"],
-    serviceFee: json["service_fee"],
-    photo: json["photo"],
-  );
+        name: json["name"] ?? "",
+        sportBranch: json["sport_branch"] ?? "",
+        location: json["location"] ?? "",
+        contact: json["contact"] ?? "",
+        experience: json["experience"] ?? "",
+        certifications: json["certifications"] ?? "",
+        serviceFee: json["service_fee"] ?? "",
+        // Biarkan null jika tidak ada / null di backend
+        photo: json["photo"],
+      );
 
   Map<String, dynamic> toJson() => {
     "name": name,

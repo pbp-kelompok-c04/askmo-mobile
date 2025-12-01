@@ -496,7 +496,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
             ),
           ),
           child: DropdownButtonFormField<String>(
-            value: _selectedOlahraga,
+            initialValue: _selectedOlahraga,
             dropdownColor: const Color(0xFF2A2A2A),
             style: GoogleFonts.plusJakartaSans(color: Colors.white),
             decoration: InputDecoration(
@@ -574,7 +574,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
             ),
           ),
           child: DropdownButtonFormField<String>(
-            value: _selectedLokasi.isEmpty ? '' : _selectedLokasi,
+            initialValue: _selectedLokasi.isEmpty ? '' : _selectedLokasi,
             dropdownColor: const Color(0xFF2A2A2A),
             style: GoogleFonts.plusJakartaSans(color: Colors.white),
             decoration: InputDecoration(
@@ -650,7 +650,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
                   return Theme(
                     data: Theme.of(context).copyWith(
                       colorScheme: const ColorScheme.dark(
-                        primary: Color(0xFF571E88),
+                        primary: Color(0xFFA4E4FF),
                         onPrimary: Colors.white,
                         surface: Color(0xFF2A2A2A),
                         onSurface: Colors.white,

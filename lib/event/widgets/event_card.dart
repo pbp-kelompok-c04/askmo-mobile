@@ -155,7 +155,7 @@ class EventCard extends StatelessWidget {
       event.nama,
       style: GoogleFonts.plusJakartaSans(
         color: Colors.white,
-        fontSize: 18, // Perkecil dari 24 ke 18
+        fontSize: 18,
         fontWeight: FontWeight.bold,
       ),
       maxLines: 2,

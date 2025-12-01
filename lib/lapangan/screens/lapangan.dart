@@ -7,6 +7,7 @@ import 'dart:ui';
 import '../models/lapangan.dart';
 import '../widgets/lapangan_card.dart';
 import 'lapangan_detail.dart';
+import 'lapangan_booking.dart';
 
 class LapanganPage extends StatefulWidget {
   const LapanganPage({super.key});
@@ -26,118 +27,131 @@ class _LapanganPageState extends State<LapanganPage> {
   String? _selectedSport;
 
   // Full location list from your reference
-  final List<Map<String, String>> _locationGroups = [
-    // Jakarta Pusat
-    {'group': 'Jakarta Pusat', 'value': 'Cempaka Putih'},
-    {'group': 'Jakarta Pusat', 'value': 'Gambir'},
-    {'group': 'Jakarta Pusat', 'value': 'Johar Baru'},
-    {'group': 'Jakarta Pusat', 'value': 'Kemayoran'},
-    {'group': 'Jakarta Pusat', 'value': 'Menteng'},
-    {'group': 'Jakarta Pusat', 'value': 'Sawah Besar'},
-    {'group': 'Jakarta Pusat', 'value': 'Senen'},
-    {'group': 'Jakarta Pusat', 'value': 'Tanah Abang'},
-    // Jakarta Utara
-    {'group': 'Jakarta Utara', 'value': 'Cilincing'},
-    {'group': 'Jakarta Utara', 'value': 'Kelapa Gading'},
-    {'group': 'Jakarta Utara', 'value': 'Koja'},
-    {'group': 'Jakarta Utara', 'value': 'Pademangan'},
-    {'group': 'Jakarta Utara', 'value': 'Penjaringan'},
-    {'group': 'Jakarta Utara', 'value': 'Tanjung Priok'},
-    // Jakarta Timur
-    {'group': 'Jakarta Timur', 'value': 'Cakung'},
-    {'group': 'Jakarta Timur', 'value': 'Cipayung'},
-    {'group': 'Jakarta Timur', 'value': 'Ciracas'},
-    {'group': 'Jakarta Timur', 'value': 'Duren Sawit'},
-    {'group': 'Jakarta Timur', 'value': 'Jatinegara'},
-    {'group': 'Jakarta Timur', 'value': 'Kramat Jati'},
-    {'group': 'Jakarta Timur', 'value': 'Makasar'},
-    {'group': 'Jakarta Timur', 'value': 'Matraman'},
-    {'group': 'Jakarta Timur', 'value': 'Pasar Rebo'},
-    {'group': 'Jakarta Timur', 'value': 'Pulo Gadung'},
-    // Jakarta Selatan
-    {'group': 'Jakarta Selatan', 'value': 'Cilandak'},
-    {'group': 'Jakarta Selatan', 'value': 'Jagakarsa'},
-    {'group': 'Jakarta Selatan', 'value': 'Kebayoran Baru'},
-    {'group': 'Jakarta Selatan', 'value': 'Kebayoran Lama'},
-    {'group': 'Jakarta Selatan', 'value': 'Mampang Prapatan'},
-    {'group': 'Jakarta Selatan', 'value': 'Pancoran'},
-    {'group': 'Jakarta Selatan', 'value': 'Pasar Minggu'},
-    {'group': 'Jakarta Selatan', 'value': 'Pesanggrahan'},
-    {'group': 'Jakarta Selatan', 'value': 'Setiabudi'},
-    {'group': 'Jakarta Selatan', 'value': 'Tebet'},
-    // Jakarta Barat
-    {'group': 'Jakarta Barat', 'value': 'Cengkareng'},
-    {'group': 'Jakarta Barat', 'value': 'Grogol Petamburan'},
-    {'group': 'Jakarta Barat', 'value': 'Taman Sari'},
-    {'group': 'Jakarta Barat', 'value': 'Tambora'},
-    {'group': 'Jakarta Barat', 'value': 'Kebon Jeruk'},
-    {'group': 'Jakarta Barat', 'value': 'Kalideres'},
-    {'group': 'Jakarta Barat', 'value': 'Palmerah'},
-    {'group': 'Jakarta Barat', 'value': 'Kembangan'},
-    // Kepulauan Seribu
-    {'group': 'Kepulauan Seribu', 'value': 'Kepulauan Seribu Utara'},
-    {'group': 'Kepulauan Seribu', 'value': 'Kepulauan Seribu Selatan'},
-    // Tangerang Kota
-    {'group': 'Tangerang Kota', 'value': 'Batuceper'},
-    {'group': 'Tangerang Kota', 'value': 'Benda'},
-    {'group': 'Tangerang Kota', 'value': 'Cibodas'},
-    {'group': 'Tangerang Kota', 'value': 'Ciledug'},
-    {'group': 'Tangerang Kota', 'value': 'Cipondoh'},
-    {'group': 'Tangerang Kota', 'value': 'Jatiuwung'},
-    {'group': 'Tangerang Kota', 'value': 'Karangtengah'},
-    {'group': 'Tangerang Kota', 'value': 'Karawaci'},
-    {'group': 'Tangerang Kota', 'value': 'Larangan'},
-    {'group': 'Tangerang Kota', 'value': 'Neglasari'},
-    {'group': 'Tangerang Kota', 'value': 'Periuk'},
-    {'group': 'Tangerang Kota', 'value': 'Pinang'},
-    {'group': 'Tangerang Kota', 'value': 'Tangerang'},
-    // Tangerang Selatan
-    {'group': 'Tangerang Selatan', 'value': 'Ciputat'},
-    {'group': 'Tangerang Selatan', 'value': 'Ciputat Timur'},
-    {'group': 'Tangerang Selatan', 'value': 'Pamulang'},
-    {'group': 'Tangerang Selatan', 'value': 'Pondok Aren'},
-    {'group': 'Tangerang Selatan', 'value': 'Serpong'},
-    {'group': 'Tangerang Selatan', 'value': 'Serpong Utara'},
-    {'group': 'Tangerang Selatan', 'value': 'Setu'},
-    // Bekasi
-    {'group': 'Bekasi', 'value': 'Bantargebang'},
-    {'group': 'Bekasi', 'value': 'Bekasi Barat'},
-    {'group': 'Bekasi', 'value': 'Bekasi Selatan'},
-    {'group': 'Bekasi', 'value': 'Bekasi Timur'},
-    {'group': 'Bekasi', 'value': 'Bekasi Utara'},
-    {'group': 'Bekasi', 'value': 'Jatiasih'},
-    {'group': 'Bekasi', 'value': 'Jatisampurna'},
-    {'group': 'Bekasi', 'value': 'Medansatria'},
-    {'group': 'Bekasi', 'value': 'Mustikajaya'},
-    {'group': 'Bekasi', 'value': 'Pondok Gede'},
-    {'group': 'Bekasi', 'value': 'Pondokmelati'},
-    {'group': 'Bekasi', 'value': 'Rawalumbu'},
-    // Bogor
-    {'group': 'Bogor', 'value': 'Bogor Barat'},
-    {'group': 'Bogor', 'value': 'Bogor Selatan'},
-    {'group': 'Bogor', 'value': 'Bogor Tengah'},
-    {'group': 'Bogor', 'value': 'Bogor Timur'},
-    {'group': 'Bogor', 'value': 'Bogor Utara'},
-    {'group': 'Bogor', 'value': 'Bojonggede'},
-    {'group': 'Bogor', 'value': 'Caringin'},
-    {'group': 'Bogor', 'value': 'Ciampea'},
-    {'group': 'Bogor', 'value': 'Ciawi'},
-    {'group': 'Bogor', 'value': 'Cisarua'},
-    {'group': 'Bogor', 'value': 'Gunung Putri'},
-    {'group': 'Bogor', 'value': 'Jonggol'},
-    {'group': 'Bogor', 'value': 'Parung'},
-    // Depok
-    {'group': 'Depok', 'value': 'Beji'},
-    {'group': 'Depok', 'value': 'Bojongsari'},
-    {'group': 'Depok', 'value': 'Cilodong'},
-    {'group': 'Depok', 'value': 'Cimanggis'},
-    {'group': 'Depok', 'value': 'Cinere'},
-    {'group': 'Depok', 'value': 'Cipayung'},
-    {'group': 'Depok', 'value': 'Limo'},
-    {'group': 'Depok', 'value': 'Sawangan'},
-    {'group': 'Depok', 'value': 'Sukmajaya'},
-    {'group': 'Depok', 'value': 'Tapos'},
-  ];
+  // Grouped location options for filter
+  final Map<String, List<String>> _locationOptions = {
+    'Jakarta Pusat': [
+      'Cempaka Putih',
+      'Gambir',
+      'Johar Baru',
+      'Kemayoran',
+      'Menteng',
+      'Sawah Besar',
+      'Senen',
+      'Tanah Abang',
+    ],
+    'Jakarta Utara': [
+      'Cilincing',
+      'Kelapa Gading',
+      'Koja',
+      'Pademangan',
+      'Penjaringan',
+      'Tanjung Priok',
+    ],
+    'Jakarta Timur': [
+      'Cakung',
+      'Cipayung',
+      'Ciracas',
+      'Duren Sawit',
+      'Jatinegara',
+      'Kramat Jati',
+      'Makasar',
+      'Matraman',
+      'Pasar Rebo',
+      'Pulo Gadung',
+    ],
+    'Jakarta Selatan': [
+      'Cilandak',
+      'Jagakarsa',
+      'Kebayoran Baru',
+      'Kebayoran Lama',
+      'Mampang Prapatan',
+      'Pancoran',
+      'Pasar Minggu',
+      'Pesanggrahan',
+      'Setiabudi',
+      'Tebet',
+    ],
+    'Jakarta Barat': [
+      'Cengkareng',
+      'Grogol Petamburan',
+      'Kalideres',
+      'Kebon Jeruk',
+      'Kembangan',
+      'Palmerah',
+      'Taman Sari',
+      'Tambora',
+    ],
+    'Kepulauan Seribu': [
+      'Kepulauan Seribu Selatan',
+      'Kepulauan Seribu Utara',
+    ],
+    'Tangerang Kota': [
+      'Batuceper',
+      'Benda',
+      'Cibodas',
+      'Ciledug',
+      'Cipondoh',
+      'Jatiuwung',
+      'Karangtengah',
+      'Karawaci',
+      'Larangan',
+      'Neglasari',
+      'Periuk',
+      'Pinang',
+      'Tangerang',
+    ],
+    'Tangerang Selatan': [
+      'Ciputat',
+      'Ciputat Timur',
+      'Pamulang',
+      'Pondok Aren',
+      'Serpong',
+      'Serpong Utara',
+      'Setu',
+    ],
+    'Bekasi': [
+      'Bantargebang',
+      'Bekasi Barat',
+      'Bekasi Selatan',
+      'Bekasi Timur',
+      'Bekasi Utara',
+      'Jatiasih',
+      'Jatisampurna',
+      'Medansatria',
+      'Mustikajaya',
+      'Pondok Gede',
+      'Pondokmelati',
+      'Rawalumbu',
+    ],
+    'Bogor': [
+      'Bogor Barat',
+      'Bogor Selatan',
+      'Bogor Tengah',
+      'Bogor Timur',
+      'Bogor Utara',
+      'Bojonggede',
+      'Caringin',
+      'Ciampea',
+      'Ciawi',
+      'Cisarua',
+      'Gunung Putri',
+      'Jonggol',
+      'Parung',
+    ],
+    'Depok': [
+      'Beji',
+      'Bojongsari',
+      'Cilodong',
+      'Cimanggis',
+      'Cinere',
+      'Cipayung',
+      'Limo',
+      'Sawangan',
+      'Sukmajaya',
+      'Tapos',
+    ],
+  };
+
 
   final List<Map<String, String>> _sportOptions = [
     {'value': 'sepakbola', 'label': 'Sepak Bola'},
@@ -218,34 +232,37 @@ class _LapanganPageState extends State<LapanganPage> {
   }
 
   void _applyFilters() {
-    setState(() {
-      _filteredLapangan = _lapanganList.where((lapangan) {
-        // 1. Filter by Name
-        bool matchesSearch = _searchController.text.isEmpty ||
-            lapangan.nama.toLowerCase().contains(
-                  _searchController.text.toLowerCase(),
-                );
+  setState(() {
+    String? trimmedLocation = _selectedLocation?.trim();
 
-        // 2. Filter by Location
-        // Checks if alamat or kecamatan contains the selected value
-        bool matchesLocation = _selectedLocation == null ||
-            (lapangan.alamat != null &&
-                lapangan.alamat!
-                    .toLowerCase()
-                    .contains(_selectedLocation!.toLowerCase())) ||
-            (lapangan.kecamatan != null &&
-                lapangan.kecamatan!
-                    .toLowerCase()
-                    .contains(_selectedLocation!.toLowerCase()));
+    _filteredLapangan = _lapanganList.where((lapangan) {
+      // 1. Filter by Name
+      bool matchesSearch = _searchController.text.isEmpty ||
+          lapangan.nama.toLowerCase().contains(
+                _searchController.text.toLowerCase(),
+              );
 
-        // 3. Filter by Sport
-        bool matchesSport = _selectedSport == null ||
-            lapangan.olahraga.toLowerCase() == _selectedSport!.toLowerCase();
+      // 2. Filter by Location (alamat atau kecamatan mengandung lokasi)
+      bool matchesLocation =
+          trimmedLocation == null ||
+          (lapangan.alamat != null &&
+              lapangan.alamat!
+                  .toLowerCase()
+                  .contains(trimmedLocation.toLowerCase())) ||
+          (lapangan.kecamatan != null &&
+              lapangan.kecamatan!
+                  .toLowerCase()
+                  .contains(trimmedLocation.toLowerCase()));
 
-        return matchesSearch && matchesLocation && matchesSport;
-      }).toList();
-    });
-  }
+      // 3. Filter by Sport
+      bool matchesSport = _selectedSport == null ||
+          lapangan.olahraga.toLowerCase() == _selectedSport!.toLowerCase();
+
+      return matchesSearch && matchesLocation && matchesSport;
+    }).toList();
+  });
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -373,8 +390,52 @@ class _LapanganPageState extends State<LapanganPage> {
   }
 
   Widget _buildLocationDropdown() {
+    List<DropdownMenuItem<String>> locationItems = [
+      DropdownMenuItem<String>(
+        value: null,
+        child: Text(
+          'Semua Lokasi',
+          style: GoogleFonts.plusJakartaSans(),
+        ),
+      ),
+    ];
+
+    _locationOptions.forEach((group, locations) {
+      // Header grup (tidak bisa dipilih)
+      locationItems.add(
+        DropdownMenuItem<String>(
+          enabled: false,
+          value: group,
+          child: Padding(
+            padding: const EdgeInsets.only(top: 8, bottom: 2),
+            child: Text(
+              group,
+              style: GoogleFonts.plusJakartaSans(
+                color: const Color(0xFFA4E4FF), // biru terang custom
+                fontWeight: FontWeight.bold,
+                fontSize: 13,
+              ),
+            ),
+          ),
+        ),
+      );
+
+      // Item lokasi di dalam grup
+      for (var loc in locations) {
+        locationItems.add(
+          DropdownMenuItem<String>(
+            value: loc,
+            child: Text(
+              loc,
+              style: GoogleFonts.plusJakartaSans(),
+            ),
+          ),
+        );
+      }
+    });
+
     return DropdownButtonFormField<String>(
-      value: _selectedLocation,
+      initialValue: _selectedLocation,
       dropdownColor: const Color(0xFF4F4F4F),
       style: GoogleFonts.plusJakartaSans(color: Colors.white),
       decoration: InputDecoration(
@@ -392,18 +453,7 @@ class _LapanganPageState extends State<LapanganPage> {
           horizontal: 12,
         ),
       ),
-      items: [
-        DropdownMenuItem<String>(
-          value: null,
-          child: Text('Semua Lokasi', style: GoogleFonts.plusJakartaSans()),
-        ),
-        ..._locationGroups.map(
-          (loc) => DropdownMenuItem<String>(
-            value: loc['value'],
-            child: Text(loc['value']!, style: GoogleFonts.plusJakartaSans()),
-          ),
-        ),
-      ],
+      items: locationItems,
       onChanged: (value) {
         setState(() {
           _selectedLocation = value;
@@ -412,9 +462,10 @@ class _LapanganPageState extends State<LapanganPage> {
     );
   }
 
+
   Widget _buildSportDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedSport,
+      initialValue: _selectedSport,
       dropdownColor: const Color(0xFF4F4F4F),
       style: GoogleFonts.plusJakartaSans(color: Colors.white),
       decoration: InputDecoration(
@@ -534,6 +585,16 @@ class _LapanganPageState extends State<LapanganPage> {
                 context,
                 MaterialPageRoute(
                   builder: (context) => LapanganDetailPage(lapangan: lapangan),
+                ),
+              );
+            },
+            onBook: () {
+              Navigator.push(
+                context,
+                MaterialPageRoute(
+                  builder: (context) => LapanganBookingPage(
+                    lapangan: lapangan,
+                  ),
                 ),
               );
             },

@@ -524,7 +524,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
             ),
           ),
           child: DropdownButtonFormField<String>(
-            value: _selectedSportBranch,
+            initialValue: _selectedSportBranch,
             dropdownColor: const Color(0xFF2A2A2A),
             style: GoogleFonts.plusJakartaSans(color: Colors.white),
             decoration: InputDecoration(
@@ -603,7 +603,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
             ),
           ),
           child: DropdownButtonFormField<String>(
-            value: _selectedLocation.isEmpty ? '' : _selectedLocation,
+            initialValue: _selectedLocation.isEmpty ? '' : _selectedLocation,
             dropdownColor: const Color(0xFF2A2A2A),
             style: GoogleFonts.plusJakartaSans(color: Colors.white),
             decoration: InputDecoration(
