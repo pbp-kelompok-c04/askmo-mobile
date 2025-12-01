@@ -383,7 +383,7 @@ class _CoachPageState extends State<CoachPage> {
 
   Widget _buildLocationDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedLocation,
+      initialValue: _selectedLocation,
       dropdownColor: const Color(0xFF4F4F4F),
       style: GoogleFonts.plusJakartaSans(color: Colors.white),
       decoration: InputDecoration(
@@ -423,7 +423,7 @@ class _CoachPageState extends State<CoachPage> {
 
   Widget _buildSportDropdown() {
     return DropdownButtonFormField<String>(
-      value: _selectedSport,
+      initialValue: _selectedSport,
       dropdownColor: const Color(0xFF4F4F4F),
       style: GoogleFonts.plusJakartaSans(color: Colors.white),
       decoration: InputDecoration(
@@ -586,17 +586,15 @@ class _CoachPageState extends State<CoachPage> {
                     decoration: BoxDecoration(
                       shape: BoxShape.circle,
                       color: Colors.grey[800],
-                      image: coach.fields.photo != null &&
-                              coach.fields.photo!.isNotEmpty
+                      image: coach.fields.photo.isNotEmpty
                           ? DecorationImage(
                               image: NetworkImage(
-                                  _buildPhotoUrl(coach.fields.photo!)),
+                                  _buildPhotoUrl(coach.fields.photo)),
                               fit: BoxFit.cover,
                             )
                           : null,
                     ),
-                    child: coach.fields.photo == null ||
-                            coach.fields.photo!.isEmpty
+                    child: coach.fields.photo.isEmpty
                         ? const Icon(Icons.person,
                             color: Colors.white, size: 40)
                         : null,

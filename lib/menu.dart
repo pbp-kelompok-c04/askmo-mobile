@@ -7,6 +7,9 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
+// Import Chatbot from dev branch
+import 'package:askmo/chatbot/screens/gemini_chat_screen.dart';
+
 import 'package:askmo/right_drawer.dart';
 // Import UserState untuk cek login/username
 import 'package:askmo/profile/models/user_state.dart';
@@ -139,6 +142,30 @@ class _MenuPageState extends State<MenuPage>
           ),
         ],
       ),
+
+      // === MISSING PART ADDED HERE ===
+      floatingActionButton: _selectedIndex == 0 
+          ? Padding(
+              padding: const EdgeInsets.only(bottom: 90.0), 
+              child: FloatingActionButton(
+                onPressed: () {
+                  Navigator.push(
+                    context,
+                    MaterialPageRoute(
+                      builder: (context) => const GeminiChatScreen(),
+                    ),
+                  );
+                },
+                backgroundColor: const Color(0xFFA4E4FF), 
+                foregroundColor: Colors.black,
+                elevation: 4,
+                shape: const CircleBorder(),
+                child: const Icon(Icons.psychology_alt_rounded, size: 28), 
+              ),
+            )
+          : null,
+      floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
+      // ===============================
 
       bottomNavigationBar: ClipRRect(
         borderRadius: const BorderRadius.only(
@@ -1774,9 +1801,9 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
                       color: Colors.grey,
                       onPressed: _currIndex > 0
                           ? () => _pageCtrl.previousPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.ease,
-                            )
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.ease,
+                              )
                           : null,
                     ),
                     IconButton(
@@ -1787,9 +1814,9 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
                       color: Colors.white,
                       onPressed: _currIndex < _testimonials.length - 1
                           ? () => _pageCtrl.nextPage(
-                              duration: const Duration(milliseconds: 300),
-                              curve: Curves.ease,
-                            )
+                                duration: const Duration(milliseconds: 300),
+                                curve: Curves.ease,
+                              )
                           : null,
                     ),
                   ],
