@@ -886,7 +886,7 @@ class _ProfilePageState extends State<ProfilePage>
                 return _buildCoachWishlistCard(
                   name: coach.fields.name,
                   sportBranch: coach.fields.sportBranch,
-                  photoUrl: coach.fields.photo,
+                  photoUrl: coach.fields.photo ?? '',
                   location: coach.fields.location,
                   onRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
                   onTap: () {

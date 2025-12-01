@@ -243,7 +243,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                     id: widget.coach.pk.toString(),
                     type: 'coach',
                     name: widget.coach.fields.name,
-                    imageUrl: imageUrl,
+                    imageUrl: imageUrl ?? '',
                     location: widget.coach.fields.location,
                     category: widget.coach.fields.sportBranch,
                   );
