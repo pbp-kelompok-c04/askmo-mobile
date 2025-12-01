@@ -450,7 +450,7 @@ class _EventPageState extends State<EventPage> {
         ),
         Positioned(
           right: 16,
-          bottom: 32,
+          bottom: 110,
           child: FloatingActionButton.extended(
             onPressed: () async {
               final result = await Navigator.push(

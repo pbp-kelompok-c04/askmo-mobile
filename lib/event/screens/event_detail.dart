@@ -3,7 +3,7 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'dart:ui';
+import 'dart:ui'; // Diperlukan untuk ImageFilter
 
 import 'package:askmo/profile/models/user_state.dart';
 import '../models/event.dart';
@@ -123,21 +123,42 @@ class _EventDetailPageState extends State<EventDetailPage>
       ),
       body: Stack(
         children: [
+          // 1. Background Aura
           Positioned.fill(child: _buildBackgroundAura()),
+
+          // 2. Main Content
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              child: Container(
-                decoration: BoxDecoration(
-                  color: const Color(0xFF353535),
-                  borderRadius: BorderRadius.circular(16),
-                  border: Border.all(color: Colors.white.withOpacity(0.2)),
-                ),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [_buildImageAndInfo(context, isOwner)],
+              // --- MULAI EDIT GLASSMORPHISM ---
+              child: ClipRRect(
+                borderRadius: BorderRadius.circular(16),
+                child: BackdropFilter(
+                  filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+                  child: Container(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        colors: [
+                          Colors.white.withOpacity(0.1),
+                          Colors.white.withOpacity(0.05),
+                        ],
+                        begin: Alignment.topLeft,
+                        end: Alignment.bottomRight,
+                      ),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: Colors.white.withOpacity(0.2),
+                        width: 1.5,
+                      ),
+                    ),
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [_buildImageAndInfo(context, isOwner)],
+                    ),
+                  ),
                 ),
               ),
+              // --- SELESAI EDIT GLASSMORPHISM ---
             ),
           ),
         ],
