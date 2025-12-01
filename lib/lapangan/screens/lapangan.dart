@@ -81,10 +81,7 @@ class _LapanganPageState extends State<LapanganPage> {
       'Taman Sari',
       'Tambora',
     ],
-    'Kepulauan Seribu': [
-      'Kepulauan Seribu Selatan',
-      'Kepulauan Seribu Utara',
-    ],
+    'Kepulauan Seribu': ['Kepulauan Seribu Selatan', 'Kepulauan Seribu Utara'],
     'Tangerang Kota': [
       'Batuceper',
       'Benda',
@@ -152,7 +149,6 @@ class _LapanganPageState extends State<LapanganPage> {
     ],
   };
 
-
   final List<Map<String, String>> _sportOptions = [
     {'value': 'sepakbola', 'label': 'Sepak Bola'},
     {'value': 'basket', 'label': 'Basket'},
@@ -187,9 +183,7 @@ class _LapanganPageState extends State<LapanganPage> {
       final request = context.read<CookieRequest>();
       // IMPORTANT: Use 10.0.2.2 for Android Emulator, 127.0.0.1 for Web/iOS
       // Check your Django endpoint name in main/urls.py (assumed 'show_json' mapped to /json/)
-      final response = await request.get(
-        'http://127.0.0.1:8000/json/',
-      );
+      final response = await request.get('http://127.0.0.1:8000/json/');
 
       // The /json/ endpoint returns a List<dynamic> directly
       if (response != null) {
@@ -232,142 +226,143 @@ class _LapanganPageState extends State<LapanganPage> {
   }
 
   void _applyFilters() {
-  setState(() {
-    String? trimmedLocation = _selectedLocation?.trim();
+    setState(() {
+      String? trimmedLocation = _selectedLocation?.trim();
 
-    _filteredLapangan = _lapanganList.where((lapangan) {
-      // 1. Filter by Name
-      bool matchesSearch = _searchController.text.isEmpty ||
-          lapangan.nama.toLowerCase().contains(
-                _searchController.text.toLowerCase(),
-              );
+      _filteredLapangan = _lapanganList.where((lapangan) {
+        // 1. Filter by Name
+        bool matchesSearch =
+            _searchController.text.isEmpty ||
+            lapangan.nama.toLowerCase().contains(
+              _searchController.text.toLowerCase(),
+            );
 
-      // 2. Filter by Location (alamat atau kecamatan mengandung lokasi)
-      bool matchesLocation =
-          trimmedLocation == null ||
-          (lapangan.alamat != null &&
-              lapangan.alamat!
-                  .toLowerCase()
-                  .contains(trimmedLocation.toLowerCase())) ||
-          (lapangan.kecamatan != null &&
-              lapangan.kecamatan!
-                  .toLowerCase()
-                  .contains(trimmedLocation.toLowerCase()));
+        // 2. Filter by Location (alamat atau kecamatan mengandung lokasi)
+        bool matchesLocation =
+            trimmedLocation == null ||
+            (lapangan.alamat != null &&
+                lapangan.alamat!.toLowerCase().contains(
+                  trimmedLocation.toLowerCase(),
+                )) ||
+            (lapangan.kecamatan != null &&
+                lapangan.kecamatan!.toLowerCase().contains(
+                  trimmedLocation.toLowerCase(),
+                ));
 
-      // 3. Filter by Sport
-      bool matchesSport = _selectedSport == null ||
-          lapangan.olahraga.toLowerCase() == _selectedSport!.toLowerCase();
+        // 3. Filter by Sport
+        bool matchesSport =
+            _selectedSport == null ||
+            lapangan.olahraga.toLowerCase() == _selectedSport!.toLowerCase();
 
-      return matchesSearch && matchesLocation && matchesSport;
-    }).toList();
-  });
-}
-
+        return matchesSearch && matchesLocation && matchesSport;
+      }).toList();
+    });
+  }
 
   @override
   Widget build(BuildContext context) {
     return SafeArea(
       child: Stack(
-      children: [
-        CustomScrollView(
-          slivers: [
-            // Header
-            SliverToBoxAdapter(
-              child: Padding(
-                padding: const EdgeInsets.only(top: 0, bottom: 25),
-                child: Column(
-                  children: [
-                    Text(
-                      'LAPANGAN',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white,
-                        fontSize: 40,
-                        fontWeight: FontWeight.bold,
+        children: [
+          CustomScrollView(
+            slivers: [
+              // Header
+              SliverToBoxAdapter(
+                child: Padding(
+                  padding: const EdgeInsets.only(top: 24, bottom: 24),
+                  child: Column(
+                    children: [
+                      Text(
+                        'LAPANGAN',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white,
+                          fontSize: 40,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      'Temukan lapangan olahraga terbaik di sekitarmu!',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white,
-                        fontSize: 14,
+                      const SizedBox(height: 8),
+                      Text(
+                        'Temukan lapangan olahraga terbaik di sekitarmu!',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white,
+                          fontSize: 14,
+                        ),
+                        textAlign: TextAlign.center,
                       ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                    ],
+                  ),
                 ),
               ),
-            ),
-            // Search & Filter Box
-            SliverToBoxAdapter(
-              child: Container(
-                margin: const EdgeInsets.symmetric(horizontal: 16),
-                child: ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: BackdropFilter(
-                    filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
-                    child: Container(
-                      padding: const EdgeInsets.all(16),
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          colors: [
-                            Colors.white.withOpacity(0.1),
-                            Colors.white.withOpacity(0.05),
-                          ],
-                          begin: Alignment.topLeft,
-                          end: Alignment.bottomRight,
+              // Search & Filter Box
+              SliverToBoxAdapter(
+                child: Container(
+                  margin: const EdgeInsets.symmetric(horizontal: 16),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: BackdropFilter(
+                      filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
+                      child: Container(
+                        padding: const EdgeInsets.all(16),
+                        decoration: BoxDecoration(
+                          gradient: LinearGradient(
+                            colors: [
+                              Colors.white.withOpacity(0.1),
+                              Colors.white.withOpacity(0.05),
+                            ],
+                            begin: Alignment.topLeft,
+                            end: Alignment.bottomRight,
+                          ),
+                          borderRadius: BorderRadius.circular(12),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.2),
+                            width: 1.5,
+                          ),
                         ),
-                        borderRadius: BorderRadius.circular(12),
-                        border: Border.all(
-                          color: Colors.white.withOpacity(0.2),
-                          width: 1.5,
-                        ),
-                      ),
-                      child: Column(
-                        children: [
-                          _buildSearchField(),
-                          const SizedBox(height: 12),
-                          _buildLocationDropdown(),
-                          const SizedBox(height: 12),
-                          _buildSportDropdown(),
-                          const SizedBox(height: 12),
-                          SizedBox(
-                            width: double.infinity,
-                            child: ElevatedButton(
-                              onPressed: _applyFilters,
-                              style: ElevatedButton.styleFrom(
-                                backgroundColor: const Color(0xFF06005E),
-                                padding: const EdgeInsets.symmetric(
-                                  vertical: 16,
+                        child: Column(
+                          children: [
+                            _buildSearchField(),
+                            const SizedBox(height: 12),
+                            _buildLocationDropdown(),
+                            const SizedBox(height: 12),
+                            _buildSportDropdown(),
+                            const SizedBox(height: 12),
+                            SizedBox(
+                              width: double.infinity,
+                              child: ElevatedButton(
+                                onPressed: _applyFilters,
+                                style: ElevatedButton.styleFrom(
+                                  backgroundColor: const Color(0xFF06005E),
+                                  padding: const EdgeInsets.symmetric(
+                                    vertical: 16,
+                                  ),
+                                  shape: RoundedRectangleBorder(
+                                    borderRadius: BorderRadius.circular(8),
+                                  ),
                                 ),
-                                shape: RoundedRectangleBorder(
-                                  borderRadius: BorderRadius.circular(8),
-                                ),
-                              ),
-                              child: Text(
-                                'Cari',
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: Colors.white,
-                                  fontWeight: FontWeight.w600,
+                                child: Text(
+                                  'Cari',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
                                 ),
                               ),
                             ),
-                          ),
-                        ],
+                          ],
+                        ),
                       ),
                     ),
                   ),
                 ),
               ),
-            ),
-            const SliverToBoxAdapter(child: SizedBox(height: 24)),
-            // List of Lapangan
-            _buildLapanganList(),
-          ],
-        ),
-      ],
-    ),
-  );
+              const SliverToBoxAdapter(child: SizedBox(height: 24)),
+              // List of Lapangan
+              _buildLapanganList(),
+            ],
+          ),
+        ],
+      ),
+    );
   }
 
   Widget _buildSearchField() {
@@ -393,10 +388,7 @@ class _LapanganPageState extends State<LapanganPage> {
     List<DropdownMenuItem<String>> locationItems = [
       DropdownMenuItem<String>(
         value: null,
-        child: Text(
-          'Semua Lokasi',
-          style: GoogleFonts.plusJakartaSans(),
-        ),
+        child: Text('Semua Lokasi', style: GoogleFonts.plusJakartaSans()),
       ),
     ];
 
@@ -425,10 +417,7 @@ class _LapanganPageState extends State<LapanganPage> {
         locationItems.add(
           DropdownMenuItem<String>(
             value: loc,
-            child: Text(
-              loc,
-              style: GoogleFonts.plusJakartaSans(),
-            ),
+            child: Text(loc, style: GoogleFonts.plusJakartaSans()),
           ),
         );
       }
@@ -461,7 +450,6 @@ class _LapanganPageState extends State<LapanganPage> {
       },
     );
   }
-
 
   Widget _buildSportDropdown() {
     return DropdownButtonFormField<String>(
@@ -575,7 +563,7 @@ class _LapanganPageState extends State<LapanganPage> {
     return SliverPadding(
       padding: const EdgeInsets.fromLTRB(16, 0, 16, 0),
       // CHANGE THIS: Use 'sliver' instead of 'slivers'
-      sliver: SliverList( 
+      sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final lapangan = _filteredLapangan[index];
           return LapanganCard(
@@ -592,9 +580,7 @@ class _LapanganPageState extends State<LapanganPage> {
               Navigator.push(
                 context,
                 MaterialPageRoute(
-                  builder: (context) => LapanganBookingPage(
-                    lapangan: lapangan,
-                  ),
+                  builder: (context) => LapanganBookingPage(lapangan: lapangan),
                 ),
               );
             },

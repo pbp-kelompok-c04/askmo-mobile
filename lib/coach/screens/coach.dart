@@ -361,7 +361,7 @@ class _CoachPageState extends State<CoachPage> {
             // Header
             SliverToBoxAdapter(
               child: Padding(
-                padding: const EdgeInsets.only(top: 0, bottom: 25),
+                padding: const EdgeInsets.only(top: 24, bottom: 24),
                 child: Column(
                   children: [
                     Text(
@@ -715,9 +715,6 @@ class _CoachPageState extends State<CoachPage> {
                             borderRadius: BorderRadius.circular(8),
                           ),
                           child: Text(
-                            // ---------------------------------------------------
-                            // PERBAIKAN DI SINI: PANGGIL _formatSportLabel
-                            // ---------------------------------------------------
                             _formatSportLabel(coach.fields.sportBranch),
                             style: GoogleFonts.plusJakartaSans(
                               fontSize: 12,
