@@ -229,12 +229,14 @@ class HomeContent extends StatefulWidget {
 
 class _HomeContentState extends State<HomeContent> {
   final ScrollController _scrollController = ScrollController();
+  final TextEditingController _searchController = TextEditingController();
 
   late final PageController _heroCtrl;
   Timer? _heroTimer;
 
   bool _loading = true;
   String? _error;
+  String _searchQuery = "";
 
   List<Lapangan> _lapangan = [];
   List<Coach> _coaches = [];
@@ -243,15 +245,18 @@ class _HomeContentState extends State<HomeContent> {
   @override
   void initState() {
     super.initState();
-    _heroCtrl = PageController();
-    _heroTimer = Timer.periodic(const Duration(seconds: 7), (_) {
+    // HERO Infinite Slide Logic
+    _heroCtrl = PageController(initialPage: 999);
+    _heroTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted) return;
-      final next = ((_heroCtrl.page ?? 0).round() + 1) % 3;
-      _heroCtrl.animateToPage(
-        next,
-        duration: const Duration(milliseconds: 650),
-        curve: Curves.easeInOut,
-      );
+      if (_heroCtrl.hasClients) {
+        final next = (_heroCtrl.page ?? 999).round() + 1;
+        _heroCtrl.animateToPage(
+          next,
+          duration: const Duration(milliseconds: 800),
+          curve: Curves.easeInOut,
+        );
+      }
     });
 
     WidgetsBinding.instance.addPostFrameCallback((_) async {
@@ -264,6 +269,7 @@ class _HomeContentState extends State<HomeContent> {
     _heroTimer?.cancel();
     _heroCtrl.dispose();
     _scrollController.dispose();
+    _searchController.dispose();
     super.dispose();
   }
 
@@ -319,9 +325,43 @@ class _HomeContentState extends State<HomeContent> {
     }
   }
 
+  // --- Search Logic Helpers ---
+  List<Lapangan> get _filteredLapangan {
+    if (_searchQuery.isEmpty) return _lapangan;
+    return _lapangan
+        .where(
+          (item) =>
+              item.nama.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
+        .toList();
+  }
+
+  List<Coach> get _filteredCoaches {
+    if (_searchQuery.isEmpty) return _coaches;
+    return _coaches
+        .where(
+          (item) => item.fields.name.toLowerCase().contains(
+            _searchQuery.toLowerCase(),
+          ),
+        )
+        .toList();
+  }
+
+  List<Event> get _filteredEvents {
+    if (_searchQuery.isEmpty) return _events;
+    return _events
+        .where(
+          (item) =>
+              item.nama.toLowerCase().contains(_searchQuery.toLowerCase()),
+        )
+        .toList();
+  }
+
   @override
   Widget build(BuildContext context) {
     final pad = const EdgeInsets.symmetric(horizontal: 16);
+    // Cek apakah user sedang mencari
+    final bool isSearchActive = _searchQuery.isNotEmpty;
 
     return RefreshIndicator(
       color: const Color(0xFFB87CFF),
@@ -332,60 +372,112 @@ class _HomeContentState extends State<HomeContent> {
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            const SizedBox(height: 0),
-
-            _Hero(
-              controller: _heroCtrl,
-              onExploreLapangan: () => widget.onTabChange(1),
-              onExploreCoach: () => widget.onTabChange(2),
-              onExploreEvent: () => widget.onTabChange(3),
-            ),
+            // 1. Hero Infinite Slide
+            _Hero(controller: _heroCtrl),
 
             Padding(
               padding: pad,
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 12),
+                  const SizedBox(height: 24),
+
+                  // 2. Halo, [Username]
+                  Consumer<UserState>(
+                    builder: (context, userState, _) {
+                      final name = (userState.username.isNotEmpty)
+                          ? userState.username
+                          : 'Guest';
+                      return Text(
+                        'Halo, $name',
+                        style: GoogleFonts.plusJakartaSans(
+                          fontSize: 28,
+                          fontWeight: FontWeight.w800,
+                          color: Colors.white,
+                        ),
+                      );
+                    },
+                  ),
+                  const SizedBox(height: 4),
+                  Text(
+                    'Apa yang ingin kamu cari hari ini?',
+                    style: GoogleFonts.plusJakartaSans(
+                      fontSize: 14,
+                      color: Colors.white.withOpacity(0.7),
+                    ),
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // 3. Search Engine (Search Bar)
+                  _SearchBar(
+                    controller: _searchController,
+                    onChanged: (value) {
+                      setState(() {
+                        _searchQuery = value;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 24),
                   if (_loading) const _LoadingBox(),
                   if (_error != null) _ErrorBox(message: _error!),
 
-                  // ===== LAPANGAN =====
-                  _SectionHeader(
-                    title: 'Cari Lapangan',
-                    subtitle:
-                        'Temukan lapangan terbaik untuk olahraga favoritmu.',
-                  ),
-                  const SizedBox(height: 10),
-                  _LapanganHorizontal(
-                    list: _lapangan,
-                    onSeeMore: () => widget.onTabChange(1),
-                  ),
-                  const SizedBox(height: 22),
+                  // ===== LAPANGAN (Filtered) =====
+                  if (_filteredLapangan.isNotEmpty || _loading) ...[
+                    _SectionHeader(
+                      title: 'Cari Lapangan',
+                      subtitle:
+                          'Temukan lapangan terbaik untuk olahraga favoritmu.',
+                    ),
+                    const SizedBox(height: 10),
+                    _LapanganHorizontal(
+                      list: _filteredLapangan,
+                      onSeeMore: () => widget.onTabChange(1),
+                      isSearchMode: isSearchActive,
+                    ),
+                    const SizedBox(height: 22),
+                  ] else if (isSearchActive) ...[
+                    _NotFoundText(label: 'Lapangan'),
+                    const SizedBox(height: 22),
+                  ],
 
-                  // ===== COACH =====
-                  _SectionHeader(
-                    title: 'Temui Coach',
-                    subtitle: 'Pilih coach yang cocok dan mulai upgrade skill.',
-                  ),
-                  const SizedBox(height: 10),
-                  _CoachHorizontal(
-                    list: _coaches,
-                    onSeeMore: () => widget.onTabChange(2),
-                  ),
-                  const SizedBox(height: 22),
+                  // ===== COACH (Filtered) =====
+                  if (_filteredCoaches.isNotEmpty || _loading) ...[
+                    _SectionHeader(
+                      title: 'Temui Coach',
+                      subtitle:
+                          'Pilih coach yang cocok dan mulai upgrade skill.',
+                    ),
+                    const SizedBox(height: 10),
+                    _CoachHorizontal(
+                      list: _filteredCoaches,
+                      onSeeMore: () => widget.onTabChange(2),
+                      isSearchMode: isSearchActive,
+                    ),
+                    const SizedBox(height: 22),
+                  ] else if (isSearchActive) ...[
+                    _NotFoundText(label: 'Coach'),
+                    const SizedBox(height: 22),
+                  ],
 
-                  // ===== EVENT =====
-                  _SectionHeader(
-                    title: 'Event yang Akan Datang',
-                    subtitle: 'Gabung event seru dan temukan komunitas baru.',
-                  ),
-                  const SizedBox(height: 10),
-                  _EventHorizontal(
-                    list: _events,
-                    onSeeMore: () => widget.onTabChange(3),
-                  ),
-                  const SizedBox(height: 40),
+                  // ===== EVENT (Filtered) =====
+                  if (_filteredEvents.isNotEmpty || _loading) ...[
+                    _SectionHeader(
+                      title: 'Event yang Akan Datang',
+                      subtitle: 'Gabung event seru dan temukan komunitas baru.',
+                    ),
+                    const SizedBox(height: 10),
+                    _EventHorizontal(
+                      list: _filteredEvents,
+                      onSeeMore: () => widget.onTabChange(3),
+                      isSearchMode: isSearchActive,
+                    ),
+                    const SizedBox(height: 40),
+                  ] else if (isSearchActive) ...[
+                    _NotFoundText(label: 'Event'),
+                    const SizedBox(height: 40),
+                  ],
 
                   // ===== FITUR (FLIP CARDS) =====
                   const _FeaturesSection(),
@@ -420,139 +512,94 @@ class _HomeContentState extends State<HomeContent> {
 /// WIDGETS & COMPONENTS
 /// ===============================
 
-// HERO SECTION
-class _Hero extends StatelessWidget {
-  const _Hero({
-    required this.controller,
-    required this.onExploreLapangan,
-    required this.onExploreCoach,
-    required this.onExploreEvent,
-  });
+// CUSTOM SEARCH BAR WIDGET
+class _SearchBar extends StatelessWidget {
+  final TextEditingController controller;
+  final Function(String) onChanged;
 
-  final PageController controller;
-  final VoidCallback onExploreLapangan;
-  final VoidCallback onExploreCoach;
-  final VoidCallback onExploreEvent;
-
-  TextStyle _t(
-    double size,
-    FontWeight w,
-    Color c, {
-    double? height,
-    double? ls,
-  }) {
-    return GoogleFonts.plusJakartaSans(
-      fontSize: size,
-      fontWeight: w,
-      color: c,
-      height: height,
-      letterSpacing: ls,
-    );
-  }
+  const _SearchBar({required this.controller, required this.onChanged});
 
   @override
   Widget build(BuildContext context) {
-    final w = MediaQuery.sizeOf(context).width;
-    final titleSize = w < 420
-        ? 32.0
-        : 44.0; // Sedikit disesuaikan agar nama panjang muat
-
-    return SizedBox(
-      height: 480,
-      child: Stack(
-        children: [
-          Positioned.fill(
-            child: PageView(
-              controller: controller,
-              children: const [
-                _HeroSlide(asset: 'assets/image/bg1.png'),
-                _HeroSlide(asset: 'assets/image/bg2.png'),
-                _HeroSlide(asset: 'assets/image/bg3.png'),
-              ],
-            ),
-          ),
-          Positioned.fill(
-            child: Container(color: Colors.black.withOpacity(0.25)),
-          ),
-          Positioned.fill(
-            child: Align(
-              alignment: Alignment.bottomCenter,
-              child: Container(
-                height: 170,
-                decoration: BoxDecoration(
-                  gradient: LinearGradient(
-                    begin: Alignment.topCenter,
-                    end: Alignment.bottomCenter,
-                    colors: [
-                      Colors.transparent,
-                      Colors.black.withOpacity(0.95),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-          ),
-          Positioned.fill(
-            child: Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 16),
-              child: Center(
-                child: Column(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    const SizedBox(height: 30),
-                    // === MODIFIED HERO TEXT ===
-                    Consumer<UserState>(
-                      builder: (context, userState, child) {
-                        String displayText = 'Halo, Kawan Askmo';
-                        if (userState.userId != 0 &&
-                            userState.username.isNotEmpty) {
-                          displayText = 'Halo, ${userState.username}';
-                        }
-
-                        return Text(
-                          displayText,
-                          textAlign: TextAlign.center,
-                          style: _t(
-                            titleSize,
-                            FontWeight.w800,
-                            Colors.white,
-                            ls: 1.2,
-                          ),
-                        );
-                      },
-                    ),
-                    // ==========================
-                    const SizedBox(height: 10),
-                    ConstrainedBox(
-                      constraints: const BoxConstraints(maxWidth: 560),
-                      child: Text(
-                        'Cari lapangan, coach, dan event olahraga dalam satu platform.',
-                        style: _t(
-                          13,
-                          FontWeight.w500,
-                          Colors.white.withOpacity(0.80),
-                          height: 1.45,
-                        ),
-                        textAlign: TextAlign.center,
-                      ),
-                    ),
-                    const SizedBox(height: 14),
-                    Wrap(
-                      spacing: 10,
-                      runSpacing: 10,
-                      alignment: WrapAlignment.center,
-                      children: [
-                        _HeroPill(label: 'Lapangan', onTap: onExploreLapangan),
-                        _HeroPill(label: 'Coach', onTap: onExploreCoach),
-                        _HeroPill(label: 'Event', onTap: onExploreEvent),
-                      ],
-                    ),
-                  ],
-                ),
-              ),
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.1),
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: Colors.white.withOpacity(0.15)),
+        boxShadow: [
+          BoxShadow(
+            color: Colors.black.withOpacity(0.1),
+            blurRadius: 10,
+            offset: const Offset(0, 4),
           ),
         ],
+      ),
+      child: TextField(
+        controller: controller,
+        onChanged: onChanged,
+        style: GoogleFonts.plusJakartaSans(color: Colors.white, fontSize: 14),
+        cursorColor: const Color(0xFFA4E4FF),
+        decoration: InputDecoration(
+          hintText: "Cari lapangan, coach, atau event...",
+          hintStyle: GoogleFonts.plusJakartaSans(
+            color: Colors.white.withOpacity(0.5),
+            fontSize: 14,
+          ),
+          prefixIcon: Icon(
+            Icons.search_rounded,
+            color: Colors.white.withOpacity(0.7),
+          ),
+          border: InputBorder.none,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 20,
+            vertical: 14,
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+class _NotFoundText extends StatelessWidget {
+  final String label;
+  const _NotFoundText({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 20),
+      child: Text(
+        'Tidak ditemukan $label dengan kata kunci tersebut.',
+        style: GoogleFonts.plusJakartaSans(
+          color: Colors.white.withOpacity(0.4),
+          fontStyle: FontStyle.italic,
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+// HERO SECTION (INFINITE SLIDER)
+class _Hero extends StatelessWidget {
+  const _Hero({required this.controller});
+  final PageController controller;
+
+  @override
+  Widget build(BuildContext context) {
+    return SizedBox(
+      height: 250, // Tinggi banner
+      // PERUBAHAN: Gunakan PageView.builder untuk infinite scroll
+      child: PageView.builder(
+        controller: controller,
+        // Tidak ada itemCount, jadi infinite
+        itemBuilder: (context, index) {
+          // Ambil sisa bagi 3 agar looping 0 -> 1 -> 2 -> 0 dst
+          final int i = index % 3;
+          // Map ke nama file: 1.png, 2.png, 3.png
+          return _HeroSlide(asset: 'assets/image/${i + 1}.png');
+        },
       ),
     );
   }
@@ -564,39 +611,10 @@ class _HeroSlide extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return DecoratedBox(
+    return Container(
+      width: double.infinity,
       decoration: BoxDecoration(
         image: DecorationImage(image: AssetImage(asset), fit: BoxFit.cover),
-      ),
-    );
-  }
-}
-
-class _HeroPill extends StatelessWidget {
-  const _HeroPill({required this.label, required this.onTap});
-  final String label;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) {
-    return InkWell(
-      onTap: onTap,
-      borderRadius: BorderRadius.circular(999),
-      child: Ink(
-        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
-        decoration: BoxDecoration(
-          borderRadius: BorderRadius.circular(999),
-          color: Colors.white.withOpacity(0.10),
-          border: Border.all(color: Colors.white.withOpacity(0.5), width: 1),
-        ),
-        child: Text(
-          label,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
       ),
     );
   }
@@ -766,7 +784,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// SOLID CARD (MENGGANTIKAN GLASS CARD AGAR RAPI)
+// SOLID CARD
 class _SolidCard extends StatelessWidget {
   const _SolidCard({
     required this.child,
@@ -936,31 +954,33 @@ class _MiniButton extends StatelessWidget {
 // ===============================
 
 class _LapanganHorizontal extends StatelessWidget {
-  const _LapanganHorizontal({required this.list, required this.onSeeMore});
+  const _LapanganHorizontal({
+    required this.list,
+    required this.onSeeMore,
+    this.isSearchMode = false,
+  });
   final List<Lapangan> list;
   final VoidCallback onSeeMore;
+  final bool isSearchMode;
 
   @override
   Widget build(BuildContext context) {
-    if (list.isEmpty)
-      return Text(
-        'Belum ada data lapangan.',
-        style: GoogleFonts.plusJakartaSans(
-          color: Colors.white.withOpacity(0.65),
-          fontWeight: FontWeight.w600,
-        ),
-      );
+    // Handling list kosong
+    if (list.isEmpty) return const SizedBox.shrink();
 
-    final displayList = list.take(3).toList();
+    // JIKA SEARCH MODE: Tampilkan semua list. JIKA TIDAK: Ambil 3 teratas.
+    final displayList = isSearchMode ? list : list.take(3).toList();
 
     return SizedBox(
       height: 252,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: displayList.length + 1,
+        // JIKA SEARCH MODE: count = length. JIKA TIDAK: length + 1 (buat See More)
+        itemCount: isSearchMode ? displayList.length : displayList.length + 1,
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (_, i) {
-          if (i == displayList.length) {
+          // Hanya tampilkan See More jika BUKAN search mode
+          if (!isSearchMode && i == displayList.length) {
             return _SeeMoreCard(onTap: onSeeMore);
           }
           return _LapanganCard(item: displayList[i]);
@@ -1056,31 +1076,29 @@ class _LapanganCard extends StatelessWidget {
 }
 
 class _CoachHorizontal extends StatelessWidget {
-  const _CoachHorizontal({required this.list, required this.onSeeMore});
+  const _CoachHorizontal({
+    required this.list,
+    required this.onSeeMore,
+    this.isSearchMode = false,
+  });
   final List<Coach> list;
   final VoidCallback onSeeMore;
+  final bool isSearchMode;
 
   @override
   Widget build(BuildContext context) {
-    if (list.isEmpty)
-      return Text(
-        'Belum ada data coach.',
-        style: GoogleFonts.plusJakartaSans(
-          color: Colors.white.withOpacity(0.65),
-          fontWeight: FontWeight.w600,
-        ),
-      );
+    if (list.isEmpty) return const SizedBox.shrink();
 
-    final displayList = list.take(3).toList();
+    final displayList = isSearchMode ? list : list.take(3).toList();
 
     return SizedBox(
       height: 270,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: displayList.length + 1,
+        itemCount: isSearchMode ? displayList.length : displayList.length + 1,
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (_, i) {
-          if (i == displayList.length) {
+          if (!isSearchMode && i == displayList.length) {
             return _SeeMoreCard(onTap: onSeeMore);
           }
           return _CoachCard(item: displayList[i]);
@@ -1168,31 +1186,29 @@ class _CoachCard extends StatelessWidget {
 }
 
 class _EventHorizontal extends StatelessWidget {
-  const _EventHorizontal({required this.list, required this.onSeeMore});
+  const _EventHorizontal({
+    required this.list,
+    required this.onSeeMore,
+    this.isSearchMode = false,
+  });
   final List<Event> list;
   final VoidCallback onSeeMore;
+  final bool isSearchMode;
 
   @override
   Widget build(BuildContext context) {
-    if (list.isEmpty)
-      return Text(
-        'Belum ada event.',
-        style: GoogleFonts.plusJakartaSans(
-          color: Colors.white.withOpacity(0.65),
-          fontWeight: FontWeight.w600,
-        ),
-      );
+    if (list.isEmpty) return const SizedBox.shrink();
 
-    final displayList = list.take(3).toList();
+    final displayList = isSearchMode ? list : list.take(3).toList();
 
     return SizedBox(
       height: 280,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        itemCount: displayList.length + 1,
+        itemCount: isSearchMode ? displayList.length : displayList.length + 1,
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (_, i) {
-          if (i == displayList.length) {
+          if (!isSearchMode && i == displayList.length) {
             return _SeeMoreCard(onTap: onSeeMore);
           }
           return _EventCard(item: displayList[i]);
