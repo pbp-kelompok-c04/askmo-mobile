@@ -22,11 +22,11 @@ class UserState extends ChangeNotifier {
 
   String _getPrefKey(String suffix) {
     if (_username.isEmpty) {
-      return suffix; 
+      return suffix;
     }
-    return '${_username}_$suffix'; 
+    return '${_username}_$suffix';
   }
-  
+
   UserState() {
     _loadFromStorage();
   }
@@ -35,13 +35,13 @@ class UserState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     _username = prefs.getString('username') ?? '';
     _isEmailLogin = prefs.getBool('${_username}_isEmailLogin') ?? false;
-    
+
     if (_username.isNotEmpty) {
       _name = prefs.getString(_getPrefKey('name')) ?? '';
       _avatarPath = prefs.getString(_getPrefKey('avatarPath')) ?? '';
       _favoriteSport = prefs.getString(_getPrefKey('favoriteSport')) ?? '';
-      _userId = prefs.getInt('userId') ?? 0;
-      
+      _userId = prefs.getInt(_getPrefKey('userId')) ?? 0;
+
       // Jika name masih kosong dan login dengan email, set dari email
       if (_name.isEmpty && _isEmailLogin) {
         _name = _extractNameFromEmail(_username);
@@ -61,7 +61,7 @@ class UserState extends ChangeNotifier {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', _username);
     await prefs.setBool('${_username}_isEmailLogin', _isEmailLogin);
-    
+
     if (_username.isNotEmpty) {
       await prefs.setString(_getPrefKey('name'), _name);
       await prefs.setString(_getPrefKey('avatarPath'), _avatarPath);
@@ -76,27 +76,42 @@ class UserState extends ChangeNotifier {
     String localPart = email.split('@')[0];
     // Capitalize first letter dan ganti _ atau . dengan spasi
     localPart = localPart.replaceAll(RegExp(r'[._]'), ' ');
-    return localPart.split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
+    return localPart
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
   }
 
+  // === BAGIAN YANG DIPERBAIKI ADA DI SINI ===
   Future<void> setUsername(String uname) async {
     _username = uname;
     // Cek apakah username adalah email
     _isEmailLogin = uname.contains('@');
-    
-    await _loadFromStorage();
-    
+
+    // HAPUS BARIS INI: await _loadFromStorage();
+    // Kenapa? Karena ini akan me-load data lama (kosong) dan menimpa 'uname' baru.
+
+    // Sebagai gantinya, load atribut lain secara manual tanpa menimpa username:
+    final prefs = await SharedPreferences.getInstance();
+    if (_username.isNotEmpty) {
+      _name = prefs.getString(_getPrefKey('name')) ?? '';
+      _avatarPath = prefs.getString(_getPrefKey('avatarPath')) ?? '';
+      _favoriteSport = prefs.getString(_getPrefKey('favoriteSport')) ?? '';
+      // Jangan load userId disini jika akan di-set manual setelah ini
+    }
+
     // Auto-set name dari email jika belum ada
     if (_isEmailLogin && _name.isEmpty) {
       _name = _extractNameFromEmail(uname);
     }
-    
-    await _saveToStorage();
+
+    await _saveToStorage(); // Simpan username BARU ke storage
     notifyListeners();
   }
+  // ==========================================
 
   Future<void> setUserId(int id) async {
     _userId = id;
@@ -126,7 +141,7 @@ class UserState extends ChangeNotifier {
     await _loadFromStorage();
   }
 
-Future<void> clear() async {
+  Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     final oldUsername = _username;
 
@@ -146,7 +161,7 @@ Future<void> clear() async {
       await prefs.remove('${oldUsername}_favoriteSport');
       await prefs.remove('${oldUsername}_userId');
     }
-  
+
     notifyListeners();
   }
 }

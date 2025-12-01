@@ -8,6 +8,8 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
 import 'package:askmo/right_drawer.dart';
+// Import UserState untuk cek login/username
+import 'package:askmo/profile/models/user_state.dart';
 
 // IMPORTS MODEL & SCREENS
 import 'package:askmo/lapangan/models/lapangan.dart';
@@ -451,7 +453,9 @@ class _Hero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final w = MediaQuery.sizeOf(context).width;
-    final titleSize = w < 420 ? 44.0 : 56.0;
+    final titleSize = w < 420
+        ? 32.0
+        : 44.0; // Sedikit disesuaikan agar nama panjang muat
 
     return SizedBox(
       height: 480,
@@ -496,15 +500,28 @@ class _Hero extends StatelessWidget {
                   mainAxisSize: MainAxisSize.min,
                   children: [
                     const SizedBox(height: 30),
-                    Text(
-                      'ASKMO',
-                      style: _t(
-                        titleSize,
-                        FontWeight.w800,
-                        Colors.white,
-                        ls: 1.2,
-                      ),
+                    // === MODIFIED HERO TEXT ===
+                    Consumer<UserState>(
+                      builder: (context, userState, child) {
+                        String displayText = 'Halo, Kawan Askmo';
+                        if (userState.userId != 0 &&
+                            userState.username.isNotEmpty) {
+                          displayText = 'Halo, ${userState.username}';
+                        }
+
+                        return Text(
+                          displayText,
+                          textAlign: TextAlign.center,
+                          style: _t(
+                            titleSize,
+                            FontWeight.w800,
+                            Colors.white,
+                            ls: 1.2,
+                          ),
+                        );
+                      },
                     ),
+                    // ==========================
                     const SizedBox(height: 10),
                     ConstrainedBox(
                       constraints: const BoxConstraints(maxWidth: 560),
