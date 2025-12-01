@@ -8,7 +8,7 @@ class UserState extends ChangeNotifier {
   String _favoriteSport = '';
   int _userId = 0;
   bool _isLoaded = false;
-  bool _isEmailLogin = false; // Track jika login dengan email
+  bool _isEmailLogin = false;
 
   String get username => _username;
   String get name => _name;
@@ -42,7 +42,6 @@ class UserState extends ChangeNotifier {
       _favoriteSport = prefs.getString(_getPrefKey('favoriteSport')) ?? '';
       _userId = prefs.getInt(_getPrefKey('userId')) ?? 0;
 
-      // Jika name masih kosong dan login dengan email, set dari email
       if (_name.isEmpty && _isEmailLogin) {
         _name = _extractNameFromEmail(_username);
       }
@@ -74,7 +73,6 @@ class UserState extends ChangeNotifier {
   String _extractNameFromEmail(String email) {
     if (!email.contains('@')) return email;
     String localPart = email.split('@')[0];
-    // Capitalize first letter dan ganti _ atau . dengan spasi
     localPart = localPart.replaceAll(RegExp(r'[._]'), ' ');
     return localPart
         .split(' ')
@@ -85,33 +83,24 @@ class UserState extends ChangeNotifier {
         .join(' ');
   }
 
-  // === BAGIAN YANG DIPERBAIKI ADA DI SINI ===
   Future<void> setUsername(String uname) async {
     _username = uname;
-    // Cek apakah username adalah email
     _isEmailLogin = uname.contains('@');
 
-    // HAPUS BARIS INI: await _loadFromStorage();
-    // Kenapa? Karena ini akan me-load data lama (kosong) dan menimpa 'uname' baru.
-
-    // Sebagai gantinya, load atribut lain secara manual tanpa menimpa username:
     final prefs = await SharedPreferences.getInstance();
     if (_username.isNotEmpty) {
       _name = prefs.getString(_getPrefKey('name')) ?? '';
       _avatarPath = prefs.getString(_getPrefKey('avatarPath')) ?? '';
       _favoriteSport = prefs.getString(_getPrefKey('favoriteSport')) ?? '';
-      // Jangan load userId disini jika akan di-set manual setelah ini
     }
 
-    // Auto-set name dari email jika belum ada
     if (_isEmailLogin && _name.isEmpty) {
       _name = _extractNameFromEmail(uname);
     }
 
-    await _saveToStorage(); // Simpan username BARU ke storage
+    await _saveToStorage();
     notifyListeners();
   }
-  // ==========================================
 
   Future<void> setUserId(int id) async {
     _userId = id;
