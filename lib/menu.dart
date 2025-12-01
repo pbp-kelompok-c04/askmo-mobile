@@ -317,19 +317,6 @@ class _HomeContentState extends State<HomeContent> {
     }
   }
 
-  void _snack(String msg) {
-    if (!mounted) return;
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        backgroundColor: const Color(0xFF571E88),
-        content: Text(
-          msg,
-          style: GoogleFonts.plusJakartaSans(color: Colors.white),
-        ),
-      ),
-    );
-  }
-
   @override
   Widget build(BuildContext context) {
     final pad = const EdgeInsets.symmetric(horizontal: 16);
@@ -396,7 +383,24 @@ class _HomeContentState extends State<HomeContent> {
                     list: _events,
                     onSeeMore: () => widget.onTabChange(3),
                   ),
-                  const SizedBox(height: 22),
+                  const SizedBox(height: 40),
+
+                  // ===== FITUR (FLIP CARDS) =====
+                  const _FeaturesSection(),
+                  const SizedBox(height: 40),
+
+                  // ===== TESTIMONIAL (GLASSMORPHISM) =====
+                  const _TestimonialSection(),
+                  const SizedBox(height: 40),
+
+                  // ===== STATISTICS (ANIMATED ON SCROLL) =====
+                  _StatsSection(
+                    scrollController: _scrollController,
+                    lapanganCount: _lapangan.length,
+                    coachCount: _coaches.length,
+                    eventCount: _events.length,
+                  ),
+                  const SizedBox(height: 40),
 
                   _Footer(),
                   const SizedBox(height: 100),
@@ -1315,6 +1319,639 @@ class _Footer extends StatelessWidget {
             ],
           ),
         ],
+      ),
+    );
+  }
+}
+
+// =========================================================
+// NEW SECTIONS: FEATURES, TESTIMONIALS, STATISTICS
+// =========================================================
+
+/// --------------------------------------------------------
+/// 1. FEATURES SECTION (FLIP CARDS)
+/// --------------------------------------------------------
+class _FeaturesSection extends StatelessWidget {
+  const _FeaturesSection();
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.center,
+      children: [
+        Text(
+          'Keuntungan Bergabung',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 24,
+            fontWeight: FontWeight.w700,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          'Semua yang Anda butuhkan untuk pengalaman olahraga terbaik.',
+          textAlign: TextAlign.center,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 13,
+            color: Colors.white.withOpacity(0.65),
+          ),
+        ),
+        const SizedBox(height: 24),
+        // Kartu disusun vertikal (Column)
+        const _FlipCard(
+          frontIcon: Icons.layers_rounded,
+          frontTitle: 'Satu Platform',
+          backTitle: 'Satu Platform Terintegrasi',
+          backDesc:
+              'Semua kebutuhan olahragamu—lapangan, coach, dan event—ada di satu tempat. Tidak perlu ganti-ganti aplikasi.',
+          gradientColors: [Color(0xFF571E88), Color(0xFF06005E)],
+        ),
+        const SizedBox(height: 16),
+        const _FlipCard(
+          frontIcon: Icons.map_rounded,
+          frontTitle: 'Lokasi Akurat',
+          backTitle: 'Navigasi Mudah',
+          backDesc:
+              'Tidak perlu bingung mencari lokasi. Lihat peta interaktif di setiap detail lapangan untuk navigasi yang mudah dan akurat.',
+          gradientColors: [Color(0xFF6F0732), Color(0xFF571E88)],
+        ),
+        const SizedBox(height: 16),
+        const _FlipCard(
+          frontIcon: Icons.bolt_rounded,
+          frontTitle: 'Kembangkan Skill',
+          backTitle: 'Kembangkan Skill Anda',
+          backDesc:
+              'Cari coach profesional untuk meningkatkan level permainanmu. Lihat portofolio dan tarif mereka secara transparan.',
+          gradientColors: [Color(0xFF06005E), Color(0xFF2E1065)],
+        ),
+      ],
+    );
+  }
+}
+
+class _FlipCard extends StatefulWidget {
+  final IconData frontIcon;
+  final String frontTitle;
+  final String backTitle;
+  final String backDesc;
+  final List<Color> gradientColors;
+
+  const _FlipCard({
+    required this.frontIcon,
+    required this.frontTitle,
+    required this.backTitle,
+    required this.backDesc,
+    required this.gradientColors,
+  });
+
+  @override
+  State<_FlipCard> createState() => _FlipCardState();
+}
+
+class _FlipCardState extends State<_FlipCard>
+    with SingleTickerProviderStateMixin {
+  late AnimationController _controller;
+  late Animation<double> _animation;
+  bool _isFront = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _controller = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 600),
+    );
+    _animation = Tween<double>(begin: 0, end: 1).animate(
+      CurvedAnimation(parent: _controller, curve: Curves.easeInOutBack),
+    );
+  }
+
+  @override
+  void dispose() {
+    _controller.dispose();
+    super.dispose();
+  }
+
+  void _toggleCard() {
+    if (_isFront) {
+      _controller.forward();
+    } else {
+      _controller.reverse();
+    }
+    setState(() {
+      _isFront = !_isFront;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: _toggleCard,
+      child: AnimatedBuilder(
+        animation: _animation,
+        builder: (context, child) {
+          // Calculate rotation angle (0 to pi)
+          final angle = _animation.value * 3.14159;
+
+          // Determine which side is visible
+          final isFrontVisible = angle <= 3.14159 / 2;
+
+          return Transform(
+            transform: Matrix4.identity()
+              ..setEntry(3, 2, 0.001) // Perspective
+              ..rotateY(angle),
+            alignment: Alignment.center,
+            child: Container(
+              height: 220,
+              width: double.infinity,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(20),
+                // Gradient styling
+                gradient: LinearGradient(
+                  begin: Alignment.topLeft,
+                  end: Alignment.bottomRight,
+                  colors: widget.gradientColors,
+                ),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.black.withOpacity(0.3),
+                    blurRadius: 10,
+                    offset: const Offset(0, 5),
+                  ),
+                ],
+              ),
+              child: isFrontVisible
+                  ? _buildFront()
+                  : Transform(
+                      alignment: Alignment.center,
+                      transform: Matrix4.identity()
+                        ..rotateY(3.14159), // Mirror back
+                      child: _buildBack(),
+                    ),
+            ),
+          );
+        },
+      ),
+    );
+  }
+
+  Widget _buildFront() {
+    return Column(
+      mainAxisAlignment: MainAxisAlignment.center,
+      children: [
+        Icon(widget.frontIcon, size: 48, color: const Color(0xFFA4E4FF)),
+        const SizedBox(height: 16),
+        Text(
+          widget.frontTitle,
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 20,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 8),
+        Text(
+          '(Tap untuk membalik)',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 10,
+            color: Colors.white.withOpacity(0.5),
+          ),
+        ),
+      ],
+    );
+  }
+
+  Widget _buildBack() {
+    return Padding(
+      padding: const EdgeInsets.all(24.0),
+      child: Column(
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            widget.backTitle,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 18,
+              fontWeight: FontWeight.bold,
+              color: Colors.white,
+            ),
+            textAlign: TextAlign.center,
+          ),
+          const SizedBox(height: 12),
+          Text(
+            widget.backDesc,
+            style: GoogleFonts.plusJakartaSans(
+              fontSize: 13,
+              color: Colors.white.withOpacity(0.9),
+              height: 1.5,
+            ),
+            textAlign: TextAlign.center,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// --------------------------------------------------------
+/// 2. TESTIMONIAL SECTION (GLASS MORPHISM)
+/// --------------------------------------------------------
+class _TestimonialSection extends StatefulWidget {
+  const _TestimonialSection();
+
+  @override
+  State<_TestimonialSection> createState() => _TestimonialSectionState();
+}
+
+class _TestimonialSectionState extends State<_TestimonialSection> {
+  final PageController _pageCtrl = PageController();
+  int _currIndex = 0;
+
+  final List<Map<String, String>> _testimonials = [
+    {
+      "name": "Syafiq Faqih",
+      "role": "Admin ASKMO",
+      "quote":
+          "Kami membangun ASKMO karena lelahnya mencari info olahraga yang terpisah-pisah. Temukan lapangan bagus, coach berkualitas, dan event seru jadi semudah beberapa klik.",
+    },
+    {
+      "name": "Ahmad Fauzan",
+      "role": "Admin ASKMO",
+      "quote":
+          "Sebagai penggemar futsal, saya sering frustrasi mencari lapangan kosong. Dengan ASKMO, kami ingin proses pencarian dan pemesanan lapangan jadi transparan dan bebas repot.",
+    },
+    {
+      "name": "Kamali Pirade",
+      "role": "Admin ASKMO",
+      "quote":
+          "Pengembangan skill itu penting. Makanya, kami buat ASKMO agar semua orang bisa mudah menemukan pelatih berkualitas untuk olahraga apa pun.",
+    },
+    {
+      "name": "Matthew Wijaya",
+      "role": "Admin ASKMO",
+      "quote":
+          "Olahraga itu soal komunitas. Kami menciptakan ASKMO untuk jadi jembatan; tempat siapa saja bisa berbagi info event dan memudahkan orang lain untuk bergabung.",
+    },
+    {
+      "name": "Nisrina Alya",
+      "role": "Admin ASKMO",
+      "quote":
+          "Kami ingin ASKMO tidak hanya fungsional, tapi juga nyaman digunakan. Desainnya kami buat intuitif agar pengalamannya tetap mulus dan modern.",
+    },
+  ];
+
+  @override
+  Widget build(BuildContext context) {
+    // Menggunakan Container dengan style Glass Morphism (seperti _SolidCard)
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.05),
+        borderRadius: BorderRadius.circular(20),
+        border: Border.all(color: Colors.white.withOpacity(0.15), width: 1),
+        boxShadow: [
+          BoxShadow(
+            blurRadius: 12,
+            offset: const Offset(0, 4),
+            color: Colors.black.withOpacity(0.3),
+          ),
+        ],
+      ),
+      child: Column(
+        children: [
+          // Header (Gradient Title but refined for glass look)
+          Container(
+            width: double.infinity,
+            padding: const EdgeInsets.symmetric(vertical: 24),
+            decoration: const BoxDecoration(
+              borderRadius: BorderRadius.only(
+                topLeft: Radius.circular(20),
+                topRight: Radius.circular(20),
+              ),
+              // Optional: slight gradient overlay for the header part
+              gradient: LinearGradient(
+                colors: [Color(0xFF06005E), Color(0xFF571E88)],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
+              ),
+            ),
+            child: Text(
+              "Kenapa ASKMO?",
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 24,
+                fontWeight: FontWeight.bold,
+                color: Colors.white,
+              ),
+            ),
+          ),
+
+          // Slider Content
+          SizedBox(
+            height: 350, // Height increased for vertical layout
+            child: PageView.builder(
+              controller: _pageCtrl,
+              onPageChanged: (idx) => setState(() => _currIndex = idx),
+              itemCount: _testimonials.length,
+              itemBuilder: (context, index) {
+                final item = _testimonials[index];
+                return Padding(
+                  padding: const EdgeInsets.symmetric(horizontal: 24.0),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      // 1. Profile Picture (Large & Round & Centered)
+                      Container(
+                        decoration: BoxDecoration(
+                          shape: BoxShape.circle,
+                          boxShadow: [
+                            BoxShadow(
+                              color: Colors.black.withOpacity(0.3),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ],
+                        ),
+                        child: CircleAvatar(
+                          radius: 40, // Agak gede
+                          backgroundColor: Colors.grey.shade700,
+                          // Menggunakan logic load image seperti sebelumnya
+                          foregroundImage: AssetImage(
+                            'assets/image/${item['name']!.replaceAll(' ', '').toLowerCase()}.png',
+                          ),
+                          // Jika gagal load asset, fallback ke inisial nama
+                          onForegroundImageError: (_, __) {},
+                          child: Text(
+                            item['name']![0],
+                            style: GoogleFonts.plusJakartaSans(
+                              fontSize: 32,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const SizedBox(height: 16),
+
+                      // 2. Name
+                      Text(
+                        item['name']!,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          fontWeight: FontWeight.bold,
+                          color: Colors.white,
+                          fontSize: 18,
+                        ),
+                      ),
+
+                      // 3. Role
+                      const SizedBox(height: 4),
+                      Text(
+                        item['role']!,
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          color: const Color(0xFFA4E4FF), // Aksen warna
+                          fontSize: 13,
+                          fontWeight: FontWeight.w500,
+                        ),
+                      ),
+
+                      // 4. Detail/Quote
+                      const SizedBox(height: 20),
+                      Text(
+                        '"${item['quote']}"',
+                        textAlign: TextAlign.center,
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.grey.shade300,
+                          fontSize: 14,
+                          height: 1.5,
+                          fontStyle: FontStyle.italic,
+                        ),
+                      ),
+                    ],
+                  ),
+                );
+              },
+            ),
+          ),
+
+          // Indicators / Controls
+          Padding(
+            padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
+            child: Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  "${(_currIndex + 1).toString().padLeft(2, '0')} / ${(_testimonials.length).toString().padLeft(2, '0')}",
+                  style: GoogleFonts.robotoMono(
+                    color: Colors.grey.shade500,
+                    fontSize: 12,
+                  ),
+                ),
+                Row(
+                  children: [
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_back_ios_new_rounded,
+                        size: 16,
+                      ),
+                      color: Colors.grey,
+                      onPressed: _currIndex > 0
+                          ? () => _pageCtrl.previousPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            )
+                          : null,
+                    ),
+                    IconButton(
+                      icon: const Icon(
+                        Icons.arrow_forward_ios_rounded,
+                        size: 16,
+                      ),
+                      color: Colors.white,
+                      onPressed: _currIndex < _testimonials.length - 1
+                          ? () => _pageCtrl.nextPage(
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            )
+                          : null,
+                    ),
+                  ],
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+/// --------------------------------------------------------
+/// 3. STATS SECTION (ANIMATED ON SCROLL)
+/// --------------------------------------------------------
+class _StatsSection extends StatefulWidget {
+  final int lapanganCount;
+  final int coachCount;
+  final int eventCount;
+  final ScrollController scrollController;
+
+  const _StatsSection({
+    required this.lapanganCount,
+    required this.coachCount,
+    required this.eventCount,
+    required this.scrollController,
+  });
+
+  @override
+  State<_StatsSection> createState() => _StatsSectionState();
+}
+
+class _StatsSectionState extends State<_StatsSection> {
+  bool _isVisible = false;
+
+  @override
+  void initState() {
+    super.initState();
+    widget.scrollController.addListener(_onScroll);
+    WidgetsBinding.instance.addPostFrameCallback((_) => _onScroll());
+  }
+
+  @override
+  void dispose() {
+    widget.scrollController.removeListener(_onScroll);
+    super.dispose();
+  }
+
+  void _onScroll() {
+    if (!mounted) return;
+
+    final RenderObject? box = context.findRenderObject();
+    if (box is! RenderBox) return;
+
+    final position = box.localToGlobal(Offset.zero);
+    final viewportHeight = MediaQuery.of(context).size.height;
+
+    final topY = position.dy;
+    final bottomY = topY + box.size.height;
+
+    final bool visible = topY < viewportHeight - 50 && bottomY > 50;
+
+    if (visible != _isVisible) {
+      setState(() {
+        _isVisible = visible;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      children: [
+        Text(
+          'Statistik ASKMO',
+          style: GoogleFonts.plusJakartaSans(
+            fontSize: 24,
+            fontWeight: FontWeight.bold,
+            color: Colors.white,
+          ),
+        ),
+        const SizedBox(height: 24),
+        // Disusun Horizontal (Row)
+        Row(
+          children: [
+            Expanded(
+              child: _StatCard(
+                count: widget.lapanganCount,
+                label: 'Lapangan',
+                animate: _isVisible,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatCard(
+                count: widget.coachCount,
+                label: 'Coach',
+                animate: _isVisible,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: _StatCard(
+                count: widget.eventCount,
+                label: 'Event',
+                animate: _isVisible,
+              ),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+}
+
+class _StatCard extends StatelessWidget {
+  final int count;
+  final String label;
+  final bool animate;
+
+  const _StatCard({
+    required this.count,
+    required this.label,
+    required this.animate,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    return AspectRatio(
+      aspectRatio: 1.0,
+      child: Container(
+        padding: const EdgeInsets.all(12),
+        decoration: BoxDecoration(
+          gradient: const LinearGradient(
+            colors: [Color(0xFF06005E), Color(0xFF571E88)],
+            begin: Alignment.topLeft,
+            end: Alignment.bottomRight,
+          ),
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: [
+            BoxShadow(
+              color: Colors.black.withOpacity(0.4),
+              blurRadius: 8,
+              offset: const Offset(0, 4),
+            ),
+          ],
+        ),
+        child: Column(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            TweenAnimationBuilder<int>(
+              tween: IntTween(begin: 0, end: animate ? count : 0),
+              duration: animate
+                  ? const Duration(seconds: 2)
+                  : const Duration(milliseconds: 0),
+              curve: Curves.easeOutExpo,
+              builder: (context, value, child) {
+                return Text(
+                  '$value',
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 24,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                  ),
+                );
+              },
+            ),
+            const SizedBox(height: 4),
+            Text(
+              label,
+              textAlign: TextAlign.center,
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                color: Colors.white.withOpacity(0.8),
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

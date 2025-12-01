@@ -334,8 +334,9 @@ class _LoginPageState extends State<LoginPage>
                               ),
                               Text(
                                 'Selamat datang kembali di ASKMO',
+                                textAlign: TextAlign.center,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 14.0,
+                                  fontSize: 12.0,
                                   color: const Color(0xFFFFFFFF),
                                 ),
                               ),
@@ -524,9 +525,10 @@ class _LoginPageState extends State<LoginPage>
                                   ),
                                   label: Text(
                                     'Masuk dengan Google',
+                                    textAlign: TextAlign.center,
                                     style: GoogleFonts.plusJakartaSans(
                                       color: const Color(0xFFFFFFFF),
-                                      fontSize: 15.0,
+                                      fontSize: 14.0,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -574,25 +576,28 @@ class _RegisterLinkState extends State<_RegisterLink> {
             MaterialPageRoute(builder: (context) => const RegisterPage()),
           );
         },
-        child: RichText(
-          text: TextSpan(
-            text: 'Belum punya akun? ',
-            style: GoogleFonts.plusJakartaSans(
-              color: const Color(0xFFFFFFFF),
-              fontSize: 16.0,
-            ),
-            children: [
-              TextSpan(
-                text: 'Daftar akun di sini!',
-                style: GoogleFonts.plusJakartaSans(
-                  color: _isHovered
-                      ? const Color.fromARGB(255, 110, 106, 114)
-                      : const Color(0xFFA4E4FF),
-                  fontSize: 16.0,
-                  decoration: TextDecoration.underline,
-                ),
+        child: Center(
+          child: RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              text: 'Belum punya akun? ',
+              style: GoogleFonts.plusJakartaSans(
+                color: const Color(0xFFFFFFFF),
+                fontSize: 14.0,
               ),
-            ],
+              children: [
+                TextSpan(
+                  text: 'Daftar akun di sini!',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: _isHovered
+                        ? const Color.fromARGB(255, 110, 106, 114)
+                        : const Color(0xFFA4E4FF),
+                    fontSize: 14.0,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),
