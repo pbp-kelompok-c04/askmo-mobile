@@ -144,9 +144,9 @@ class _MenuPageState extends State<MenuPage>
       ),
 
       // === MISSING PART ADDED HERE ===
-      floatingActionButton: _selectedIndex == 0 
+      floatingActionButton: _selectedIndex == 0
           ? Padding(
-              padding: const EdgeInsets.only(bottom: 90.0), 
+              padding: const EdgeInsets.only(bottom: 90.0),
               child: FloatingActionButton(
                 onPressed: () {
                   Navigator.push(
@@ -156,17 +156,17 @@ class _MenuPageState extends State<MenuPage>
                     ),
                   );
                 },
-                backgroundColor: const Color(0xFFA4E4FF), 
+                backgroundColor: const Color(0xFFA4E4FF),
                 foregroundColor: Colors.black,
                 elevation: 4,
                 shape: const CircleBorder(),
-                child: const Icon(Icons.psychology_alt_rounded, size: 28), 
+                child: const Icon(Icons.psychology_alt_rounded, size: 28),
               ),
             )
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
-      // ===============================
 
+      // ===============================
       bottomNavigationBar: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20.0),
@@ -507,8 +507,8 @@ class _HomeContentState extends State<HomeContent> {
                   ],
 
                   // ===== FITUR (FLIP CARDS) =====
-                  const _FeaturesSection(),
-                  const SizedBox(height: 40),
+                  // const _FeaturesSection(),
+                  // const SizedBox(height: 40),
 
                   // ===== TESTIMONIAL (GLASSMORPHISM) =====
                   const _TestimonialSection(),
@@ -1390,228 +1390,229 @@ class _Footer extends StatelessWidget {
 
 /// --------------------------------------------------------
 /// 1. FEATURES SECTION (FLIP CARDS)
+/// gajadi. kata ka farrell ga kaya apk.
 /// --------------------------------------------------------
-class _FeaturesSection extends StatelessWidget {
-  const _FeaturesSection();
+// class _FeaturesSection extends StatelessWidget {
+//   const _FeaturesSection();
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.center,
-      children: [
-        Text(
-          'Keuntungan Bergabung',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 24,
-            fontWeight: FontWeight.w700,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          'Semua yang Anda butuhkan untuk pengalaman olahraga terbaik.',
-          textAlign: TextAlign.center,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 13,
-            color: Colors.white.withOpacity(0.65),
-          ),
-        ),
-        const SizedBox(height: 24),
-        // Kartu disusun vertikal (Column)
-        const _FlipCard(
-          frontIcon: Icons.layers_rounded,
-          frontTitle: 'Satu Platform',
-          backTitle: 'Satu Platform Terintegrasi',
-          backDesc:
-              'Semua kebutuhan olahragamu—lapangan, coach, dan event—ada di satu tempat. Tidak perlu ganti-ganti aplikasi.',
-          gradientColors: [Color(0xFF571E88), Color(0xFF06005E)],
-        ),
-        const SizedBox(height: 16),
-        const _FlipCard(
-          frontIcon: Icons.map_rounded,
-          frontTitle: 'Lokasi Akurat',
-          backTitle: 'Navigasi Mudah',
-          backDesc:
-              'Tidak perlu bingung mencari lokasi. Lihat peta interaktif di setiap detail lapangan untuk navigasi yang mudah dan akurat.',
-          gradientColors: [Color(0xFF6F0732), Color(0xFF571E88)],
-        ),
-        const SizedBox(height: 16),
-        const _FlipCard(
-          frontIcon: Icons.bolt_rounded,
-          frontTitle: 'Kembangkan Skill',
-          backTitle: 'Kembangkan Skill Anda',
-          backDesc:
-              'Cari coach profesional untuk meningkatkan level permainanmu. Lihat portofolio dan tarif mereka secara transparan.',
-          gradientColors: [Color(0xFF06005E), Color(0xFF2E1065)],
-        ),
-      ],
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       crossAxisAlignment: CrossAxisAlignment.center,
+//       children: [
+//         Text(
+//           'Keuntungan Bergabung',
+//           textAlign: TextAlign.center,
+//           style: GoogleFonts.plusJakartaSans(
+//             fontSize: 24,
+//             fontWeight: FontWeight.w700,
+//             color: Colors.white,
+//           ),
+//         ),
+//         const SizedBox(height: 8),
+//         Text(
+//           'Semua yang Anda butuhkan untuk pengalaman olahraga terbaik.',
+//           textAlign: TextAlign.center,
+//           style: GoogleFonts.plusJakartaSans(
+//             fontSize: 13,
+//             color: Colors.white.withOpacity(0.65),
+//           ),
+//         ),
+//         const SizedBox(height: 24),
+//         // Kartu disusun vertikal (Column)
+//         const _FlipCard(
+//           frontIcon: Icons.layers_rounded,
+//           frontTitle: 'Satu Platform',
+//           backTitle: 'Satu Platform Terintegrasi',
+//           backDesc:
+//               'Semua kebutuhan olahragamu—lapangan, coach, dan event—ada di satu tempat. Tidak perlu ganti-ganti aplikasi.',
+//           gradientColors: [Color(0xFF571E88), Color(0xFF06005E)],
+//         ),
+//         const SizedBox(height: 16),
+//         const _FlipCard(
+//           frontIcon: Icons.map_rounded,
+//           frontTitle: 'Lokasi Akurat',
+//           backTitle: 'Navigasi Mudah',
+//           backDesc:
+//               'Tidak perlu bingung mencari lokasi. Lihat peta interaktif di setiap detail lapangan untuk navigasi yang mudah dan akurat.',
+//           gradientColors: [Color(0xFF6F0732), Color(0xFF571E88)],
+//         ),
+//         const SizedBox(height: 16),
+//         const _FlipCard(
+//           frontIcon: Icons.bolt_rounded,
+//           frontTitle: 'Kembangkan Skill',
+//           backTitle: 'Kembangkan Skill Anda',
+//           backDesc:
+//               'Cari coach profesional untuk meningkatkan level permainanmu. Lihat portofolio dan tarif mereka secara transparan.',
+//           gradientColors: [Color(0xFF06005E), Color(0xFF2E1065)],
+//         ),
+//       ],
+//     );
+//   }
+// }
 
-class _FlipCard extends StatefulWidget {
-  final IconData frontIcon;
-  final String frontTitle;
-  final String backTitle;
-  final String backDesc;
-  final List<Color> gradientColors;
+// class _FlipCard extends StatefulWidget {
+//   final IconData frontIcon;
+//   final String frontTitle;
+//   final String backTitle;
+//   final String backDesc;
+//   final List<Color> gradientColors;
 
-  const _FlipCard({
-    required this.frontIcon,
-    required this.frontTitle,
-    required this.backTitle,
-    required this.backDesc,
-    required this.gradientColors,
-  });
+//   const _FlipCard({
+//     required this.frontIcon,
+//     required this.frontTitle,
+//     required this.backTitle,
+//     required this.backDesc,
+//     required this.gradientColors,
+//   });
 
-  @override
-  State<_FlipCard> createState() => _FlipCardState();
-}
+//   @override
+//   State<_FlipCard> createState() => _FlipCardState();
+// }
 
-class _FlipCardState extends State<_FlipCard>
-    with SingleTickerProviderStateMixin {
-  late AnimationController _controller;
-  late Animation<double> _animation;
-  bool _isFront = true;
+// class _FlipCardState extends State<_FlipCard>
+//     with SingleTickerProviderStateMixin {
+//   late AnimationController _controller;
+//   late Animation<double> _animation;
+//   bool _isFront = true;
 
-  @override
-  void initState() {
-    super.initState();
-    _controller = AnimationController(
-      vsync: this,
-      duration: const Duration(milliseconds: 600),
-    );
-    _animation = Tween<double>(begin: 0, end: 1).animate(
-      CurvedAnimation(parent: _controller, curve: Curves.easeInOutBack),
-    );
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     _controller = AnimationController(
+//       vsync: this,
+//       duration: const Duration(milliseconds: 600),
+//     );
+//     _animation = Tween<double>(begin: 0, end: 1).animate(
+//       CurvedAnimation(parent: _controller, curve: Curves.easeInOutBack),
+//     );
+//   }
 
-  @override
-  void dispose() {
-    _controller.dispose();
-    super.dispose();
-  }
+//   @override
+//   void dispose() {
+//     _controller.dispose();
+//     super.dispose();
+//   }
 
-  void _toggleCard() {
-    if (_isFront) {
-      _controller.forward();
-    } else {
-      _controller.reverse();
-    }
-    setState(() {
-      _isFront = !_isFront;
-    });
-  }
+//   void _toggleCard() {
+//     if (_isFront) {
+//       _controller.forward();
+//     } else {
+//       _controller.reverse();
+//     }
+//     setState(() {
+//       _isFront = !_isFront;
+//     });
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return GestureDetector(
-      onTap: _toggleCard,
-      child: AnimatedBuilder(
-        animation: _animation,
-        builder: (context, child) {
-          // Calculate rotation angle (0 to pi)
-          final angle = _animation.value * 3.14159;
+//   @override
+//   Widget build(BuildContext context) {
+//     return GestureDetector(
+//       onTap: _toggleCard,
+//       child: AnimatedBuilder(
+//         animation: _animation,
+//         builder: (context, child) {
+//           // Calculate rotation angle (0 to pi)
+//           final angle = _animation.value * 3.14159;
 
-          // Determine which side is visible
-          final isFrontVisible = angle <= 3.14159 / 2;
+//           // Determine which side is visible
+//           final isFrontVisible = angle <= 3.14159 / 2;
 
-          return Transform(
-            transform: Matrix4.identity()
-              ..setEntry(3, 2, 0.001) // Perspective
-              ..rotateY(angle),
-            alignment: Alignment.center,
-            child: Container(
-              height: 220,
-              width: double.infinity,
-              decoration: BoxDecoration(
-                borderRadius: BorderRadius.circular(20),
-                // Gradient styling
-                gradient: LinearGradient(
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                  colors: widget.gradientColors,
-                ),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withOpacity(0.3),
-                    blurRadius: 10,
-                    offset: const Offset(0, 5),
-                  ),
-                ],
-              ),
-              child: isFrontVisible
-                  ? _buildFront()
-                  : Transform(
-                      alignment: Alignment.center,
-                      transform: Matrix4.identity()
-                        ..rotateY(3.14159), // Mirror back
-                      child: _buildBack(),
-                    ),
-            ),
-          );
-        },
-      ),
-    );
-  }
+//           return Transform(
+//             transform: Matrix4.identity()
+//               ..setEntry(3, 2, 0.001) // Perspective
+//               ..rotateY(angle),
+//             alignment: Alignment.center,
+//             child: Container(
+//               height: 220,
+//               width: double.infinity,
+//               decoration: BoxDecoration(
+//                 borderRadius: BorderRadius.circular(20),
+//                 // Gradient styling
+//                 gradient: LinearGradient(
+//                   begin: Alignment.topLeft,
+//                   end: Alignment.bottomRight,
+//                   colors: widget.gradientColors,
+//                 ),
+//                 boxShadow: [
+//                   BoxShadow(
+//                     color: Colors.black.withOpacity(0.3),
+//                     blurRadius: 10,
+//                     offset: const Offset(0, 5),
+//                   ),
+//                 ],
+//               ),
+//               child: isFrontVisible
+//                   ? _buildFront()
+//                   : Transform(
+//                       alignment: Alignment.center,
+//                       transform: Matrix4.identity()
+//                         ..rotateY(3.14159), // Mirror back
+//                       child: _buildBack(),
+//                     ),
+//             ),
+//           );
+//         },
+//       ),
+//     );
+//   }
 
-  Widget _buildFront() {
-    return Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Icon(widget.frontIcon, size: 48, color: const Color(0xFFA4E4FF)),
-        const SizedBox(height: 16),
-        Text(
-          widget.frontTitle,
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 20,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          '(Tap untuk membalik)',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 10,
-            color: Colors.white.withOpacity(0.5),
-          ),
-        ),
-      ],
-    );
-  }
+//   Widget _buildFront() {
+//     return Column(
+//       mainAxisAlignment: MainAxisAlignment.center,
+//       children: [
+//         Icon(widget.frontIcon, size: 48, color: const Color(0xFFA4E4FF)),
+//         const SizedBox(height: 16),
+//         Text(
+//           widget.frontTitle,
+//           style: GoogleFonts.plusJakartaSans(
+//             fontSize: 20,
+//             fontWeight: FontWeight.bold,
+//             color: Colors.white,
+//           ),
+//         ),
+//         const SizedBox(height: 8),
+//         Text(
+//           '(Tap untuk membalik)',
+//           style: GoogleFonts.plusJakartaSans(
+//             fontSize: 10,
+//             color: Colors.white.withOpacity(0.5),
+//           ),
+//         ),
+//       ],
+//     );
+//   }
 
-  Widget _buildBack() {
-    return Padding(
-      padding: const EdgeInsets.all(24.0),
-      child: Column(
-        mainAxisAlignment: MainAxisAlignment.center,
-        children: [
-          Text(
-            widget.backTitle,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-              color: Colors.white,
-            ),
-            textAlign: TextAlign.center,
-          ),
-          const SizedBox(height: 12),
-          Text(
-            widget.backDesc,
-            style: GoogleFonts.plusJakartaSans(
-              fontSize: 13,
-              color: Colors.white.withOpacity(0.9),
-              height: 1.5,
-            ),
-            textAlign: TextAlign.center,
-          ),
-        ],
-      ),
-    );
-  }
-}
+//   Widget _buildBack() {
+//     return Padding(
+//       padding: const EdgeInsets.all(24.0),
+//       child: Column(
+//         mainAxisAlignment: MainAxisAlignment.center,
+//         children: [
+//           Text(
+//             widget.backTitle,
+//             style: GoogleFonts.plusJakartaSans(
+//               fontSize: 18,
+//               fontWeight: FontWeight.bold,
+//               color: Colors.white,
+//             ),
+//             textAlign: TextAlign.center,
+//           ),
+//           const SizedBox(height: 12),
+//           Text(
+//             widget.backDesc,
+//             style: GoogleFonts.plusJakartaSans(
+//               fontSize: 13,
+//               color: Colors.white.withOpacity(0.9),
+//               height: 1.5,
+//             ),
+//             textAlign: TextAlign.center,
+//           ),
+//         ],
+//       ),
+//     );
+//   }
+// }
 
 /// --------------------------------------------------------
 /// 2. TESTIMONIAL SECTION (GLASS MORPHISM)
@@ -1817,9 +1818,9 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
                       color: Colors.grey,
                       onPressed: _currIndex > 0
                           ? () => _pageCtrl.previousPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.ease,
-                              )
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            )
                           : null,
                     ),
                     IconButton(
@@ -1830,9 +1831,9 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
                       color: Colors.white,
                       onPressed: _currIndex < _testimonials.length - 1
                           ? () => _pageCtrl.nextPage(
-                                duration: const Duration(milliseconds: 300),
-                                curve: Curves.ease,
-                              )
+                              duration: const Duration(milliseconds: 300),
+                              curve: Curves.ease,
+                            )
                           : null,
                     ),
                   ],
