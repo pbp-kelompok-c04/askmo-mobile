@@ -4,6 +4,8 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
 import 'package:askmo/wishlist/models/wishlist_state.dart';
 import '../models/coach_model.dart';
+import 'package:askmo/feat/review/coach/screens/coach_review_list_page.dart';
+
 
 class CoachDetailPage extends StatefulWidget {
   final Coach coach;
@@ -360,10 +362,45 @@ class _CoachDetailPageState extends State<CoachDetailPage>
               fontWeight: FontWeight.bold,
             ),
           ),
+          const SizedBox(height: 20),
+
+          // === Tombol Lihat Rating & Review (ungu) ===
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CoachReviewListPage(
+                      coachId: widget.coach.pk,              // id coach (int)
+                      coachName: widget.coach.fields.name,   // nama coach
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                backgroundColor: const Color(0xFF571E88),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Lihat Rating & Review',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
         ],
       ],
     );
   }
+
 
   Widget _buildDetailRow({
     required IconData icon,
