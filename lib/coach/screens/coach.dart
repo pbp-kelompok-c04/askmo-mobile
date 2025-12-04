@@ -7,6 +7,8 @@ import 'package:askmo/coach/models/coach_model.dart';
 import 'package:askmo/coach/screens/coach_detail.dart';
 import 'package:askmo/coach/screens/coach_form.dart';
 import 'package:askmo/user_info.dart'; // Import UserInfo untuk cek admin
+import 'package:askmo/feat/review/coach/services/coach_review_service.dart';
+import 'package:askmo/feat/review/coach/models/coach_review.dart';
 
 class CoachPage extends StatefulWidget {
   const CoachPage({super.key});
@@ -168,7 +170,7 @@ class _CoachPageState extends State<CoachPage> {
 
       if (response != null) {
         print('DEBUG _fetchCoach - Raw response: $response');
-        
+
         List<Coach> listData = [];
         for (var d in response) {
           if (d != null) {
@@ -238,9 +240,9 @@ class _CoachPageState extends State<CoachPage> {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.transparent,
-      
+
       // Tampilkan FAB hanya jika user adalah Admin
-      floatingActionButton: UserInfo.isAdmin 
+      floatingActionButton: UserInfo.isAdmin
           ? Padding(
               padding: const EdgeInsets.only(bottom: 20.0),
               child: FloatingActionButton(
@@ -249,7 +251,8 @@ class _CoachPageState extends State<CoachPage> {
                   // Navigasi ke form tambah coach
                   Navigator.push(
                     context,
-                    MaterialPageRoute(builder: (context) => const CoachFormPage()),
+                    MaterialPageRoute(
+                        builder: (context) => const CoachFormPage()),
                   );
                 },
                 child: const Icon(Icons.add, color: Colors.white),
@@ -449,7 +452,8 @@ class _CoachPageState extends State<CoachPage> {
         ..._sportOptions.map(
           (sport) => DropdownMenuItem<String>(
             value: sport['value'],
-            child: Text(sport['label']!, style: GoogleFonts.plusJakartaSans()),
+            child:
+                Text(sport['label']!, style: GoogleFonts.plusJakartaSans()),
           ),
         ),
       ],
@@ -546,10 +550,11 @@ class _CoachPageState extends State<CoachPage> {
       sliver: SliverList(
         delegate: SliverChildBuilderDelegate((context, index) {
           final coach = _filteredCoach[index];
-          
+
           // DEBUG: Print foto value
-          print('DEBUG: Coach ${coach.fields.name} - Photo: ${coach.fields.photo}');
-          
+          print(
+              'DEBUG: Coach ${coach.fields.name} - Photo: ${coach.fields.photo}');
+
           return GestureDetector(
             onTap: () {
               Navigator.push(
@@ -650,6 +655,52 @@ class _CoachPageState extends State<CoachPage> {
                             ),
                           ],
                         ),
+                        const SizedBox(height: 6),
+                        // RATING COACH DI CARD
+                        FutureBuilder<List<CoachReview>>(
+                          future: CoachReviewService.fetchReviews(
+                            context,
+                            coach.pk,
+                          ),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            final reviews = snapshot.data!;
+                            double total = 0;
+                            for (final r in reviews) {
+                              total += r.rating;
+                            }
+                            final avg = total / reviews.length;
+
+                            return Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  size: 16,
+                                  color: Colors.amber,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  avg.toStringAsFixed(1),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  ' / 5.0',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
+                        ),
                       ],
                     ),
                   ),
@@ -665,19 +716,19 @@ class _CoachPageState extends State<CoachPage> {
 
   String _buildPhotoUrl(String photoPath) {
     print('DEBUG _buildPhotoUrl - Input: $photoPath');
-    
+
     // Jika sudah URL lengkap (http/https), kembalikan as-is
     if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
       print('DEBUG _buildPhotoUrl - Already full URL: $photoPath');
       return photoPath;
     }
-    
+
     // Jika kosong atau tidak valid, return empty
     if (photoPath.isEmpty) {
       print('DEBUG _buildPhotoUrl - Empty photo path');
       return '';
     }
-    
+
     // Jika hanya nama file atau path relatif, tambahkan base URL media
     final result = 'http://127.0.0.1:8000/media/$photoPath';
     print('DEBUG _buildPhotoUrl - Built URL: $result');

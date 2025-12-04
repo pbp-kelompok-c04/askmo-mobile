@@ -14,7 +14,6 @@ class CoachReviewService {
   static String get baseUrl =>
       kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
 
-  /// Helper buat ambil pesan error yang paling manusiawi
   static String _extractErrorMessage(dynamic response, String defaultMsg) {
     if (response is Map<String, dynamic>) {
       if (response['message'] != null) {
@@ -43,7 +42,6 @@ class CoachReviewService {
   ) async {
     final request = context.read<CookieRequest>();
 
-    // Cocok dengan: path('coach/json/<int:coach_id>/', ...)
     final url = '$baseUrl/coach/json/$coachId/';
 
     final response = await request.get(url);
@@ -70,8 +68,6 @@ class CoachReviewService {
   }) async {
     final request = context.read<CookieRequest>();
 
-    // Pastikan di Django ada:
-    // path('coach/add-ajax/<int:coach_id>/', views.add_review_coach_ajax, ...)
     final url = '$baseUrl/coach/add-ajax/$coachId/';
 
     final response = await request.post(url, {
@@ -106,8 +102,6 @@ class CoachReviewService {
   }) async {
     final request = context.read<CookieRequest>();
 
-    // Pastikan di Django ada:
-    // path('coach/edit-ajax/<int:review_id>/', views.update_review_coach_ajax, ...)
     final url = '$baseUrl/coach/edit-ajax/$reviewId/';
 
     final response = await request.post(url, {
@@ -139,7 +133,6 @@ class CoachReviewService {
   ) async {
     final request = context.read<CookieRequest>();
 
-    // Cocok dengan: path('coach/delete/<int:review_id>/', views.delete_review_coach, ...)
     final url = '$baseUrl/coach/delete/$reviewId/';
 
     final response = await request.post(url, {});
@@ -150,10 +143,6 @@ class CoachReviewService {
       );
     }
 
-    // Di Django kamu sekarang: JsonResponse({'message': 'Review berhasil dihapus'})
-    // Jadi kita anggap "berhasil" kalau:
-    //  - status == 'success'  ATAU
-    //  - message mengandung kata "berhasil"
     final map = response as Map<String, dynamic>;
     final status = map['status']?.toString();
     final message = map['message']?.toString() ?? '';

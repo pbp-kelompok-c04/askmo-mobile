@@ -28,10 +28,8 @@ class ReviewLapangan {
       rating: (json['rating'] as num).toDouble(),
       reviewText: json['review_text'] ?? '',
       tanggalDibuat: json['tanggal_dibuat'] ?? '',
-      
-      /// FIX TERPENTING
+      // backend bisa kirim "gambar" atau "gambar_url"
       gambarUrl: json['gambar_url'] ?? json['gambar'] ?? null,
-
       canEdit: json['can_edit'] ?? false,
       canDelete: json['can_delete'] ?? false,
       isDataset: json['is_dataset'] ?? false,

@@ -1,7 +1,6 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-
 import '../models/review_lapangan.dart';
 import '../services/review_services.dart';
 import 'review_form_page.dart';
@@ -56,9 +55,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ReviewEditPage(
-          review: review,
-        ),
+        builder: (_) => ReviewEditPage(review: review),
       ),
     );
 
@@ -130,6 +127,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
+          // background glow
           Positioned(
             top: -200,
             left: -100,
@@ -168,6 +166,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // HEADER: back + teks kecil
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -175,39 +174,76 @@ class _ReviewListPageState extends State<ReviewListPage> {
                     children: [
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.arrow_back,
-                            color: Colors.white70),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white70,
+                        ),
                       ),
                       const SizedBox(width: 4),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Review Lapangan',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white70,
-                                fontSize: 13,
-                              ),
-                            ),
-                            Text(
-                              widget.lapanganName,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
+                      Text(
+                        'Kembali ke halaman sebelumnya',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white70,
+                          fontSize: 13,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 6),
+
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.06),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.18),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Review Lapangan :',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white70,
+                              fontSize: 14, // diperbesar
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.lapanganName,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white,
+                              fontSize: 20, // diperbesar
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
+
+                // OVERALL RATING
                 _buildOverallRating(),
                 const SizedBox(height: 12),
+
+                // LIST REVIEW
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _refresh,
@@ -238,15 +274,19 @@ class _ReviewListPageState extends State<ReviewListPage> {
                           );
                         }
 
-                        final allReviews = snapshot.data ?? [];
-                        final userReviews = allReviews
-                            .where((e) => !e.isDataset)
-                            .toList();
+                        if (!snapshot.hasData) {
+                          return const SizedBox.shrink();
+                        }
+
+                        final allReviews = snapshot.data!;
+                        // hanya review user (dataset ga ditampilin)
+                        final userReviews =
+                            allReviews.where((e) => !e.isDataset).toList();
 
                         if (userReviews.isEmpty) {
                           return ListView(
                             children: [
-                              const SizedBox(height: 90),
+                              const SizedBox(height: 80),
                               Center(
                                 child: Text(
                                   'Belum ada review.\nJadilah yang pertama!',
@@ -269,17 +309,9 @@ class _ReviewListPageState extends State<ReviewListPage> {
                           itemBuilder: (context, index) {
                             final review = userReviews[index];
 
-                            return Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 480,
-                                ),
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.only(bottom: 16.0),
-                                  child: _buildReviewCard(review),
-                                ),
-                              ),
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: _buildReviewCard(review),
                             );
                           },
                         );
@@ -325,27 +357,65 @@ class _ReviewListPageState extends State<ReviewListPage> {
     return FutureBuilder<List<ReviewLapangan>>(
       future: _futureReviews,
       builder: (context, snapshot) {
+        if (snapshot.connectionState == ConnectionState.waiting) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Container(
+              height: 52,
+              decoration: BoxDecoration(
+                color: Colors.white.withOpacity(0.05),
+                borderRadius: BorderRadius.circular(22),
+              ),
+            ),
+          );
+        }
+
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               'Belum ada rating',
               style: GoogleFonts.plusJakartaSans(
-                color: Colors.white70,
                 fontSize: 16,
+                color: Colors.white70,
               ),
             ),
           );
         }
 
         final reviews = snapshot.data!;
+        final dataset = reviews.where((e) => e.isDataset).toList();
+        final nonDataset = reviews.where((e) => !e.isDataset).toList();
+
         double totalRating = 0;
-        for (final r in reviews) {
-          totalRating += r.rating;
+        int totalCount = 0;
+
+        if (dataset.isNotEmpty) {
+          totalRating += dataset.first.rating;
+          totalCount += 1;
         }
-        final avgRating = totalRating / reviews.length;
-        final userReviewCount =
-            reviews.where((e) => !e.isDataset).length;
+
+        for (final r in nonDataset) {
+          totalRating += r.rating;
+          totalCount += 1;
+        }
+
+        if (totalCount == 0) {
+          return Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Text(
+              'Belum ada rating',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 16,
+                color: Colors.white70,
+              ),
+            ),
+          );
+        }
+
+        final avg =
+            double.parse((totalRating / totalCount).toStringAsFixed(1));
+        final ulasanCount = nonDataset.length;
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -389,7 +459,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      avgRating.toStringAsFixed(1),
+                      avg.toStringAsFixed(1),
                       style: GoogleFonts.plusJakartaSans(
                         color: Colors.amber,
                         fontSize: 26,
@@ -406,7 +476,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
                     ),
                     const Spacer(),
                     Text(
-                      '$userReviewCount ulasan',
+                      '$ulasanCount ulasan',
                       style: GoogleFonts.plusJakartaSans(
                         color: Colors.white54,
                         fontSize: 14,
@@ -440,40 +510,17 @@ class _ReviewListPageState extends State<ReviewListPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // nama + tanggal
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Expanded(
-                    child: Row(
-                      children: [
-                        Text(
-                          review.reviewerName,
-                          style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white,
-                            fontWeight: FontWeight.w700,
-                          ),
-                        ),
-                        if (review.isDataset) ...[
-                          const SizedBox(width: 8),
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 8,
-                              vertical: 3,
-                            ),
-                            decoration: BoxDecoration(
-                              color: Colors.grey.shade800.withOpacity(0.7),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              'Data Awal',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white70,
-                                fontSize: 10,
-                              ),
-                            ),
-                          ),
-                        ],
-                      ],
+                    child: Text(
+                      review.reviewerName,
+                      style: GoogleFonts.plusJakartaSans(
+                        color: Colors.white,
+                        fontWeight: FontWeight.w700,
+                      ),
                     ),
                   ),
                   const SizedBox(width: 8),
@@ -488,6 +535,8 @@ class _ReviewListPageState extends State<ReviewListPage> {
                 ],
               ),
               const SizedBox(height: 8),
+
+              // rating kecil
               Row(
                 children: [
                   const Icon(Icons.star, color: Colors.amber, size: 18),
@@ -502,6 +551,8 @@ class _ReviewListPageState extends State<ReviewListPage> {
                 ],
               ),
               const SizedBox(height: 10),
+
+              // teks review
               Text(
                 review.reviewText,
                 style: GoogleFonts.plusJakartaSans(
@@ -510,60 +561,63 @@ class _ReviewListPageState extends State<ReviewListPage> {
                   height: 1.5,
                 ),
               ),
-              if (review.gambarUrl != null &&
-                  review.gambarUrl!.isNotEmpty) ...[
-                const SizedBox(height: 12),
-                ClipRRect(
-                  borderRadius: BorderRadius.circular(12),
-                  child: Image.network(
-                    review.gambarUrl!,
-                    height: 160,
-                    width: double.infinity,
-                    fit: BoxFit.cover,
-                    errorBuilder: (_, __, ___) => Container(
+
+              // gambar (kalau ada)
+              if (review.gambarUrl != null && review.gambarUrl!.isNotEmpty)
+                Padding(
+                  padding: const EdgeInsets.only(top: 12),
+                  child: ClipRRect(
+                    borderRadius: BorderRadius.circular(12),
+                    child: Image.network(
+                      review.gambarUrl!,
                       height: 160,
-                      color: Colors.grey.shade900,
-                      child: Center(
-                        child: Text(
-                          'Gagal memuat gambar',
-                          style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white54,
+                      width: double.infinity,
+                      fit: BoxFit.cover,
+                      errorBuilder: (_, __, ___) => Container(
+                        height: 160,
+                        color: Colors.grey.shade900,
+                        child: Center(
+                          child: Text(
+                            'Gagal memuat gambar',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white54,
+                            ),
                           ),
                         ),
                       ),
                     ),
                   ),
                 ),
-              ],
+
+              // tombol edit / hapus
               if (review.canEdit || review.canDelete) ...[
                 const SizedBox(height: 12),
                 Row(
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     if (review.canEdit)
-                      Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        child: TextButton.icon(
-                          onPressed: () => _goToEditReview(review),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            backgroundColor:
-                                const Color(0xFF571E88).withOpacity(0.9),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                      TextButton.icon(
+                        onPressed: () => _goToEditReview(review),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                          icon: const Icon(Icons.edit, size: 18),
-                          label: const Text(
-                            'Edit',
-                            style: TextStyle(fontSize: 13),
+                          backgroundColor:
+                              const Color(0xFF571E88).withOpacity(0.9),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
+                        icon: const Icon(Icons.edit, size: 18),
+                        label: const Text(
+                          'Edit',
+                          style: TextStyle(fontSize: 13),
+                        ),
                       ),
+                    if (review.canEdit && review.canDelete)
+                      const SizedBox(width: 8),
                     if (review.canDelete)
                       TextButton.icon(
                         onPressed: () => _deleteReview(review),

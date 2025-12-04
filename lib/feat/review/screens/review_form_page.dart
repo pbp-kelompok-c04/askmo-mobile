@@ -38,7 +38,6 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    // validasi panjang URL gambar (misal sama kayak max_length di Django)
     if (_gambarController.text.isNotEmpty &&
         _gambarController.text.length > 200) {
       ScaffoldMessenger.of(context).showSnackBar(

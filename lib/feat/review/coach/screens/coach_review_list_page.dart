@@ -169,6 +169,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // HEADER SAMA KAYAK LAPANGAN
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -176,37 +177,70 @@ class _CoachReviewListPageState extends State<CoachReviewListPage> {
                     children: [
                       IconButton(
                         onPressed: () => Navigator.pop(context),
-                        icon: const Icon(Icons.arrow_back,
-                            color: Colors.white70),
+                        icon: const Icon(
+                          Icons.arrow_back,
+                          color: Colors.white70,
+                        ),
                       ),
                       const SizedBox(width: 4),
-                      Expanded(
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(
-                              'Review Coach',
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white70,
-                                fontSize: 13,
-                              ),
-                            ),
-                            Text(
-                              widget.coachName,
-                              overflow: TextOverflow.ellipsis,
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white,
-                                fontSize: 18,
-                                fontWeight: FontWeight.w700,
-                              ),
-                            ),
-                          ],
+                      Text(
+                        'Kembali ke halaman sebelumnya',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white70,
+                          fontSize: 13,
                         ),
                       ),
                     ],
                   ),
                 ),
-                const SizedBox(height: 6),
+
+                Padding(
+                  padding:
+                      const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
+                  child: SizedBox(
+                    width: double.infinity,
+                    child: Container(
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 20,
+                        vertical: 10,
+                      ),
+                      decoration: BoxDecoration(
+                        color: Colors.white.withOpacity(0.06),
+                        borderRadius: BorderRadius.circular(999),
+                        border: Border.all(
+                          color: Colors.white.withOpacity(0.18),
+                        ),
+                      ),
+                      child: Column(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Text(
+                            'Review Coach :',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white70,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w600,
+                            ),
+                          ),
+                          const SizedBox(height: 2),
+                          Text(
+                            widget.coachName,
+                            textAlign: TextAlign.center,
+                            maxLines: 2,
+                            overflow: TextOverflow.ellipsis,
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white,
+                              fontSize: 20,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ),
+                ),
+
+                const SizedBox(height: 8),
                 _buildOverallRating(),
                 const SizedBox(height: 12),
                 Expanded(
@@ -267,17 +301,9 @@ class _CoachReviewListPageState extends State<CoachReviewListPage> {
                           itemBuilder: (context, index) {
                             final review = reviews[index];
 
-                            return Center(
-                              child: ConstrainedBox(
-                                constraints: const BoxConstraints(
-                                  maxWidth: 480,
-                                ),
-                                child: Padding(
-                                  padding:
-                                      const EdgeInsets.only(bottom: 16.0),
-                                  child: _buildReviewCard(review),
-                                ),
-                              ),
+                            return Padding(
+                              padding: const EdgeInsets.only(bottom: 16.0),
+                              child: _buildReviewCard(review),
                             );
                           },
                         );
@@ -342,10 +368,8 @@ class _CoachReviewListPageState extends State<CoachReviewListPage> {
         double overallRating;
 
         if (totalUlasan == 1) {
-          // Ulasan pertama → overall = rating ulasan pertama
           overallRating = reviews[0].rating;
         } else {
-          // Setelah itu → average biasa
           double totalRating = 0;
           for (final r in reviews) {
             totalRating += r.rating;
@@ -498,29 +522,28 @@ class _CoachReviewListPageState extends State<CoachReviewListPage> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     if (review.canEdit)
-                      Container(
-                        margin: const EdgeInsets.only(right: 8),
-                        child: TextButton.icon(
-                          onPressed: () => _goToEditReview(review),
-                          style: TextButton.styleFrom(
-                            padding: const EdgeInsets.symmetric(
-                              horizontal: 12,
-                              vertical: 6,
-                            ),
-                            backgroundColor:
-                                const Color(0xFF571E88).withOpacity(0.9),
-                            foregroundColor: Colors.white,
-                            shape: RoundedRectangleBorder(
-                              borderRadius: BorderRadius.circular(8),
-                            ),
+                      TextButton.icon(
+                        onPressed: () => _goToEditReview(review),
+                        style: TextButton.styleFrom(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 12,
+                            vertical: 6,
                           ),
-                          icon: const Icon(Icons.edit, size: 18),
-                          label: const Text(
-                            'Edit',
-                            style: TextStyle(fontSize: 13),
+                          backgroundColor:
+                              const Color(0xFF571E88).withOpacity(0.9),
+                          foregroundColor: Colors.white,
+                          shape: RoundedRectangleBorder(
+                            borderRadius: BorderRadius.circular(8),
                           ),
                         ),
+                        icon: const Icon(Icons.edit, size: 18),
+                        label: const Text(
+                          'Edit',
+                          style: TextStyle(fontSize: 13),
+                        ),
                       ),
+                    if (review.canEdit && review.canDelete)
+                      const SizedBox(width: 8),
                     if (review.canDelete)
                       TextButton.icon(
                         onPressed: () => _deleteReview(review),

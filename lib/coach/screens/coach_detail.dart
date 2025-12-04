@@ -5,7 +5,8 @@ import 'package:provider/provider.dart';
 import 'package:askmo/wishlist/models/wishlist_state.dart';
 import '../models/coach_model.dart';
 import 'package:askmo/feat/review/coach/screens/coach_review_list_page.dart';
-
+import 'package:askmo/feat/review/coach/services/coach_review_service.dart';
+import 'package:askmo/feat/review/coach/models/coach_review.dart';
 
 class CoachDetailPage extends StatefulWidget {
   final Coach coach;
@@ -203,7 +204,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                             height: 1.1,
                           ),
                         ),
-                        
+
                         // Narrow spacing
                         const SizedBox(height: 6),
 
@@ -322,6 +323,9 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // RATING DI ATAS KONTAK
+        _buildRatingRow(),
+
         // Info Rows
         if (widget.coach.fields.contact.isNotEmpty) ...[
           _buildDetailRow(
@@ -331,7 +335,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
           ),
           const SizedBox(height: 16),
         ],
-        
+
         if (widget.coach.fields.experience.isNotEmpty) ...[
           _buildDetailRow(
             icon: Icons.work_outline,
@@ -357,8 +361,8 @@ class _CoachDetailPageState extends State<CoachDetailPage>
           Text(
             'Rp ${widget.coach.fields.serviceFee} / Sesi',
             style: GoogleFonts.plusJakartaSans(
-              color: const Color(0xFFA4E4FF), 
-              fontSize: 28, 
+              color: const Color(0xFFA4E4FF),
+              fontSize: 28,
               fontWeight: FontWeight.bold,
             ),
           ),
@@ -373,8 +377,8 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                   context,
                   MaterialPageRoute(
                     builder: (_) => CoachReviewListPage(
-                      coachId: widget.coach.pk,              // id coach (int)
-                      coachName: widget.coach.fields.name,   // nama coach
+                      coachId: widget.coach.pk, // id coach (int)
+                      coachName: widget.coach.fields.name, // nama coach
                     ),
                   ),
                 );
@@ -401,6 +405,34 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     );
   }
 
+  Widget _buildRatingRow() {
+    return FutureBuilder<List<CoachReview>>(
+      future: CoachReviewService.fetchReviews(context, widget.coach.pk),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final reviews = snapshot.data!;
+        double total = 0;
+        for (final r in reviews) {
+          total += r.rating;
+        }
+        final avg = total / reviews.length;
+
+        return Column(
+          children: [
+            _buildDetailRow(
+              icon: Icons.star,
+              label: 'Rating',
+              value: '${avg.toStringAsFixed(1)} / 5.0',
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
+    );
+  }
 
   Widget _buildDetailRow({
     required IconData icon,
