@@ -740,90 +740,55 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _buildTabContent(String tabKey) {
-    return Consumer<WishlistState>(
-      builder: (context, wishlistState, child) {
-        Widget content;
+  return Consumer<WishlistState>(
+    builder: (context, wishlistState, child) {
+      Widget content;
+      bool isEmpty = false;
 
-        if (tabKey == 'wishlist') {
-          final lapanganItems = wishlistState.getWishedByType('lapangan');
-          if (lapanganItems.isEmpty) {
-            content = _buildEmptyState(
-              message:
-                  'Tidak ada Lapangan yang di-Wishlist. Ayo temukan Lapangan favoritmu!',
-            );
-          } else {
-            // Content for Lapangan (non-empty)
-            return FutureBuilder<List<Lapangan>>(
-              future: _fetchLapanganDetails(lapanganItems),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF571E88)),
-                  );
-                }
+      if (tabKey == 'wishlist') {
+        final lapanganItems = wishlistState.getWishedByType('lapangan');
+        isEmpty = lapanganItems.isEmpty;
+        
+        if (isEmpty) {
+          content = _buildEmptyState(
+            message: 'Tidak ada Lapangan yang di-Wishlist. Ayo temukan Lapangan favoritmu!',
+          );
+        } else {
+          // Your existing FutureBuilder for lapangan...
+          return FutureBuilder<List<Lapangan>>(
+            future: _fetchLapanganDetails(lapanganItems),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF571E88)),
+                );
+              }
 
-                final List<Lapangan> lapanganList = snapshot.data ?? [];
-                
-                if (snapshot.hasError || !snapshot.hasData || lapanganList.isEmpty) {
-                  // Fallback: use minimum data from wishlist even on error
-                  return ListView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    itemCount: lapanganItems.length,
-                    itemBuilder: (context, index) {
-                      final item = lapanganItems[index];
-                      final lapanganDummy = Lapangan.fromWishedItem(
-                        id: item.id,
-                        name: item.name,
-                        imageUrl: item.imageUrl ?? '', // FIX: Null Safety
-                        category: item.category,
-                      );
-
-                      return LapanganCard(
-                        lapangan: lapanganDummy,
-                        showWishlistButton: true,
-                        onWishlistRemove: () => _showUnwishlistDialog(context, item, wishlistState),
-                        onTap: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => LapanganDetailPage(lapangan: lapanganDummy),
-                            ),
-                          );
-                        },
-                        onBook: () {
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => LapanganBookingPage(lapangan: lapanganDummy),
-                            ),
-                          );
-                        },
-                      );
-                    },
-                  );
-                }
-
-                // Use complete data from backend
+              final List<Lapangan> lapanganList = snapshot.data ?? [];
+              
+              if (snapshot.hasError || !snapshot.hasData || lapanganList.isEmpty) {
                 return ListView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
-                  itemCount: lapanganList.length,
+                  itemCount: lapanganItems.length,
                   itemBuilder: (context, index) {
-                    final lapangan = lapanganList[index];
-                    final wishItem = lapanganItems.firstWhere(
-                      (item) => item.id == lapangan.id,
+                    final item = lapanganItems[index];
+                    final lapanganDummy = Lapangan.fromWishedItem(
+                      id: item.id,
+                      name: item.name,
+                      imageUrl: item.imageUrl ?? '',
+                      category: item.category,
                     );
 
                     return LapanganCard(
-                      lapangan: lapangan,
+                      lapangan: lapanganDummy,
                       showWishlistButton: true,
-                      onWishlistRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
+                      onWishlistRemove: () => _showUnwishlistDialog(context, item, wishlistState),
                       onTap: () {
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => LapanganDetailPage(lapangan: lapangan),
+                            builder: (context) => LapanganDetailPage(lapangan: lapanganDummy),
                           ),
                         );
                       },
@@ -831,84 +796,73 @@ class _ProfilePageState extends State<ProfilePage>
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => LapanganBookingPage(lapangan: lapangan),
+                            builder: (context) => LapanganBookingPage(lapangan: lapanganDummy),
                           ),
                         );
                       },
                     );
                   },
                 );
-              },
-            );
-          }
-        } else if (tabKey == 'coach') {
-          final coachItems = wishlistState.getWishedByType('coach');
-          if (coachItems.isEmpty) {
-            content = _buildEmptyState(
-              message:
-                  'Tidak ada Coach dalam daftar favorit. Cari Coach terbaik sekarang!',
-            );
-          } else {
-            // Content for Coach (non-empty)
-            return FutureBuilder<List<Coach>>(
-              future: _fetchCoachDetails(coachItems),
-              builder: (context, snapshot) {
-                if (snapshot.connectionState == ConnectionState.waiting) {
-                  return const Center(
-                    child: CircularProgressIndicator(color: Color(0xFF571E88)),
+              }
+
+              return ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: lapanganList.length,
+                itemBuilder: (context, index) {
+                  final lapangan = lapanganList[index];
+                  final wishItem = lapanganItems.firstWhere(
+                    (item) => item.id == lapangan.id,
                   );
-                }
 
-                final List<Coach> coachList = snapshot.data ?? [];
-
-                if (snapshot.hasError || !snapshot.hasData || coachList.isEmpty) {
-                  // Fallback: use minimum data from wishlist even on error
-                  return GridView.builder(
-                    shrinkWrap: true,
-                    physics: const NeverScrollableScrollPhysics(),
-                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                      crossAxisCount: 2,
-                      crossAxisSpacing: 12,
-                      mainAxisSpacing: 12,
-                      childAspectRatio: 0.85,
-                    ),
-                    itemCount: coachItems.length,
-                    itemBuilder: (context, index) {
-                      final item = coachItems[index];
-                      return _buildCoachWishlistCard(
-                        name: item.name,
-                        sportBranch: item.category,
-                        photoUrl: item.imageUrl ?? '', // FIX: Null Safety
-                        location: item.location ?? '', // FIX: Null Safety
-                        onRemove: () => _showUnwishlistDialog(context, item, wishlistState),
-                        onTap: () {
-                          final coachDummy = Coach(
-                            model: 'coach.coach',
-                            pk: int.tryParse(item.id) ?? 0,
-                            fields: Fields(
-                              name: item.name,
-                              sportBranch: item.category,
-                              location: item.location ?? '', // FIX: Null Safety
-                              contact: '',
-                              experience: '',
-                              certifications: '',
-                              serviceFee: '',
-                              photo: item.imageUrl ?? '', // FIX: Null Safety
-                            ),
-                          );
-                          Navigator.push(
-                            context,
-                            MaterialPageRoute(
-                              builder: (context) => CoachDetailPage(coach: coachDummy),
-                            ),
-                          );
-                        },
+                  return LapanganCard(
+                    lapangan: lapangan,
+                    showWishlistButton: true,
+                    onWishlistRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LapanganDetailPage(lapangan: lapangan),
+                        ),
+                      );
+                    },
+                    onBook: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => LapanganBookingPage(lapangan: lapangan),
+                        ),
                       );
                     },
                   );
-                }
+                },
+              );
+            },
+          );
+        }
+      } else if (tabKey == 'coach') {
+        final coachItems = wishlistState.getWishedByType('coach');
+        isEmpty = coachItems.isEmpty;
+        
+        if (isEmpty) {
+          content = _buildEmptyState(
+            message: 'Tidak ada Coach dalam daftar favorit. Cari Coach terbaik sekarang!',
+          );
+        } else {
+          // Your existing FutureBuilder for coach...
+          return FutureBuilder<List<Coach>>(
+            future: _fetchCoachDetails(coachItems),
+            builder: (context, snapshot) {
+              if (snapshot.connectionState == ConnectionState.waiting) {
+                return const Center(
+                  child: CircularProgressIndicator(color: Color(0xFF571E88)),
+                );
+              }
 
-                // Use complete data from backend
+              final List<Coach> coachList = snapshot.data ?? [];
+
+              if (snapshot.hasError || !snapshot.hasData || coachList.isEmpty) {
                 return GridView.builder(
                   shrinkWrap: true,
                   physics: const NeverScrollableScrollPhysics(),
@@ -918,96 +872,135 @@ class _ProfilePageState extends State<ProfilePage>
                     mainAxisSpacing: 12,
                     childAspectRatio: 0.85,
                   ),
-                  itemCount: coachList.length,
+                  itemCount: coachItems.length,
                   itemBuilder: (context, index) {
-                    final coach = coachList[index];
-                    final wishItem = coachItems.firstWhere(
-                      (item) => item.id == coach.pk.toString(),
-                    );
-                    
+                    final item = coachItems[index];
                     return _buildCoachWishlistCard(
-                      name: coach.fields.name,
-                      sportBranch: coach.fields.sportBranch,
-                      photoUrl: coach.fields.photo ?? '', // FIX: Null Safety
-                      location: coach.fields.location,
-                      onRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
+                      name: item.name,
+                      sportBranch: item.category,
+                      photoUrl: item.imageUrl ?? '',
+                      location: item.location ?? '',
+                      onRemove: () => _showUnwishlistDialog(context, item, wishlistState),
                       onTap: () {
+                        final coachDummy = Coach(
+                          model: 'coach.coach',
+                          pk: int.tryParse(item.id) ?? 0,
+                          fields: Fields(
+                            name: item.name,
+                            sportBranch: item.category,
+                            location: item.location ?? '',
+                            contact: '',
+                            experience: '',
+                            certifications: '',
+                            serviceFee: '',
+                            photo: item.imageUrl ?? '',
+                          ),
+                        );
                         Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => CoachDetailPage(coach: coach),
+                            builder: (context) => CoachDetailPage(coach: coachDummy),
                           ),
                         );
                       },
                     );
                   },
                 );
-              },
-            );
-          }
-        } else if (tabKey == 'history') {
-          final historyState = context.watch<BookingHistoryState>();
-          final historyItems = historyState.bookings;
+              }
 
-          if (historyItems.isEmpty) {
-            content = _buildEmptyState(
-              message:
-                  'Anda belum memiliki riwayat booking. Booking lapangan pertamamu!',
-            );
-          } else {
-            content = ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: historyItems.length,
-              itemBuilder: (context, index) {
-                final item = historyItems[index];
-                return Padding(
-                  padding: const EdgeInsets.only(bottom: 16.0),
-                  // Ganti dengan widget card riwayat yang baru (dibuat di bawah)
-                  child: _buildHistoryCard(item),
-                );
-              },
-            );
-          }
-        } else {
-          content = const Center(
-            child: Text(
-              'Konten tidak tersedia',
-              style: TextStyle(color: Colors.white54),
-            ),
-          );
-        }
-        
-        // Logic for responsiveness: wrap empty states in ConstrainedBox
-        final isContentEmpty = (tabKey == 'wishlist' && wishlistState.getWishedByType('lapangan').isEmpty) ||
-                                (tabKey == 'coach' && wishlistState.getWishedByType('coach').isEmpty) ||
-                                (tabKey == 'history' && context.watch<BookingHistoryState>().bookings.isEmpty);
-
-        if (isContentEmpty) {
-          // Wrap the empty content in a LayoutBuilder to calculate remaining space
-          return LayoutBuilder(
-            builder: (context, constraints) {
-              // Calculate remaining height: screen height - safe area top - app bar - tabs - padding - profile content estimation
-              final screenHeight = MediaQuery.of(context).size.height;
-              final safeAreaTop = MediaQuery.of(context).padding.top;
-              const estimatedContentAboveTabs = 350.0; // Profile header, name, button, tabs, and some padding
-              
-              final minHeight = screenHeight - safeAreaTop - kToolbarHeight - estimatedContentAboveTabs;
-              
-              return ConstrainedBox(
-                constraints: BoxConstraints(
-                  minHeight: minHeight > 0 ? minHeight : 0,
+              return GridView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                  crossAxisCount: 2,
+                  crossAxisSpacing: 12,
+                  mainAxisSpacing: 12,
+                  childAspectRatio: 0.85,
                 ),
-                child: content,
+                itemCount: coachList.length,
+                itemBuilder: (context, index) {
+                  final coach = coachList[index];
+                  final wishItem = coachItems.firstWhere(
+                    (item) => item.id == coach.pk.toString(),
+                  );
+                  
+                  return _buildCoachWishlistCard(
+                    name: coach.fields.name,
+                    sportBranch: coach.fields.sportBranch,
+                    photoUrl: coach.fields.photo ?? '',
+                    location: coach.fields.location,
+                    onRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
+                    onTap: () {
+                      Navigator.push(
+                        context,
+                        MaterialPageRoute(
+                          builder: (context) => CoachDetailPage(coach: coach),
+                        ),
+                      );
+                    },
+                  );
+                },
               );
             },
           );
         }
+      } else if (tabKey == 'history') {
+        final historyState = context.watch<BookingHistoryState>();
+        final historyItems = historyState.bookings;
+        isEmpty = historyItems.isEmpty;
 
-        return content;
-      },
-    );
-  }
+        if (isEmpty) {
+          content = _buildEmptyState(
+            message: 'Anda belum memiliki riwayat booking. Booking lapangan pertamamu!',
+          );
+        } else {
+          content = ListView.builder(
+            shrinkWrap: true,
+            physics: const NeverScrollableScrollPhysics(),
+            itemCount: historyItems.length,
+            itemBuilder: (context, index) {
+              final item = historyItems[index];
+              return Padding(
+                padding: const EdgeInsets.only(bottom: 16.0),
+                child: _buildHistoryCard(item),
+              );
+            },
+          );
+        }
+      } else {
+        isEmpty = true;
+        content = const Center(
+          child: Text(
+            'Konten tidak tersedia',
+            style: TextStyle(color: Colors.white54),
+          ),
+        );
+      }
+      
+      // Wrap empty states with LayoutBuilder for full-page height
+      if (isEmpty) {
+        return LayoutBuilder(
+          builder: (context, constraints) {
+            final screenHeight = MediaQuery.of(context).size.height;
+            final safeAreaTop = MediaQuery.of(context).padding.top;
+            const estimatedContentAboveTabs = 350.0;
+            
+            final minHeight = screenHeight - safeAreaTop - kToolbarHeight - estimatedContentAboveTabs;
+            
+            return ConstrainedBox(
+              constraints: BoxConstraints(
+                minHeight: minHeight > 0 ? minHeight : 0,
+              ),
+              child: content,
+            );
+          },
+        );
+      }
+
+      return content;
+    },
+  );
+}
 
 Widget _buildHistoryCard(BookingItem item) {
   return _glassContainer(
@@ -1660,51 +1653,58 @@ Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
         children: [
           Positioned.fill(child: _buildBackgroundAura()),
           SafeArea(
-            child: SingleChildScrollView(
-              child: Center(
-                child: ConstrainedBox(
-                  constraints: const BoxConstraints(maxWidth: 600),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.stretch,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: Text(
-                          'PROFILE',
-                          textAlign: TextAlign.center,
-                          style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white,
-                            fontSize: 34,
-                            fontWeight: FontWeight.bold,
+  child: SingleChildScrollView(
+    child: Container(
+      constraints: BoxConstraints(
+        minHeight: MediaQuery.of(context).size.height,
+      ),
+      child: Align(
+        alignment: Alignment.topCenter,
+        child: ConstrainedBox(
+          constraints: const BoxConstraints(maxWidth: 600),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: Text(
+                            'PROFILE',
+                            textAlign: TextAlign.center,
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white,
+                              fontSize: 34,
+                              fontWeight: FontWeight.bold,
+                            ),
                           ),
                         ),
-                      ),
-                      const SizedBox(height: 18),
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: _glassContainer(
-                          padding: const EdgeInsets.all(20),
-                          radius: 16,
-                          child: _buildProfileColumn(),
+                        const SizedBox(height: 18),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: _glassContainer(
+                            padding: const EdgeInsets.all(20),
+                            radius: 16,
+                            child: _buildProfileColumn(),
+                          ),
                         ),
-                      ),
-                      const SizedBox(height: 24),
+                        const SizedBox(height: 24),
 
-                      _buildTabsBar(),
+                        _buildTabsBar(),
 
-                      const SizedBox(height: 16),
+                        const SizedBox(height: 16),
 
-                      Padding(
-                        padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                        child: _buildTabContent(_selectedTab),
-                      ),
-                      const SizedBox(height: 24),
-                    ],
-                  ),
-                ),
-              ),
-            ),
+                        Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                          child: _buildTabContent(_selectedTab),
+                        ),
+                        const SizedBox(height: 24),
+                        ],
           ),
+        ),
+      ),
+    ),
+  ),
+),
+          // ),
         ],
       ),
     );
