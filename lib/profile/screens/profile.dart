@@ -1,3 +1,4 @@
+import 'package:askmo/user_info.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
@@ -260,7 +261,7 @@ class _ProfilePageState extends State<ProfilePage>
         Text(
           userState.displayName.isNotEmpty
               ? userState.displayName
-              : userState.username,
+              : UserInfo.username,
           style: GoogleFonts.plusJakartaSans(
             color: Colors.white,
             fontSize: 22,
@@ -885,7 +886,7 @@ class _ProfilePageState extends State<ProfilePage>
                 return _buildCoachWishlistCard(
                   name: coach.fields.name,
                   sportBranch: coach.fields.sportBranch,
-                  photoUrl: coach.fields.photo,
+                  photoUrl: coach.fields.photo ?? '',
                   location: coach.fields.location,
                   onRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
                   onTap: () {
@@ -1010,7 +1011,7 @@ Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
             String tempSport = initialSport;
             Uint8List? pickedBytes;
             final TextEditingController nameController = TextEditingController(
-              text: initialName.isNotEmpty ? initialName : userState.username,
+              text: initialName.isNotEmpty ? initialName : UserInfo.username,
             );
 
             return StatefulBuilder(
@@ -1182,7 +1183,7 @@ Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
                             children: [
                               Expanded(
                                 child: Text(
-                                  userState.username,
+                                  UserInfo.username,
                                   style: GoogleFonts.plusJakartaSans(
                                     color: Colors.white70,
                                     fontSize: 15,

@@ -92,6 +92,7 @@ class _LoginPageState extends State<LoginPage>
 
       await userState.reload();
       await userState.setUsername(response['username']);
+      await userState.setUserId((response['user_id'] ?? 0) as int);
 
       final bool isStaff = response['is_staff'] ?? false;
       UserInfo.login(response['username'], isStaff);
@@ -101,9 +102,12 @@ class _LoginPageState extends State<LoginPage>
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            backgroundColor: Color(0xFF571E88),
-            content: Text("Login berhasil!"),
+          SnackBar(
+            backgroundColor: const Color(0xFF571E88),
+            content: Text(
+              "Login berhasil!",
+              style: GoogleFonts.plusJakartaSans(color: Colors.white),
+            ),
           ),
         );
 
@@ -159,9 +163,7 @@ class _LoginPageState extends State<LoginPage>
 
     try {
       final googleUser = await _googleSignIn.signIn();
-      if (googleUser == null) {
-        return;
-      }
+      if (googleUser == null) return;
 
       final googleAuth = await googleUser.authentication;
       final String? idToken = googleAuth.idToken;
@@ -178,35 +180,39 @@ class _LoginPageState extends State<LoginPage>
         return;
       }
 
-      final payload = {
-        if (idToken != null) 'id_token': idToken,
-        if (idToken == null && accessToken != null) 'access_token': accessToken,
-        'mode': 'login',
-      };
+      final payload = <String, String>{};
+      if (idToken != null) {
+        payload['id_token'] = idToken;
+      } else if (accessToken != null) {
+        payload['access_token'] = accessToken;
+      }
 
-      final response = await request.postJson(
+      final response = await request.login(
         "http://localhost:8000/auth/google-login/",
-        jsonEncode(payload),
+        payload,
       );
 
-      if (response['status'] == true) {
-        final username = response['username'] ?? googleUser.email;
-        final bool isStaff = response['is_staff'] ?? false;
-
+      if (request.loggedIn) {
         final userState = context.read<UserState>();
-        await userState.reload();
-        await userState.setUsername(username);
 
-        UserInfo.login(username, isStaff);
+        await userState.reload();
+        await userState.setUsername(response['username']);
+        await userState.setUserId((response['user_id'] ?? 0) as int);
+
+        final bool isStaff = response['is_staff'] ?? false;
+        UserInfo.login(response['username'], isStaff);
 
         if (!mounted) return;
 
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            const SnackBar(
-              backgroundColor: Color(0xFF571E88),
-              content: Text('Login dengan Google berhasil'),
+            SnackBar(
+              backgroundColor: const Color(0xFF571E88),
+              content: Text(
+                "Login berhasil!",
+                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+              ),
             ),
           );
 
@@ -216,12 +222,12 @@ class _LoginPageState extends State<LoginPage>
         );
       } else {
         if (!mounted) return;
-        final String errorMessage =
-            response['error']?.toString() ?? 'Login dengan Google gagal';
+        final msg =
+            response['message']?.toString() ?? 'Login dengan Google gagal';
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(
             backgroundColor: const Color(0xFFFF5555),
-            content: Text(errorMessage),
+            content: Text(msg),
           ),
         );
       }
@@ -334,8 +340,9 @@ class _LoginPageState extends State<LoginPage>
                               ),
                               Text(
                                 'Selamat datang kembali di ASKMO',
+                                textAlign: TextAlign.center,
                                 style: GoogleFonts.plusJakartaSans(
-                                  fontSize: 14.0,
+                                  fontSize: 12.0,
                                   color: const Color(0xFFFFFFFF),
                                 ),
                               ),
@@ -524,9 +531,10 @@ class _LoginPageState extends State<LoginPage>
                                   ),
                                   label: Text(
                                     'Masuk dengan Google',
+                                    textAlign: TextAlign.center,
                                     style: GoogleFonts.plusJakartaSans(
                                       color: const Color(0xFFFFFFFF),
-                                      fontSize: 15.0,
+                                      fontSize: 14.0,
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -574,25 +582,28 @@ class _RegisterLinkState extends State<_RegisterLink> {
             MaterialPageRoute(builder: (context) => const RegisterPage()),
           );
         },
-        child: RichText(
-          text: TextSpan(
-            text: 'Belum punya akun? ',
-            style: GoogleFonts.plusJakartaSans(
-              color: const Color(0xFFFFFFFF),
-              fontSize: 16.0,
-            ),
-            children: [
-              TextSpan(
-                text: 'Daftar akun di sini!',
-                style: GoogleFonts.plusJakartaSans(
-                  color: _isHovered
-                      ? const Color.fromARGB(255, 110, 106, 114)
-                      : const Color(0xFFA4E4FF),
-                  fontSize: 16.0,
-                  decoration: TextDecoration.underline,
-                ),
+        child: Center(
+          child: RichText(
+            textAlign: TextAlign.center,
+            text: TextSpan(
+              text: 'Belum punya akun? ',
+              style: GoogleFonts.plusJakartaSans(
+                color: const Color(0xFFFFFFFF),
+                fontSize: 14.0,
               ),
-            ],
+              children: [
+                TextSpan(
+                  text: 'Daftar akun di sini!',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: _isHovered
+                        ? const Color.fromARGB(255, 110, 106, 114)
+                        : const Color(0xFFA4E4FF),
+                    fontSize: 14.0,
+                    decoration: TextDecoration.underline,
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

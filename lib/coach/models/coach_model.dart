@@ -11,23 +11,19 @@ class Coach {
   int pk;
   Fields fields;
 
-  Coach({
-    required this.model,
-    required this.pk,
-    required this.fields,
-  });
+  Coach({required this.model, required this.pk, required this.fields});
 
   factory Coach.fromJson(Map<String, dynamic> json) => Coach(
-        model: json["model"] ?? "",
-        pk: json["pk"] ?? 0,
-        fields: Fields.fromJson(json["fields"] ?? {}),
-      );
+    model: json["model"],
+    pk: json["pk"],
+    fields: Fields.fromJson(json["fields"]),
+  );
 
   Map<String, dynamic> toJson() => {
-        "model": model,
-        "pk": pk,
-        "fields": fields.toJson(),
-      };
+    "model": model,
+    "pk": pk,
+    "fields": fields.toJson(),
+  };
 }
 
 class Fields {
@@ -38,7 +34,7 @@ class Fields {
   String experience;
   String certifications;
   String serviceFee;
-  String photo;
+  String? photo; // Bisa null jika tidak ada foto
 
   Fields({
     required this.name,
@@ -48,7 +44,7 @@ class Fields {
     required this.experience,
     required this.certifications,
     required this.serviceFee,
-    required this.photo,
+    this.photo,
   });
 
   factory Fields.fromJson(Map<String, dynamic> json) => Fields(
@@ -59,17 +55,18 @@ class Fields {
         experience: json["experience"] ?? "",
         certifications: json["certifications"] ?? "",
         serviceFee: json["service_fee"] ?? "",
-        photo: json["photo"] ?? "",
+        // Biarkan null jika tidak ada / null di backend
+        photo: json["photo"],
       );
 
   Map<String, dynamic> toJson() => {
-        "name": name,
-        "sport_branch": sportBranch,
-        "location": location,
-        "contact": contact,
-        "experience": experience,
-        "certifications": certifications,
-        "service_fee": serviceFee,
-        "photo": photo,
-      };
+    "name": name,
+    "sport_branch": sportBranch,
+    "location": location,
+    "contact": contact,
+    "experience": experience,
+    "certifications": certifications,
+    "service_fee": serviceFee,
+    "photo": photo,
+  };
 }

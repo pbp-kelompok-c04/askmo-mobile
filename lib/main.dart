@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'menu.dart'; // Import the menu we created in Step 2
 import 'package:askmo/authentication/screens/login.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
@@ -19,45 +18,32 @@ class MyApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final base = ThemeData.dark(useMaterial3: true);
+
     return MultiProvider(
       providers: [
-        Provider<CookieRequest>(
-          create: (_) {
-            CookieRequest request = CookieRequest();
-            return request;
-          },
-        ),
+        Provider<CookieRequest>(create: (_) => CookieRequest()),
         ChangeNotifierProvider<UserState>(create: (_) => UserState()),
         ChangeNotifierProvider<WishlistState>(create: (_) => WishlistState()),
       ],
       child: MaterialApp(
+        debugShowCheckedModeBanner: false,
         title: 'ASKMO',
-        theme: ThemeData(
-          // This is the theme of your application.
-          //
-          // TRY THIS: Try running your application with "flutter run". You'll see
-          // the application has a purple toolbar. Then, without quitting the app,
-          // try changing the seedColor in the colorScheme below to Colors.green
-          // and then invoke "hot reload" (save your changes or press the "hot
-          // reload" button in a Flutter-supported IDE, or press "r" if you used
-          // the command line to start the app).
-          //
-          // Notice that the counter didn't reset back to zero; the application
-          // state is not lost during the reload. To reset the state, use hot
-          // restart instead.
-          //
-          // This works for code too, not just values: Most code changes can be
-          // tested with just a hot reload.
-          useMaterial3: true,
-          textTheme: GoogleFonts.plusJakartaSansTextTheme(),
+        theme: base.copyWith(
+          textTheme: GoogleFonts.plusJakartaSansTextTheme(base.textTheme),
           appBarTheme: AppBarTheme(
+            backgroundColor: Colors.black,
+            elevation: 0,
             titleTextStyle: GoogleFonts.plusJakartaSans(
-              fontSize: 20,
-              fontWeight: FontWeight.bold,
+              fontSize: 18,
+              fontWeight: FontWeight.w800,
               color: Colors.white,
             ),
+            iconTheme: const IconThemeData(color: Colors.white),
           ),
+          scaffoldBackgroundColor: Colors.black,
           colorScheme: ColorScheme.fromSeed(
+            brightness: Brightness.dark,
             seedColor: const Color(0xFF571E88),
             primary: const Color(0xFF571E88),
             secondary: const Color(0xFFA4E4FF),
