@@ -13,6 +13,7 @@ import 'package:askmo/chatbot/screens/gemini_chat_screen.dart';
 import 'package:askmo/right_drawer.dart';
 // Import UserState untuk cek login/username
 import 'package:askmo/profile/models/user_state.dart';
+import 'package:askmo/authentication/screens/login.dart';
 
 // IMPORTS MODEL & SCREENS
 import 'package:askmo/lapangan/models/lapangan.dart';
@@ -80,9 +81,27 @@ class _MenuPageState extends State<MenuPage>
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    final userState = context.read<UserState>();
+    final isLoggedIn = userState.username.isNotEmpty;
+
+    if (index == 0) {
+      // Beranda - always allowed
+      setState(() {
+        _selectedIndex = index;
+      });
+    } else {
+      // Lapangan, Coach, Event - require login
+      if (!isLoggedIn) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(builder: (context) => const LoginPage()),
+        );
+      } else {
+        setState(() {
+          _selectedIndex = index;
+        });
+      }
+    }
   }
 
   TextStyle _t(
@@ -414,7 +433,7 @@ class _HomeContentState extends State<HomeContent> {
                     builder: (context, userState, _) {
                       final name = (userState.username.isNotEmpty)
                           ? userState.username
-                          : 'Guest';
+                          : 'Kawan ASKMO';
                       return Text(
                         'Halo, $name',
                         style: GoogleFonts.plusJakartaSans(
@@ -853,7 +872,6 @@ class _SeeMoreCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       child: Container(
         width: 160,
-        margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           color: Colors.white.withOpacity(0.08),
@@ -905,9 +923,14 @@ class _Thumb extends StatelessWidget {
       if (!kIsWeb && s.contains('127.0.0.1')) {
         return s.replaceAll('127.0.0.1', '10.0.2.2');
       }
+      if (!kIsWeb && s.contains('localhost')) {
+        return s.replaceAll('localhost', '10.0.2.2');
+      }
       return s;
     }
-    return 'http://10.0.2.2:8000/media/$s';
+    // Use the same base URL as the API calls
+    final base = _baseUrl();
+    return '$base/media/$s';
   }
 
   @override
@@ -934,6 +957,45 @@ class _Thumb extends StatelessWidget {
         color: const Color(0xFF2A2A2A),
         child: Image.network(
           fixedUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => fallback(),
+        ),
+      ),
+    );
+  }
+}
+
+// THUMBNAIL FOR EVENT (uses proxy-image endpoint)
+class _EventThumb extends StatelessWidget {
+  const _EventThumb({required this.url, required this.fallbackText});
+  final String? url;
+  final String fallbackText;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget fallback() => Center(
+      child: Text(
+        fallbackText,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white.withOpacity(0.55),
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+
+    if (url == null || url!.trim().isEmpty) return fallback();
+
+    final base = _baseUrl();
+    final proxyUrl = '$base/proxy-image/?url=${Uri.encodeComponent(url!)}';
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: ColoredBox(
+        color: const Color(0xFF2A2A2A),
+        child: Image.network(
+          proxyUrl,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => fallback(),
         ),
@@ -1020,6 +1082,23 @@ class _LapanganCard extends StatelessWidget {
   const _LapanganCard({required this.item});
   final Lapangan item;
 
+  void _handleTap(BuildContext context) {
+    final userState = context.read<UserState>();
+    if (userState.username.isEmpty) {
+      // User not logged in, redirect to login
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    } else {
+      // User logged in, go to detail
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => LapanganDetailPage(lapangan: item)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -1082,14 +1161,7 @@ class _LapanganCard extends StatelessWidget {
                 Expanded(
                   child: _MiniButton(
                     label: 'Detail',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => LapanganDetailPage(lapangan: item),
-                        ),
-                      );
-                    },
+                    onTap: () => _handleTap(context),
                   ),
                 ),
               ],
@@ -1137,6 +1209,23 @@ class _CoachHorizontal extends StatelessWidget {
 class _CoachCard extends StatelessWidget {
   const _CoachCard({required this.item});
   final Coach item;
+
+  void _handleTap(BuildContext context) {
+    final userState = context.read<UserState>();
+    if (userState.username.isEmpty) {
+      // User not logged in, redirect to login
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    } else {
+      // User logged in, go to detail
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => CoachDetailPage(coach: item)),
+      );
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -1192,14 +1281,7 @@ class _CoachCard extends StatelessWidget {
                 Expanded(
                   child: _MiniButton(
                     label: 'Detail',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CoachDetailPage(coach: item),
-                        ),
-                      );
-                    },
+                    onTap: () => _handleTap(context),
                   ),
                 ),
               ],
@@ -1248,6 +1330,23 @@ class _EventCard extends StatelessWidget {
   const _EventCard({required this.item});
   final Event item;
 
+  void _handleTap(BuildContext context) {
+    final userState = context.read<UserState>();
+    if (userState.username.isEmpty) {
+      // User not logged in, redirect to login
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const LoginPage()),
+      );
+    } else {
+      // User logged in, go to detail
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => EventDetailPage(event: item)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateStr =
@@ -1263,7 +1362,7 @@ class _EventCard extends StatelessWidget {
             Expanded(
               child: SizedBox(
                 width: double.infinity,
-                child: _Thumb(url: item.thumbnail, fallbackText: 'Foto'),
+                child: _EventThumb(url: item.thumbnail, fallbackText: 'Foto'),
               ),
             ),
             const SizedBox(height: 10),
@@ -1289,14 +1388,7 @@ class _EventCard extends StatelessWidget {
                 Expanded(
                   child: _MiniButton(
                     label: 'Detail',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => EventDetailPage(event: item),
-                        ),
-                      );
-                    },
+                    onTap: () => _handleTap(context),
                   ),
                 ),
               ],

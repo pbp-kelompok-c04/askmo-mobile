@@ -38,46 +38,56 @@ class RightDrawer extends StatelessWidget {
                 ),
               ),
             ),
-            child: Column(
-              children: [
-                const SizedBox(height: 60),
-                Text(
-                  'ASKMO',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 32,
-                    fontWeight: FontWeight.bold,
-                    color: const Color(0xFFFFFFFF),
-                  ),
-                ),
-                const SizedBox(height: 30),
-                Expanded(
-                  child: ListView(
-                    padding: EdgeInsets.zero,
-                    children: [
-                      _HoverListTile(
-                        icon: Icons.home_rounded,
-                        title: 'Beranda',
-                        isActive: currentIndex == 0,
-                        onTap: currentIndex == 0
-                            ? null
-                            : () {
-                                Navigator.pop(context);
-                                Navigator.pushReplacement(
+            child: Consumer<UserState>(
+              builder: (context, userState, child) {
+                final isLoggedIn = userState.username.isNotEmpty;
+
+                return Column(
+                  children: [
+                    const SizedBox(height: 60),
+                    Text(
+                      'ASKMO',
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 32,
+                        fontWeight: FontWeight.bold,
+                        color: const Color(0xFFFFFFFF),
+                      ),
+                    ),
+                    const SizedBox(height: 30),
+                    Expanded(
+                      child: ListView(
+                        padding: EdgeInsets.zero,
+                        children: [
+                          _HoverListTile(
+                            icon: Icons.home_rounded,
+                            title: 'Beranda',
+                            isActive: currentIndex == 0,
+                            onTap: currentIndex == 0
+                                ? null
+                                : () {
+                                    Navigator.pop(context);
+                                    Navigator.pushReplacement(
+                                      context,
+                                      MaterialPageRoute(
+                                        builder: (context) => const MenuPage(),
+                                      ),
+                                    );
+                                  },
+                          ),
+                          _HoverListTile(
+                            icon: Icons.sports_soccer_rounded,
+                            title: 'Lapangan',
+                            isActive: currentIndex == 1,
+                            onTap: () {
+                              Navigator.pop(context);
+                              if (!isLoggedIn) {
+                                Navigator.push(
                                   context,
                                   MaterialPageRoute(
-                                    builder: (context) => const MenuPage(),
+                                    builder: (context) => const LoginPage(),
                                   ),
                                 );
-                              },
-                      ),
-                      _HoverListTile(
-                        icon: Icons.sports_soccer_rounded,
-                        title: 'Lapangan',
-                        isActive: currentIndex == 1,
-                        onTap: currentIndex == 1
-                            ? null
-                            : () {
-                                Navigator.pop(context);
+                              } else if (currentIndex != 1) {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
@@ -85,16 +95,23 @@ class RightDrawer extends StatelessWidget {
                                         const MenuPage(initialIndex: 1),
                                   ),
                                 );
-                              },
-                      ),
-                      _HoverListTile(
-                        icon: Icons.person_rounded,
-                        title: 'Coach',
-                        isActive: currentIndex == 2,
-                        onTap: currentIndex == 2
-                            ? null
-                            : () {
-                                Navigator.pop(context);
+                              }
+                            },
+                          ),
+                          _HoverListTile(
+                            icon: Icons.person_rounded,
+                            title: 'Coach',
+                            isActive: currentIndex == 2,
+                            onTap: () {
+                              Navigator.pop(context);
+                              if (!isLoggedIn) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const LoginPage(),
+                                  ),
+                                );
+                              } else if (currentIndex != 2) {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
@@ -102,16 +119,23 @@ class RightDrawer extends StatelessWidget {
                                         const MenuPage(initialIndex: 2),
                                   ),
                                 );
-                              },
-                      ),
-                      _HoverListTile(
-                        icon: Icons.event_rounded,
-                        title: 'Event',
-                        isActive: currentIndex == 3,
-                        onTap: currentIndex == 3
-                            ? null
-                            : () {
-                                Navigator.pop(context);
+                              }
+                            },
+                          ),
+                          _HoverListTile(
+                            icon: Icons.event_rounded,
+                            title: 'Event',
+                            isActive: currentIndex == 3,
+                            onTap: () {
+                              Navigator.pop(context);
+                              if (!isLoggedIn) {
+                                Navigator.push(
+                                  context,
+                                  MaterialPageRoute(
+                                    builder: (context) => const LoginPage(),
+                                  ),
+                                );
+                              } else if (currentIndex != 3) {
                                 Navigator.pushReplacement(
                                   context,
                                   MaterialPageRoute(
@@ -119,95 +143,112 @@ class RightDrawer extends StatelessWidget {
                                         const MenuPage(initialIndex: 3),
                                   ),
                                 );
-                              },
-                      ),
-                    ],
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.symmetric(horizontal: 20.0),
-                  child: Divider(
-                    height: 1,
-                    thickness: 0.5,
-                    color: Colors.white.withOpacity(0.2),
-                  ),
-                ),
-                _HoverListTile(
-                  icon: Icons.info_rounded,
-                  title: 'About Us',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const AboutPage(),
-                      ),
-                    );
-                  },
-                ),
-                _HoverListTile(
-                  icon: Icons.account_circle_rounded,
-                  title: 'Profile',
-                  onTap: () {
-                    Navigator.pop(context);
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => const ProfilePage(),
-                      ),
-                    );
-                  },
-                ),
-                _HoverListTile(
-                  icon: Icons.logout_rounded,
-                  title: 'Logout',
-                  onTap: () async {
-                    final request = context.read<CookieRequest>();
-                    final response = await request.logout(
-                      "http://localhost:8000/auth/logout/",
-                    );
-                    String message = response["message"];
-                    if (context.mounted) {
-                      if (response['status']) {
-                        String uname = response["username"];
-                        // clear stored username on logout
-                        final userState = context.read<UserState>();
-                        await userState.clear();
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: const Color(0xFF571E88),
-                            content: Text(
-                              "Berhasil logout! Sampai jumpa, $uname.",
-                              style: GoogleFonts.plusJakartaSans(
-                                color: const Color(0xFFFFFFFF),
-                              ),
-                            ),
+                              }
+                            },
                           ),
-                        );
-                        Navigator.pushReplacement(
+                        ],
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 20.0),
+                      child: Divider(
+                        height: 1,
+                        thickness: 0.5,
+                        color: Colors.white.withOpacity(0.2),
+                      ),
+                    ),
+                    _HoverListTile(
+                      icon: Icons.info_rounded,
+                      title: 'About Us',
+                      onTap: () {
+                        Navigator.pop(context);
+                        Navigator.push(
                           context,
                           MaterialPageRoute(
-                            builder: (context) => const LoginPage(),
+                            builder: (context) => const AboutPage(),
                           ),
                         );
-                      } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            backgroundColor: const Color(0xFFFF5555),
-                            content: Text(
-                              message,
-                              style: GoogleFonts.plusJakartaSans(
-                                color: const Color(0xFFFFFFFF),
-                              ),
+                      },
+                    ),
+                    if (isLoggedIn) ...[
+                      _HoverListTile(
+                        icon: Icons.account_circle_rounded,
+                        title: 'Profile',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.pushReplacement(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const ProfilePage(),
                             ),
-                          ),
-                        );
-                      }
-                    }
-                  },
-                ),
-                const SizedBox(height: 16),
-              ],
+                          );
+                        },
+                      ),
+                      _HoverListTile(
+                        icon: Icons.logout_rounded,
+                        title: 'Logout',
+                        onTap: () async {
+                          final request = context.read<CookieRequest>();
+                          final response = await request.logout(
+                            "http://localhost:8000/auth/logout/",
+                          );
+                          String message = response["message"];
+                          if (context.mounted) {
+                            if (response['status']) {
+                              String uname = response["username"];
+                              final userState = context.read<UserState>();
+                              await userState.clear();
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: const Color(0xFF571E88),
+                                  content: Text(
+                                    "Berhasil logout! Sampai jumpa, $uname.",
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: const Color(0xFFFFFFFF),
+                                    ),
+                                  ),
+                                ),
+                              );
+                              Navigator.pushReplacement(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => const MenuPage(),
+                                ),
+                              );
+                            } else {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                SnackBar(
+                                  backgroundColor: const Color(0xFFFF5555),
+                                  content: Text(
+                                    message,
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: const Color(0xFFFFFFFF),
+                                    ),
+                                  ),
+                                ),
+                              );
+                            }
+                          }
+                        },
+                      ),
+                    ] else
+                      _HoverListTile(
+                        icon: Icons.login_rounded,
+                        title: 'Login',
+                        onTap: () {
+                          Navigator.pop(context);
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => const LoginPage(),
+                            ),
+                          );
+                        },
+                      ),
+                    const SizedBox(height: 30),
+                  ],
+                );
+              },
             ),
           ),
         ),
