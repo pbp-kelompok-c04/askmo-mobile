@@ -1,3 +1,4 @@
+import 'package:askmo/history/models/booking_history_state.dart';
 import 'package:flutter/material.dart';
 import 'package:askmo/authentication/screens/login.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
@@ -31,6 +32,7 @@ class MyApp extends StatelessWidget {
         Provider<CookieRequest>(create: (_) => CookieRequest()),
         ChangeNotifierProvider<UserState>(create: (_) => UserState()),
         ChangeNotifierProvider<WishlistState>(create: (_) => WishlistState()),
+        ChangeNotifierProvider<BookingHistoryState>(create: (_) => BookingHistoryState()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

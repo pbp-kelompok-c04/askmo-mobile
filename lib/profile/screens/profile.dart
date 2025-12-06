@@ -1,3 +1,4 @@
+import 'package:askmo/history/models/booking_history_state.dart';
 import 'package:askmo/user_info.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -30,7 +31,6 @@ class _ProfilePageState extends State<ProfilePage>
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
-  
   String _selectedTab = 'wishlist';
 
   final List<String> _avatars = [
@@ -51,9 +51,7 @@ class _ProfilePageState extends State<ProfilePage>
     'golf': 'Golf',
     'lainnya': 'Lainnya',
   };
-
-  final bool _hasHistoryItems = false;
-
+  
   @override
   void initState() {
     super.initState();
@@ -314,6 +312,25 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
+  Widget _buildCustomIcon(String assetName) {
+    final bool isSelected = _selectedTab == 'wishlist';
+    final Color color = isSelected ? Colors.white : Colors.grey;
+
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: ColorFiltered(
+        colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
+        child: Image.asset(
+          'assets/image/$assetName',
+          width: 28,
+          height: 28,
+          errorBuilder: (c, e, s) =>
+              Icon(Icons.star_border, color: color, size: 28),
+        ),
+      ),
+    );
+  }
+
   Widget _buildTabsBar() {
     return Container(
       decoration: BoxDecoration(
@@ -325,16 +342,36 @@ class _ProfilePageState extends State<ProfilePage>
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          _buildTabIcon(icon: Icons.grid_on_outlined, tabKey: 'wishlist'),
-          _buildTabIcon(icon: Icons.person_search_outlined, tabKey: 'coach'),
-          _buildTabIcon(icon: Icons.bookmark_border, tabKey: 'history'),
+          _buildTabIcon(
+            tabKey: 'wishlist',
+            customIcon: _buildCustomIcon('lapangan.png'),
+          ),
+          _buildTabIcon(tabKey: 'coach', customIcon: _buildCustomIcon('coach.png'),),
+          _buildTabIcon(tabKey: 'history', customIcon: _buildCustomIcon('transaction.png'),),
         ],
       ),
     );
   }
 
-  Widget _buildTabIcon({required IconData icon, required String tabKey}) {
+  Widget _buildTabIcon({IconData? icon, required String tabKey, Widget? customIcon,}) {
     final bool isSelected = _selectedTab == tabKey;
+    Widget displayIcon;
+    if (customIcon != null) {
+      displayIcon = customIcon;
+    } else if (icon != null) {
+      displayIcon = Icon(
+        icon,
+        color: isSelected ? Colors.white : Colors.grey,
+        size: 28,
+      );
+    } else {
+      displayIcon = Icon(
+        Icons.star_border,
+        color: isSelected ? Colors.white : Colors.grey,
+        size: 28,
+      );
+    }
+
     return Flexible(
       child: GestureDetector(
         onTap: () {
@@ -352,11 +389,7 @@ class _ProfilePageState extends State<ProfilePage>
                   : BorderSide.none,
             ),
           ),
-          child: Icon(
-            icon,
-            color: isSelected ? Colors.white : Colors.grey,
-            size: 28,
-          ),
+          child: displayIcon,
         ),
       ),
     );
@@ -538,7 +571,7 @@ class _ProfilePageState extends State<ProfilePage>
       child: _glassContainer(
         radius: 12,
         opacity: 0.1,
-        padding: const EdgeInsets.all(16.0), 
+        padding: const EdgeInsets.all(12.0), 
         child: Stack(
           alignment: Alignment.center,
           children: [
@@ -549,7 +582,7 @@ class _ProfilePageState extends State<ProfilePage>
                 // Avatar (Thumbnail Coach)
                 Container(
                   width: 80,
-                  height: 80,
+                  height: 90,
                   decoration: BoxDecoration(
                     shape: BoxShape.circle,
                     border: Border.all(color: const Color(0xFF7E57C2), width: 3),
@@ -565,7 +598,7 @@ class _ProfilePageState extends State<ProfilePage>
                       ? const Icon(Icons.person, color: Colors.grey, size: 40)
                       : null,
                 ),
-                const SizedBox(height: 12),
+                const SizedBox(height: 6),
                 // Nama Coach
                 Text(
                   name,
@@ -578,7 +611,7 @@ class _ProfilePageState extends State<ProfilePage>
                   ),
                   overflow: TextOverflow.ellipsis,
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 2),
                 // Cabang Olahraga
                 Container(
                   padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
@@ -602,7 +635,7 @@ class _ProfilePageState extends State<ProfilePage>
                     ),
                   ),
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 2),
                 // lokasi Coach
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
@@ -622,7 +655,7 @@ class _ProfilePageState extends State<ProfilePage>
                     ),
                   ],
                 ),
-                const SizedBox(height: 6),
+                const SizedBox(height: 2),
               ],
             ),
 
@@ -707,226 +740,371 @@ class _ProfilePageState extends State<ProfilePage>
   }
 
   Widget _buildTabContent(String tabKey) {
-  return Consumer<WishlistState>(
-    builder: (context, wishlistState, child) {
-      if (tabKey == 'wishlist') {
-        final lapanganItems = wishlistState.getWishedByType('lapangan');
-        if (lapanganItems.isEmpty) {
-          return _buildEmptyState(
-            message:
-                'Tidak ada Lapangan yang di-Wishlist. Ayo temukan Lapangan favoritmu!',
-          );
-        }
+    return Consumer<WishlistState>(
+      builder: (context, wishlistState, child) {
+        Widget content;
 
-        return FutureBuilder<List<Lapangan>>(
-          future: _fetchLapanganDetails(lapanganItems),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: Color(0xFF571E88)),
-              );
-            }
-
-            if (snapshot.hasError || !snapshot.hasData) {
-              return ListView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                itemCount: lapanganItems.length,
-                itemBuilder: (context, index) {
-                  final item = lapanganItems[index];
-                  final lapanganDummy = Lapangan.fromWishedItem(
-                    id: item.id,
-                    name: item.name,
-                    imageUrl: item.imageUrl,
-                    category: item.category,
+        if (tabKey == 'wishlist') {
+          final lapanganItems = wishlistState.getWishedByType('lapangan');
+          if (lapanganItems.isEmpty) {
+            content = _buildEmptyState(
+              message:
+                  'Tidak ada Lapangan yang di-Wishlist. Ayo temukan Lapangan favoritmu!',
+            );
+          } else {
+            // Content for Lapangan (non-empty)
+            return FutureBuilder<List<Lapangan>>(
+              future: _fetchLapanganDetails(lapanganItems),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF571E88)),
                   );
+                }
 
-                  return LapanganCard(
-                    lapangan: lapanganDummy,
-                    showWishlistButton: true,
-                    onWishlistRemove: () => _showUnwishlistDialog(context, item, wishlistState),
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LapanganDetailPage(lapangan: lapanganDummy),
-                        ),
+                final List<Lapangan> lapanganList = snapshot.data ?? [];
+                
+                if (snapshot.hasError || !snapshot.hasData || lapanganList.isEmpty) {
+                  // Fallback: use minimum data from wishlist even on error
+                  return ListView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    itemCount: lapanganItems.length,
+                    itemBuilder: (context, index) {
+                      final item = lapanganItems[index];
+                      final lapanganDummy = Lapangan.fromWishedItem(
+                        id: item.id,
+                        name: item.name,
+                        imageUrl: item.imageUrl ?? '', // FIX: Null Safety
+                        category: item.category,
+                      );
+
+                      return LapanganCard(
+                        lapangan: lapanganDummy,
+                        showWishlistButton: true,
+                        onWishlistRemove: () => _showUnwishlistDialog(context, item, wishlistState),
+                        onTap: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LapanganDetailPage(lapangan: lapanganDummy),
+                            ),
+                          );
+                        },
+                        onBook: () {
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => LapanganBookingPage(lapangan: lapanganDummy),
+                            ),
+                          );
+                        },
                       );
                     },
-                    onBook: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => LapanganBookingPage(lapangan: lapanganDummy),
-                        ),
-                      );
-                    },
                   );
-                },
-              );
-            }
+                }
 
-            final lapanganList = snapshot.data!;
-            return ListView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              itemCount: lapanganList.length,
-              itemBuilder: (context, index) {
-                final lapangan = lapanganList[index];
-                final wishItem = lapanganItems.firstWhere(
-                  (item) => item.id == lapangan.id,
-                );
-
-                return LapanganCard(
-                  lapangan: lapangan,
-                  showWishlistButton: true,
-                  onWishlistRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LapanganDetailPage(lapangan: lapangan),
-                      ),
+                // Use complete data from backend
+                return ListView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  itemCount: lapanganList.length,
+                  itemBuilder: (context, index) {
+                    final lapangan = lapanganList[index];
+                    final wishItem = lapanganItems.firstWhere(
+                      (item) => item.id == lapangan.id,
                     );
-                  },
-                  onBook: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => LapanganBookingPage(lapangan: lapangan),
-                      ),
+
+                    return LapanganCard(
+                      lapangan: lapangan,
+                      showWishlistButton: true,
+                      onWishlistRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LapanganDetailPage(lapangan: lapangan),
+                          ),
+                        );
+                      },
+                      onBook: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => LapanganBookingPage(lapangan: lapangan),
+                          ),
+                        );
+                      },
                     );
                   },
                 );
               },
             );
-          },
-        );
-      } else if (tabKey == 'coach') {
-        final coachItems = wishlistState.getWishedByType('coach');
-        if (coachItems.isEmpty) {
-          return _buildEmptyState(
-            message:
-                'Tidak ada Coach dalam daftar favorit. Cari Coach terbaik sekarang!',
+          }
+        } else if (tabKey == 'coach') {
+          final coachItems = wishlistState.getWishedByType('coach');
+          if (coachItems.isEmpty) {
+            content = _buildEmptyState(
+              message:
+                  'Tidak ada Coach dalam daftar favorit. Cari Coach terbaik sekarang!',
+            );
+          } else {
+            // Content for Coach (non-empty)
+            return FutureBuilder<List<Coach>>(
+              future: _fetchCoachDetails(coachItems),
+              builder: (context, snapshot) {
+                if (snapshot.connectionState == ConnectionState.waiting) {
+                  return const Center(
+                    child: CircularProgressIndicator(color: Color(0xFF571E88)),
+                  );
+                }
+
+                final List<Coach> coachList = snapshot.data ?? [];
+
+                if (snapshot.hasError || !snapshot.hasData || coachList.isEmpty) {
+                  // Fallback: use minimum data from wishlist even on error
+                  return GridView.builder(
+                    shrinkWrap: true,
+                    physics: const NeverScrollableScrollPhysics(),
+                    gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                      crossAxisCount: 2,
+                      crossAxisSpacing: 12,
+                      mainAxisSpacing: 12,
+                      childAspectRatio: 0.85,
+                    ),
+                    itemCount: coachItems.length,
+                    itemBuilder: (context, index) {
+                      final item = coachItems[index];
+                      return _buildCoachWishlistCard(
+                        name: item.name,
+                        sportBranch: item.category,
+                        photoUrl: item.imageUrl ?? '', // FIX: Null Safety
+                        location: item.location ?? '', // FIX: Null Safety
+                        onRemove: () => _showUnwishlistDialog(context, item, wishlistState),
+                        onTap: () {
+                          final coachDummy = Coach(
+                            model: 'coach.coach',
+                            pk: int.tryParse(item.id) ?? 0,
+                            fields: Fields(
+                              name: item.name,
+                              sportBranch: item.category,
+                              location: item.location ?? '', // FIX: Null Safety
+                              contact: '',
+                              experience: '',
+                              certifications: '',
+                              serviceFee: '',
+                              photo: item.imageUrl ?? '', // FIX: Null Safety
+                            ),
+                          );
+                          Navigator.push(
+                            context,
+                            MaterialPageRoute(
+                              builder: (context) => CoachDetailPage(coach: coachDummy),
+                            ),
+                          );
+                        },
+                      );
+                    },
+                  );
+                }
+
+                // Use complete data from backend
+                return GridView.builder(
+                  shrinkWrap: true,
+                  physics: const NeverScrollableScrollPhysics(),
+                  gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+                    crossAxisCount: 2,
+                    crossAxisSpacing: 12,
+                    mainAxisSpacing: 12,
+                    childAspectRatio: 0.85,
+                  ),
+                  itemCount: coachList.length,
+                  itemBuilder: (context, index) {
+                    final coach = coachList[index];
+                    final wishItem = coachItems.firstWhere(
+                      (item) => item.id == coach.pk.toString(),
+                    );
+                    
+                    return _buildCoachWishlistCard(
+                      name: coach.fields.name,
+                      sportBranch: coach.fields.sportBranch,
+                      photoUrl: coach.fields.photo ?? '', // FIX: Null Safety
+                      location: coach.fields.location,
+                      onRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
+                      onTap: () {
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(
+                            builder: (context) => CoachDetailPage(coach: coach),
+                          ),
+                        );
+                      },
+                    );
+                  },
+                );
+              },
+            );
+          }
+        } else if (tabKey == 'history') {
+          final historyState = context.watch<BookingHistoryState>();
+          final historyItems = historyState.bookings;
+
+          if (historyItems.isEmpty) {
+            content = _buildEmptyState(
+              message:
+                  'Anda belum memiliki riwayat booking. Booking lapangan pertamamu!',
+            );
+          } else {
+            content = ListView.builder(
+              shrinkWrap: true,
+              physics: const NeverScrollableScrollPhysics(),
+              itemCount: historyItems.length,
+              itemBuilder: (context, index) {
+                final item = historyItems[index];
+                return Padding(
+                  padding: const EdgeInsets.only(bottom: 16.0),
+                  // Ganti dengan widget card riwayat yang baru (dibuat di bawah)
+                  child: _buildHistoryCard(item),
+                );
+              },
+            );
+          }
+        } else {
+          content = const Center(
+            child: Text(
+              'Konten tidak tersedia',
+              style: TextStyle(color: Colors.white54),
+            ),
           );
         }
         
-        return FutureBuilder<List<Coach>>(
-          future: _fetchCoachDetails(coachItems),
-          builder: (context, snapshot) {
-            if (snapshot.connectionState == ConnectionState.waiting) {
-              return const Center(
-                child: CircularProgressIndicator(color: Color(0xFF571E88)),
-              );
-            }
+        // Logic for responsiveness: wrap empty states in ConstrainedBox
+        final isContentEmpty = (tabKey == 'wishlist' && wishlistState.getWishedByType('lapangan').isEmpty) ||
+                                (tabKey == 'coach' && wishlistState.getWishedByType('coach').isEmpty) ||
+                                (tabKey == 'history' && context.watch<BookingHistoryState>().bookings.isEmpty);
 
-            if (snapshot.hasError || !snapshot.hasData) {
-              // Fallback: gunakan data minimal dari wishlist
-              return GridView.builder(
-                shrinkWrap: true,
-                physics: const NeverScrollableScrollPhysics(),
-                gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                  crossAxisCount: 2,
-                  crossAxisSpacing: 12,
-                  mainAxisSpacing: 12,
+        if (isContentEmpty) {
+          // Wrap the empty content in a LayoutBuilder to calculate remaining space
+          return LayoutBuilder(
+            builder: (context, constraints) {
+              // Calculate remaining height: screen height - safe area top - app bar - tabs - padding - profile content estimation
+              final screenHeight = MediaQuery.of(context).size.height;
+              final safeAreaTop = MediaQuery.of(context).padding.top;
+              const estimatedContentAboveTabs = 350.0; // Profile header, name, button, tabs, and some padding
+              
+              final minHeight = screenHeight - safeAreaTop - kToolbarHeight - estimatedContentAboveTabs;
+              
+              return ConstrainedBox(
+                constraints: BoxConstraints(
+                  minHeight: minHeight > 0 ? minHeight : 0,
                 ),
-                itemCount: coachItems.length,
-                itemBuilder: (context, index) {
-                  final item = coachItems[index];
-                  return _buildCoachWishlistCard(
-                    name: item.name,
-                    sportBranch: item.category,
-                    photoUrl: item.imageUrl,
-                    location: item.location,
-                    onRemove: () => _showUnwishlistDialog(context, item, wishlistState),
-                    onTap: () {
-                      final coachDummy = Coach(
-                        model: 'coach.coach',
-                        pk: int.tryParse(item.id) ?? 0,
-                        fields: Fields(
-                          name: item.name,
-                          sportBranch: item.category,
-                          location: '',
-                          contact: '',
-                          experience: '',
-                          certifications: '',
-                          serviceFee: '',
-                          photo: item.imageUrl,
-                        ),
-                      );
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (context) => CoachDetailPage(coach: coachDummy),
-                        ),
-                      );
-                    },
-                  );
-                },
+                child: content,
               );
-            }
-
-            // Gunakan data lengkap dari backend
-            final coachList = snapshot.data!;
-            return GridView.builder(
-              shrinkWrap: true,
-              physics: const NeverScrollableScrollPhysics(),
-              gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
-                crossAxisCount: 2,
-                crossAxisSpacing: 12,
-                mainAxisSpacing: 12,
-              ),
-              itemCount: coachList.length,
-              itemBuilder: (context, index) {
-                final coach = coachList[index];
-                final wishItem = coachItems.firstWhere(
-                  (item) => item.id == coach.pk.toString(),
-                );
-                
-                return _buildCoachWishlistCard(
-                  name: coach.fields.name,
-                  sportBranch: coach.fields.sportBranch,
-                  photoUrl: coach.fields.photo ?? '',
-                  location: coach.fields.location,
-                  onRemove: () => _showUnwishlistDialog(context, wishItem, wishlistState),
-                  onTap: () {
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(
-                        builder: (context) => CoachDetailPage(coach: coach),
-                      ),
-                    );
-                  },
-                );
-              },
-            );
-          },
-        );
-      } else if (tabKey == 'history') {
-        if (!_hasHistoryItems) {
-          return _buildEmptyState(
-            message:
-                'Anda belum memiliki riwayat booking. Booking lapangan pertamamu!',
+            },
           );
         }
-        return Column(
+
+        return content;
+      },
+    );
+  }
+
+Widget _buildHistoryCard(BookingItem item) {
+  return _glassContainer(
+    padding: const EdgeInsets.all(16.0),
+    radius: 12,
+    opacity: 0.1,
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        // Header: Lapangan Name & Sport
+        Row(
           children: [
-            _buildCard(
-              title: 'Booking History - Voli',
-              type: 'history',
-              onTap: () {},
+            Expanded(
+              child: Text(
+                item.name,
+                style: GoogleFonts.plusJakartaSans(
+                  color: Colors.white,
+                  fontSize: 16,
+                  fontWeight: FontWeight.w700,
+                ),
+              ),
             ),
           ],
-        );
-      } else {
-        return const Center(
-          child: Text(
-            'Konten tidak tersedia',
-            style: TextStyle(color: Colors.white54),
+        ),
+        // const Divider(color: Colors.white24, height: 2.0),
+        const SizedBox(height: 15),
+        // Detail Booking
+        _buildDetailRowSmall(
+          icon: Icons.calendar_today,
+          label: 'Waktu Booking',
+          value: '${item.day}, ${item.slot}',
+        ),
+        const SizedBox(height: 10),
+        _buildDetailRowSmall(
+          icon: Icons.payments,
+          label: 'Pembayaran',
+          value: item.paymentMethod,
+        ),
+        const SizedBox(height: 10),
+
+        // Total Price
+        Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: [
+            Text(
+              'Total Bayar',
+              style: GoogleFonts.plusJakartaSans(
+                color: Colors.white70,
+                fontSize: 14,
+              ),
+            ),
+            Text(
+              'Rp ${item.price}',
+              style: GoogleFonts.plusJakartaSans(
+                color: const Color(0xFFA4E4FF),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+      ],
+    ),
+  );
+}
+
+// Helper tambahan untuk baris detail kecil
+Widget _buildDetailRowSmall({
+  required IconData icon,
+  required String label,
+  required String value,
+}) {
+  return Row(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Icon(icon, color: Colors.white54, size: 16),
+      const SizedBox(width: 8),
+      Text(
+        '$label: ',
+        style: GoogleFonts.plusJakartaSans(
+          color: Colors.white70,
+          fontSize: 13,
+        ),
+      ),
+      Expanded(
+        child: Text(
+          value,
+          style: GoogleFonts.plusJakartaSans(
+            color: Colors.white,
+            fontSize: 13,
+            fontWeight: FontWeight.w600,
           ),
-        );
-      }
-    },
+          textAlign: TextAlign.end,
+        ),
+      ),
+    ],
   );
 }
 
