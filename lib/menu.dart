@@ -451,60 +451,65 @@ class _HomeContentState extends State<HomeContent> {
                   if (_error != null) _ErrorBox(message: _error!),
 
                   // ===== LAPANGAN (Filtered) =====
-                  if (_filteredLapangan.isNotEmpty || _loading) ...[
-                    _SectionHeader(
-                      title: 'Cari Lapangan',
-                      subtitle:
-                          'Temukan lapangan terbaik untuk olahraga favoritmu.',
-                    ),
-                    const SizedBox(height: 10),
+                  // ===== LAPANGAN =====
+                  _SectionHeader(
+                    title: 'Cari Lapangan',
+                    subtitle:
+                        'Temukan lapangan terbaik untuk olahraga favoritmu.',
+                  ),
+                  const SizedBox(height: 10),
+                  if (_filteredLapangan.isNotEmpty)
                     _LapanganHorizontal(
                       list: _filteredLapangan,
                       onSeeMore: () => widget.onTabChange(1),
                       isSearchMode: isSearchActive,
-                    ),
-                    const SizedBox(height: 22),
-                  ] else if (isSearchActive) ...[
-                    _NotFoundText(label: 'Lapangan'),
-                    const SizedBox(height: 22),
-                  ],
+                    )
+                  else if (isSearchActive)
+                    _NotFoundText(label: 'Lapangan')
+                  else
+                    const _EmptyData(label: 'Lapangan belum tersedia.'),
+                  const SizedBox(height: 22),
 
-                  // ===== COACH (Filtered) =====
-                  if (_filteredCoaches.isNotEmpty || _loading) ...[
-                    _SectionHeader(
-                      title: 'Temui Coach',
-                      subtitle:
-                          'Pilih coach yang cocok dan mulai upgrade skill.',
-                    ),
-                    const SizedBox(height: 10),
+                  // ===== COACH =====
+                  _SectionHeader(
+                    title: 'Temui Coach',
+                    subtitle:
+                        'Pilih coach yang cocok dan mulai upgrade skill.',
+                  ),
+                  const SizedBox(height: 10),
+                  if (_filteredCoaches.isNotEmpty)
                     _CoachHorizontal(
                       list: _filteredCoaches,
                       onSeeMore: () => widget.onTabChange(2),
                       isSearchMode: isSearchActive,
-                    ),
-                    const SizedBox(height: 22),
-                  ] else if (isSearchActive) ...[
-                    _NotFoundText(label: 'Coach'),
-                    const SizedBox(height: 22),
-                  ],
+                    )
+                  else if (isSearchActive)
+                    _NotFoundText(label: 'Coach')
+                  else
+                    const _EmptyData(label: 'Coach belum tersedia.'),
+                  const SizedBox(height: 22),
 
-                  // ===== EVENT (Filtered) =====
-                  if (_filteredEvents.isNotEmpty || _loading) ...[
-                    _SectionHeader(
-                      title: 'Event yang Akan Datang',
-                      subtitle: 'Gabung event seru dan temukan komunitas baru.',
-                    ),
-                    const SizedBox(height: 10),
+                  // ===== EVENT =====
+                  _SectionHeader(
+                    title: 'Event yang Akan Datang',
+                    subtitle: 'Gabung event seru dan temukan komunitas baru.',
+                  ),
+                  const SizedBox(height: 10),
+                  if (_filteredEvents.isNotEmpty)
                     _EventHorizontal(
                       list: _filteredEvents,
                       onSeeMore: () => widget.onTabChange(3),
                       isSearchMode: isSearchActive,
-                    ),
-                    const SizedBox(height: 40),
-                  ] else if (isSearchActive) ...[
-                    _NotFoundText(label: 'Event'),
-                    const SizedBox(height: 40),
-                  ],
+                    )
+                  else if (isSearchActive)
+                    _NotFoundText(label: 'Event')
+                  else
+                    const _EmptyData(label: 'Event belum tersedia.'),
+                  const SizedBox(height: 28),
+
+                  // ===== PROMO SLIDESHOW =====
+                  const _PromoSlideshow(),
+                  const SizedBox(height: 40),
 
                   // ===== FITUR (FLIP CARDS) =====
                   // const _FeaturesSection(),
@@ -602,6 +607,33 @@ class _NotFoundText extends StatelessWidget {
           fontStyle: FontStyle.italic,
         ),
         textAlign: TextAlign.center,
+      ),
+    );
+  }
+}
+
+class _EmptyData extends StatelessWidget {
+  final String label;
+  const _EmptyData({required this.label});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: const EdgeInsets.symmetric(vertical: 18),
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.04),
+        borderRadius: BorderRadius.circular(14),
+        border: Border.all(color: Colors.white.withOpacity(0.08)),
+      ),
+      child: Text(
+        label,
+        textAlign: TextAlign.center,
+        style: GoogleFonts.plusJakartaSans(
+          color: Colors.white.withOpacity(0.55),
+          fontSize: 12.5,
+          fontWeight: FontWeight.w600,
+        ),
       ),
     );
   }
@@ -1329,6 +1361,74 @@ class _MiniLine extends StatelessWidget {
               color: Colors.white.withOpacity(0.65),
             ),
           ),
+        ),
+      ],
+    );
+  }
+}
+
+// PROMO SLIDESHOW (manual swipe, 3 images with bar indicators)
+class _PromoSlideshow extends StatefulWidget {
+  const _PromoSlideshow();
+
+  @override
+  State<_PromoSlideshow> createState() => _PromoSlideshowState();
+}
+
+class _PromoSlideshowState extends State<_PromoSlideshow> {
+  final PageController _ctrl = PageController();
+  int _page = 0;
+
+  final List<String> _images = const [
+    'assets/image/4.png',
+    'assets/image/5.png',
+    'assets/image/6.png',
+  ];
+
+  @override
+  void dispose() {
+    _ctrl.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        SizedBox(
+          height: 180,
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(18),
+            child: PageView.builder(
+              controller: _ctrl,
+              itemCount: _images.length,
+              onPageChanged: (i) => setState(() => _page = i),
+              itemBuilder: (_, i) => Image.asset(
+                _images[i],
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+        ),
+        const SizedBox(height: 12),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: List.generate(_images.length, (i) {
+            final bool active = i == _page;
+            return AnimatedContainer(
+              duration: const Duration(milliseconds: 220),
+              margin: const EdgeInsets.symmetric(horizontal: 4),
+              height: 6,
+              width: active ? 24 : 16,
+              decoration: BoxDecoration(
+                color: active
+                    ? const Color(0xFFA4E4FF)
+                    : Colors.white.withOpacity(0.35),
+                borderRadius: BorderRadius.circular(99),
+              ),
+            );
+          }),
         ),
       ],
     );
