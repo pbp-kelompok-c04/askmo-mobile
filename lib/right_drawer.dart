@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:askmo/menu.dart';
 import 'package:askmo/authentication/screens/login.dart';
 import 'package:askmo/profile/screens/profile.dart';
+import 'package:askmo/about/screens/about.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:askmo/profile/models/user_state.dart';
@@ -130,6 +131,19 @@ class RightDrawer extends StatelessWidget {
                     thickness: 0.5,
                     color: Colors.white.withOpacity(0.2),
                   ),
+                ),
+                _HoverListTile(
+                  icon: Icons.info_rounded,
+                  title: 'About Us',
+                  onTap: () {
+                    Navigator.pop(context);
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const AboutPage(),
+                      ),
+                    );
+                  },
                 ),
                 _HoverListTile(
                   icon: Icons.account_circle_rounded,

@@ -177,19 +177,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Background gradient - full screen
-          Positioned.fill(
-            child: Container(
-              decoration: const BoxDecoration(
-                gradient: RadialGradient(
-                  center: Alignment(-0.5, -0.5),
-                  radius: 1.5,
-                  colors: [Color(0x99571E88), Color(0x0006005E)],
-                ),
-              ),
-            ),
-          ),
-          // Aura circles - extended to cover full screen
+          // Background Aura
           Positioned(
             top: -200,
             left: -200,
@@ -200,7 +188,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF571E88).withOpacity(0.7),
+                    const Color(0xFF571E88).withOpacity(0.8),
                     Colors.transparent,
                   ],
                 ),
@@ -217,7 +205,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
                 shape: BoxShape.circle,
                 gradient: RadialGradient(
                   colors: [
-                    const Color(0xFF6F0732).withOpacity(0.7),
+                    const Color(0xFF6F0732).withOpacity(0.8),
                     Colors.transparent,
                   ],
                 ),
@@ -450,109 +438,74 @@ class _CoachFormPageState extends State<CoachFormPage> {
     bool required = true,
     Function(String)? onChanged,
   }) {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.1),
-                Colors.white.withOpacity(0.05),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+      ),
+      child: TextFormField(
+        controller: controller,
+        style: GoogleFonts.plusJakartaSans(color: Colors.white),
+        maxLines: maxLines,
+        keyboardType: keyboardType,
+        onChanged: onChanged,
+        decoration: InputDecoration(
+          labelText: label,
+          hintText: hint,
+          labelStyle: GoogleFonts.plusJakartaSans(color: Colors.white70),
+          hintStyle: GoogleFonts.plusJakartaSans(
+            color: Colors.white.withOpacity(0.3),
           ),
-          child: TextFormField(
-            controller: controller,
-            style: GoogleFonts.plusJakartaSans(color: Colors.white),
-            maxLines: maxLines,
-            keyboardType: keyboardType,
-            onChanged: onChanged,
-            decoration: InputDecoration(
-              labelText: label,
-              hintText: hint,
-              labelStyle: GoogleFonts.plusJakartaSans(color: Colors.white70),
-              hintStyle: GoogleFonts.plusJakartaSans(
-                color: Colors.white.withOpacity(0.3),
-              ),
-              filled: false,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              border: InputBorder.none,
-            ),
-            validator: (value) {
-              if (required && (value == null || value.isEmpty)) {
-                return 'Field ini wajib diisi';
-              }
-              return null;
-            },
+          filled: false,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
           ),
+          border: InputBorder.none,
         ),
+        validator: (value) {
+          if (required && (value == null || value.isEmpty)) {
+            return 'Field ini wajib diisi';
+          }
+          return null;
+        },
       ),
     );
   }
 
   Widget _buildSportDropdown() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.1),
-                Colors.white.withOpacity(0.05),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+      ),
+      child: DropdownButtonFormField<String>(
+        initialValue: _selectedSportBranch,
+        dropdownColor: const Color(0xFF2A2A2A),
+        style: GoogleFonts.plusJakartaSans(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: 'Cabang Olahraga',
+          labelStyle: GoogleFonts.plusJakartaSans(color: Colors.white70),
+          filled: false,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
           ),
-          child: DropdownButtonFormField<String>(
-            initialValue: _selectedSportBranch,
-            dropdownColor: const Color(0xFF2A2A2A),
-            style: GoogleFonts.plusJakartaSans(color: Colors.white),
-            decoration: InputDecoration(
-              labelText: 'Cabang Olahraga',
-              labelStyle: GoogleFonts.plusJakartaSans(color: Colors.white70),
-              filled: false,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              border: InputBorder.none,
-            ),
-            items: _sportOptions.map((sport) {
-              return DropdownMenuItem<String>(
-                value: sport['value'],
-                child: Text(
-                  sport['label']!,
-                  style: GoogleFonts.plusJakartaSans(),
-                ),
-              );
-            }).toList(),
-            onChanged: (value) {
-              setState(() {
-                _selectedSportBranch = value!;
-              });
-            },
-          ),
+          border: InputBorder.none,
         ),
+        items: _sportOptions.map((sport) {
+          return DropdownMenuItem<String>(
+            value: sport['value'],
+            child: Text(sport['label']!, style: GoogleFonts.plusJakartaSans()),
+          );
+        }).toList(),
+        onChanged: (value) {
+          setState(() {
+            _selectedSportBranch = value!;
+          });
+        },
       ),
     );
   }
@@ -582,142 +535,110 @@ class _CoachFormPageState extends State<CoachFormPage> {
       }
     });
 
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.1),
-                Colors.white.withOpacity(0.05),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+      ),
+      child: DropdownButtonFormField<String>(
+        initialValue: _selectedLocation.isEmpty ? '' : _selectedLocation,
+        dropdownColor: const Color(0xFF2A2A2A),
+        style: GoogleFonts.plusJakartaSans(color: Colors.white),
+        decoration: InputDecoration(
+          labelText: 'Lokasi',
+          labelStyle: GoogleFonts.plusJakartaSans(color: Colors.white70),
+          filled: false,
+          contentPadding: const EdgeInsets.symmetric(
+            horizontal: 16,
+            vertical: 16,
           ),
-          child: DropdownButtonFormField<String>(
-            initialValue: _selectedLocation.isEmpty ? '' : _selectedLocation,
-            dropdownColor: const Color(0xFF2A2A2A),
-            style: GoogleFonts.plusJakartaSans(color: Colors.white),
-            decoration: InputDecoration(
-              labelText: 'Lokasi',
-              labelStyle: GoogleFonts.plusJakartaSans(color: Colors.white70),
-              filled: false,
-              contentPadding: const EdgeInsets.symmetric(
-                horizontal: 16,
-                vertical: 16,
-              ),
-              border: InputBorder.none,
-            ),
-            items: items,
-            onChanged: (value) {
-              if (value != null && value.isNotEmpty) {
-                setState(() {
-                  _selectedLocation = value;
-                });
-              }
-            },
-            validator: (value) {
-              if (value == null || value.isEmpty) {
-                return 'Pilih lokasi terlebih dahulu';
-              }
-              return null;
-            },
-          ),
+          border: InputBorder.none,
         ),
+        items: items,
+        onChanged: (value) {
+          if (value != null && value.isNotEmpty) {
+            setState(() {
+              _selectedLocation = value;
+            });
+          }
+        },
+        validator: (value) {
+          if (value == null || value.isEmpty) {
+            return 'Pilih lokasi terlebih dahulu';
+          }
+          return null;
+        },
       ),
     );
   }
 
   Widget _buildThumbnailPreview() {
-    return ClipRRect(
-      borderRadius: BorderRadius.circular(8),
-      child: BackdropFilter(
-        filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Colors.white.withOpacity(0.1),
-                Colors.white.withOpacity(0.05),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-            borderRadius: BorderRadius.circular(8),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.5,
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(color: Colors.white.withOpacity(0.2), width: 1.5),
+      ),
+      padding: const EdgeInsets.all(12),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Text(
+            'Preview Foto',
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.white70,
+              fontSize: 12,
             ),
           ),
-          padding: const EdgeInsets.all(12),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(
-                'Preview Foto',
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white70,
-                  fontSize: 12,
-                ),
+          const SizedBox(height: 8),
+          Center(
+            child: Container(
+              width: 120,
+              height: 120,
+              decoration: BoxDecoration(
+                borderRadius: BorderRadius.circular(8),
+                color: Colors.grey[800],
               ),
-              const SizedBox(height: 8),
-              Center(
-                child: Container(
-                  width: 120,
-                  height: 120,
-                  decoration: BoxDecoration(
-                    borderRadius: BorderRadius.circular(8),
-                    color: Colors.grey[800],
-                  ),
-                  child: Image.network(
-                    _thumbnailController.text,
-                    fit: BoxFit.cover,
-                    errorBuilder: (context, error, stackTrace) {
-                      return Column(
-                        mainAxisAlignment: MainAxisAlignment.center,
-                        children: [
-                          const Icon(
-                            Icons.broken_image,
-                            color: Colors.white54,
-                            size: 30,
-                          ),
-                          const SizedBox(height: 4),
-                          Text(
-                            'Gagal memuat',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: Colors.white54,
-                              fontSize: 12,
-                            ),
-                          ),
-                        ],
-                      );
-                    },
-                    loadingBuilder: (context, child, loadingProgress) {
-                      if (loadingProgress == null) return child;
-                      return Center(
-                        child: CircularProgressIndicator(
-                          color: const Color(0xFF571E88),
-                          value: loadingProgress.expectedTotalBytes != null
-                              ? loadingProgress.cumulativeBytesLoaded /
-                                    loadingProgress.expectedTotalBytes!
-                              : null,
+              child: Image.network(
+                _thumbnailController.text,
+                fit: BoxFit.cover,
+                errorBuilder: (context, error, stackTrace) {
+                  return Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      const Icon(
+                        Icons.broken_image,
+                        color: Colors.white54,
+                        size: 30,
+                      ),
+                      const SizedBox(height: 4),
+                      Text(
+                        'Gagal memuat',
+                        style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white54,
+                          fontSize: 12,
                         ),
-                      );
-                    },
-                  ),
-                ),
+                      ),
+                    ],
+                  );
+                },
+                loadingBuilder: (context, child, loadingProgress) {
+                  if (loadingProgress == null) return child;
+                  return Center(
+                    child: CircularProgressIndicator(
+                      color: const Color(0xFF571E88),
+                      value: loadingProgress.expectedTotalBytes != null
+                          ? loadingProgress.cumulativeBytesLoaded /
+                                loadingProgress.expectedTotalBytes!
+                          : null,
+                    ),
+                  );
+                },
               ),
-            ],
+            ),
           ),
-        ),
+        ],
       ),
     );
   }

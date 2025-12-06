@@ -340,14 +340,27 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
                           if (context.mounted) {
                             if (response['status'] == 'success') {
                               ScaffoldMessenger.of(context).showSnackBar(
-                                const SnackBar(content: Text("Berhasil!")),
+                                SnackBar(
+                                  backgroundColor: const Color(0xFF571E88),
+                                  content: Text(
+                                    "Coach berhasil diupdate!",
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white,
+                                    ),
+                                  ),
+                                ),
                               );
                               Navigator.pop(context, true);
                             } else {
                               ScaffoldMessenger.of(context).showSnackBar(
                                 SnackBar(
+                                  backgroundColor: const Color(0xFFFF5555),
                                   content: Text(
-                                    response['message'] ?? "Gagal.",
+                                    response['message'] ??
+                                        "Gagal mengupdate coach.",
+                                    style: GoogleFonts.plusJakartaSans(
+                                      color: Colors.white,
+                                    ),
                                   ),
                                 ),
                               );
