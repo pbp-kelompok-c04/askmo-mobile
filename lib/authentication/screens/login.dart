@@ -102,9 +102,12 @@ class _LoginPageState extends State<LoginPage>
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
-          const SnackBar(
-            backgroundColor: Color(0xFF571E88),
-            content: Text("Login berhasil!"),
+          SnackBar(
+            backgroundColor: const Color(0xFF571E88),
+            content: Text(
+              "Login berhasil!",
+              style: GoogleFonts.plusJakartaSans(color: Colors.white),
+            ),
           ),
         );
 
@@ -204,9 +207,12 @@ class _LoginPageState extends State<LoginPage>
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
-            const SnackBar(
-              backgroundColor: Color(0xFF571E88),
-              content: Text('Login berhasil!'),
+            SnackBar(
+              backgroundColor: const Color(0xFF571E88),
+              content: Text(
+                "Login berhasil!",
+                style: GoogleFonts.plusJakartaSans(color: Colors.white),
+              ),
             ),
           );
 

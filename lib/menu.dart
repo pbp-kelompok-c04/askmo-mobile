@@ -515,14 +515,13 @@ class _HomeContentState extends State<HomeContent> {
                   const SizedBox(height: 40),
 
                   // ===== STATISTICS (ANIMATED ON SCROLL) =====
-                  _StatsSection(
-                    scrollController: _scrollController,
-                    lapanganCount: _lapangan.length,
-                    coachCount: _coaches.length,
-                    eventCount: _events.length,
-                  ),
-                  const SizedBox(height: 40),
-
+                  // _StatsSection(
+                  //   scrollController: _scrollController,
+                  //   lapanganCount: _lapangan.length,
+                  //   coachCount: _coaches.length,
+                  //   eventCount: _events.length,
+                  // ),
+                  // const SizedBox(height: 40),
                   _Footer(),
                   const SizedBox(height: 100),
                 ],
@@ -1375,7 +1374,7 @@ class _Footer extends StatelessWidget {
             runSpacing: 6,
             children: [
               Text('© 2025 ASKMO Team. All Rights Reserved.', style: p()),
-              Text('Projek PBP C Kelompok 04', style: p()),
+              Text(' Projek PBP C04', style: p()),
             ],
           ),
         ],
@@ -1630,34 +1629,34 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
 
   final List<Map<String, String>> _testimonials = [
     {
-      "name": "Syafiq Faqih",
-      "role": "Admin ASKMO",
+      "name": "Anonymous",
+      "role": "User ASKMO",
       "quote":
-          "Kami membangun ASKMO karena lelahnya mencari info olahraga yang terpisah-pisah. Temukan lapangan bagus, coach berkualitas, dan event seru jadi semudah beberapa klik.",
+          "Aku mulai pake ASKMO karena lelah mencari info olahraga yang terpisah-pisah. Di ASKMO gampang banget dapet lapangan bagus, coach berkualitas, dan event seru. Semua hanya dalam satu klik!",
     },
     {
-      "name": "Ahmad Fauzan",
-      "role": "Admin ASKMO",
+      "name": "A**** F****",
+      "role": "User ASKMO",
       "quote":
-          "Sebagai penggemar futsal, saya sering frustrasi mencari lapangan kosong. Dengan ASKMO, kami ingin proses pencarian dan pemesanan lapangan jadi transparan dan bebas repot.",
+          "Sebagai penggemar futsal, saya sering frustrasi mencari lapangan kosong. Dengan ASKMO, proses pencarian dan pemesanan lapangan jadi transparan dan bebas repot.",
     },
     {
-      "name": "Kamali Pirade",
-      "role": "Admin ASKMO",
+      "name": "K***** F****",
+      "role": "User ASKMO",
       "quote":
-          "Pengembangan skill itu penting. Makanya, kami buat ASKMO agar semua orang bisa mudah menemukan pelatih berkualitas untuk olahraga apa pun.",
+          "Pengembangan skill itu penting. Aku pake ASKMO jadi lebih mudah menemukan pelatih berkualitas untuk olahraga apa pun.",
     },
     {
-      "name": "Matthew Wijaya",
-      "role": "Admin ASKMO",
+      "name": "A*** M*****",
+      "role": "User ASKMO",
       "quote":
-          "Olahraga itu soal komunitas. Kami menciptakan ASKMO untuk jadi jembatan; tempat siapa saja bisa berbagi info event dan memudahkan orang lain untuk bergabung.",
+          "Di ASKMO, saya jadi gampang dapet info event olahraga. Rispek ASKMO!",
     },
     {
-      "name": "Nisrina Alya",
-      "role": "Admin ASKMO",
+      "name": "Anonymous",
+      "role": "User ASKMO",
       "quote":
-          "Kami ingin ASKMO tidak hanya fungsional, tapi juga nyaman digunakan. Desainnya kami buat intuitif agar pengalamannya tetap mulus dan modern.",
+          "ASKMO nyaman banget digunakan. Desainnya dibuat intuitif agar pengalamannya tetap mulus dan modern. Suka banget deh!",
     },
   ];
 
@@ -1696,7 +1695,7 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
               ),
             ),
             child: Text(
-              "Kenapa ASKMO?",
+              "Testimoni Kawan ASKMO",
               textAlign: TextAlign.center,
               style: GoogleFonts.plusJakartaSans(
                 fontSize: 24,
@@ -1736,11 +1735,6 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
                           radius: 40, // Agak gede
                           backgroundColor: Colors.grey.shade700,
                           // Menggunakan logic load image seperti sebelumnya
-                          foregroundImage: AssetImage(
-                            'assets/image/${item['name']!.replaceAll(' ', '').toLowerCase()}.png',
-                          ),
-                          // Jika gagal load asset, fallback ke inisial nama
-                          onForegroundImageError: (_, __) {},
                           child: Text(
                             item['name']![0],
                             style: GoogleFonts.plusJakartaSans(
@@ -1850,170 +1844,170 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
 /// --------------------------------------------------------
 /// 3. STATS SECTION (ANIMATED ON SCROLL)
 /// --------------------------------------------------------
-class _StatsSection extends StatefulWidget {
-  final int lapanganCount;
-  final int coachCount;
-  final int eventCount;
-  final ScrollController scrollController;
+// class _StatsSection extends StatefulWidget {
+//   final int lapanganCount;
+//   final int coachCount;
+//   final int eventCount;
+//   final ScrollController scrollController;
 
-  const _StatsSection({
-    required this.lapanganCount,
-    required this.coachCount,
-    required this.eventCount,
-    required this.scrollController,
-  });
+//   const _StatsSection({
+//     required this.lapanganCount,
+//     required this.coachCount,
+//     required this.eventCount,
+//     required this.scrollController,
+//   });
 
-  @override
-  State<_StatsSection> createState() => _StatsSectionState();
-}
+//   @override
+//   State<_StatsSection> createState() => _StatsSectionState();
+// }
 
-class _StatsSectionState extends State<_StatsSection> {
-  bool _isVisible = false;
+// class _StatsSectionState extends State<_StatsSection> {
+//   bool _isVisible = false;
 
-  @override
-  void initState() {
-    super.initState();
-    widget.scrollController.addListener(_onScroll);
-    WidgetsBinding.instance.addPostFrameCallback((_) => _onScroll());
-  }
+//   @override
+//   void initState() {
+//     super.initState();
+//     widget.scrollController.addListener(_onScroll);
+//     WidgetsBinding.instance.addPostFrameCallback((_) => _onScroll());
+//   }
 
-  @override
-  void dispose() {
-    widget.scrollController.removeListener(_onScroll);
-    super.dispose();
-  }
+//   @override
+//   void dispose() {
+//     widget.scrollController.removeListener(_onScroll);
+//     super.dispose();
+//   }
 
-  void _onScroll() {
-    if (!mounted) return;
+//   void _onScroll() {
+//     if (!mounted) return;
 
-    final RenderObject? box = context.findRenderObject();
-    if (box is! RenderBox) return;
+//     final RenderObject? box = context.findRenderObject();
+//     if (box is! RenderBox) return;
 
-    final position = box.localToGlobal(Offset.zero);
-    final viewportHeight = MediaQuery.of(context).size.height;
+//     final position = box.localToGlobal(Offset.zero);
+//     final viewportHeight = MediaQuery.of(context).size.height;
 
-    final topY = position.dy;
-    final bottomY = topY + box.size.height;
+//     final topY = position.dy;
+//     final bottomY = topY + box.size.height;
 
-    final bool visible = topY < viewportHeight - 50 && bottomY > 50;
+//     final bool visible = topY < viewportHeight - 50 && bottomY > 50;
 
-    if (visible != _isVisible) {
-      setState(() {
-        _isVisible = visible;
-      });
-    }
-  }
+//     if (visible != _isVisible) {
+//       setState(() {
+//         _isVisible = visible;
+//       });
+//     }
+//   }
 
-  @override
-  Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Text(
-          'Statistik ASKMO',
-          style: GoogleFonts.plusJakartaSans(
-            fontSize: 24,
-            fontWeight: FontWeight.bold,
-            color: Colors.white,
-          ),
-        ),
-        const SizedBox(height: 24),
-        // Disusun Horizontal (Row)
-        Row(
-          children: [
-            Expanded(
-              child: _StatCard(
-                count: widget.lapanganCount,
-                label: 'Lapangan',
-                animate: _isVisible,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _StatCard(
-                count: widget.coachCount,
-                label: 'Coach',
-                animate: _isVisible,
-              ),
-            ),
-            const SizedBox(width: 12),
-            Expanded(
-              child: _StatCard(
-                count: widget.eventCount,
-                label: 'Event',
-                animate: _isVisible,
-              ),
-            ),
-          ],
-        ),
-      ],
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return Column(
+//       children: [
+//         Text(
+//           'Statistik ASKMO',
+//           style: GoogleFonts.plusJakartaSans(
+//             fontSize: 24,
+//             fontWeight: FontWeight.bold,
+//             color: Colors.white,
+//           ),
+//         ),
+//         const SizedBox(height: 24),
+//         // Disusun Horizontal (Row)
+//         Row(
+//           children: [
+//             Expanded(
+//               child: _StatCard(
+//                 count: widget.lapanganCount,
+//                 label: 'Lapangan',
+//                 animate: _isVisible,
+//               ),
+//             ),
+//             const SizedBox(width: 12),
+//             Expanded(
+//               child: _StatCard(
+//                 count: widget.coachCount,
+//                 label: 'Coach',
+//                 animate: _isVisible,
+//               ),
+//             ),
+//             const SizedBox(width: 12),
+//             Expanded(
+//               child: _StatCard(
+//                 count: widget.eventCount,
+//                 label: 'Event',
+//                 animate: _isVisible,
+//               ),
+//             ),
+//           ],
+//         ),
+//       ],
+//     );
+//   }
+// }
 
-class _StatCard extends StatelessWidget {
-  final int count;
-  final String label;
-  final bool animate;
+// class _StatCard extends StatelessWidget {
+//   final int count;
+//   final String label;
+//   final bool animate;
 
-  const _StatCard({
-    required this.count,
-    required this.label,
-    required this.animate,
-  });
+//   const _StatCard({
+//     required this.count,
+//     required this.label,
+//     required this.animate,
+//   });
 
-  @override
-  Widget build(BuildContext context) {
-    return AspectRatio(
-      aspectRatio: 1.0,
-      child: Container(
-        padding: const EdgeInsets.all(12),
-        decoration: BoxDecoration(
-          gradient: const LinearGradient(
-            colors: [Color(0xFF06005E), Color(0xFF571E88)],
-            begin: Alignment.topLeft,
-            end: Alignment.bottomRight,
-          ),
-          borderRadius: BorderRadius.circular(20),
-          boxShadow: [
-            BoxShadow(
-              color: Colors.black.withOpacity(0.4),
-              blurRadius: 8,
-              offset: const Offset(0, 4),
-            ),
-          ],
-        ),
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            TweenAnimationBuilder<int>(
-              tween: IntTween(begin: 0, end: animate ? count : 0),
-              duration: animate
-                  ? const Duration(seconds: 2)
-                  : const Duration(milliseconds: 0),
-              curve: Curves.easeOutExpo,
-              builder: (context, value, child) {
-                return Text(
-                  '$value',
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 24,
-                    fontWeight: FontWeight.bold,
-                    color: Colors.white,
-                  ),
-                );
-              },
-            ),
-            const SizedBox(height: 4),
-            Text(
-              label,
-              textAlign: TextAlign.center,
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
-                color: Colors.white.withOpacity(0.8),
-              ),
-            ),
-          ],
-        ),
-      ),
-    );
-  }
-}
+//   @override
+//   Widget build(BuildContext context) {
+//     return AspectRatio(
+//       aspectRatio: 1.0,
+//       child: Container(
+//         padding: const EdgeInsets.all(12),
+//         decoration: BoxDecoration(
+//           gradient: const LinearGradient(
+//             colors: [Color(0xFF06005E), Color(0xFF571E88)],
+//             begin: Alignment.topLeft,
+//             end: Alignment.bottomRight,
+//           ),
+//           borderRadius: BorderRadius.circular(20),
+//           boxShadow: [
+//             BoxShadow(
+//               color: Colors.black.withOpacity(0.4),
+//               blurRadius: 8,
+//               offset: const Offset(0, 4),
+//             ),
+//           ],
+//         ),
+//         child: Column(
+//           mainAxisAlignment: MainAxisAlignment.center,
+//           children: [
+//             TweenAnimationBuilder<int>(
+//               tween: IntTween(begin: 0, end: animate ? count : 0),
+//               duration: animate
+//                   ? const Duration(seconds: 2)
+//                   : const Duration(milliseconds: 0),
+//               curve: Curves.easeOutExpo,
+//               builder: (context, value, child) {
+//                 return Text(
+//                   '$value',
+//                   style: GoogleFonts.plusJakartaSans(
+//                     fontSize: 24,
+//                     fontWeight: FontWeight.bold,
+//                     color: Colors.white,
+//                   ),
+//                 );
+//               },
+//             ),
+//             const SizedBox(height: 4),
+//             Text(
+//               label,
+//               textAlign: TextAlign.center,
+//               style: GoogleFonts.plusJakartaSans(
+//                 fontSize: 12,
+//                 color: Colors.white.withOpacity(0.8),
+//               ),
+//             ),
+//           ],
+//         ),
+//       ),
+//     );
+//   }
+// }
