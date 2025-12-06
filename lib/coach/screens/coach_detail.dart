@@ -7,6 +7,10 @@ import 'package:askmo/user_info.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:askmo/wishlist/models/wishlist_state.dart';
+import '../models/coach_model.dart';
+import 'package:askmo/feat/review/coach/screens/coach_review_list_page.dart';
+import 'package:askmo/feat/review/coach/services/coach_review_service.dart';
+import 'package:askmo/feat/review/coach/models/coach_review.dart';
 
 class CoachDetailPage extends StatefulWidget {
   final Coach coach;
@@ -506,6 +510,10 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
+        // RATING DI ATAS KONTAK
+        _buildRatingRow(),
+
+        // Info Rows
         if (widget.coach.fields.contact.isNotEmpty) ...[
           _buildDetailRow(
             icon: Icons.contact_phone,
@@ -514,6 +522,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
           ),
           const SizedBox(height: 16),
         ],
+
         if (widget.coach.fields.experience.isNotEmpty) ...[
           _buildDetailRow(
             icon: Icons.work_outline,
@@ -541,8 +550,71 @@ class _CoachDetailPageState extends State<CoachDetailPage>
               fontWeight: FontWeight.bold,
             ),
           ),
+          const SizedBox(height: 20),
+
+          // === Tombol Lihat Rating & Review (ungu) ===
+          SizedBox(
+            width: double.infinity,
+            child: ElevatedButton(
+              onPressed: () {
+                Navigator.push(
+                  context,
+                  MaterialPageRoute(
+                    builder: (_) => CoachReviewListPage(
+                      coachId: widget.coach.pk, // id coach (int)
+                      coachName: widget.coach.fields.name, // nama coach
+                    ),
+                  ),
+                );
+              },
+              style: ElevatedButton.styleFrom(
+                padding: const EdgeInsets.symmetric(vertical: 12),
+                backgroundColor: const Color(0xFF571E88),
+                foregroundColor: Colors.white,
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(12),
+                ),
+              ),
+              child: Text(
+                'Lihat Rating & Review',
+                style: GoogleFonts.plusJakartaSans(
+                  fontWeight: FontWeight.w600,
+                  fontSize: 15,
+                ),
+              ),
+            ),
+          ),
         ],
       ],
+    );
+  }
+
+  Widget _buildRatingRow() {
+    return FutureBuilder<List<CoachReview>>(
+      future: CoachReviewService.fetchReviews(context, widget.coach.pk),
+      builder: (context, snapshot) {
+        if (!snapshot.hasData || snapshot.data!.isEmpty) {
+          return const SizedBox.shrink();
+        }
+
+        final reviews = snapshot.data!;
+        double total = 0;
+        for (final r in reviews) {
+          total += r.rating;
+        }
+        final avg = total / reviews.length;
+
+        return Column(
+          children: [
+            _buildDetailRow(
+              icon: Icons.star,
+              label: 'Rating',
+              value: '${avg.toStringAsFixed(1)} / 5.0',
+            ),
+            const SizedBox(height: 16),
+          ],
+        );
+      },
     );
   }
 

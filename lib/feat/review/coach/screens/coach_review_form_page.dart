@@ -1,28 +1,28 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../services/review_services.dart';
 
-class ReviewFormPage extends StatefulWidget {
-  final String lapanganId;
-  final String lapanganName;
+import '../services/coach_review_service.dart';
 
-  const ReviewFormPage({
+class CoachReviewFormPage extends StatefulWidget {
+  final int coachId;
+  final String coachName;
+
+  const CoachReviewFormPage({
     super.key,
-    required this.lapanganId,
-    required this.lapanganName,
+    required this.coachId,
+    required this.coachName,
   });
 
   @override
-  State<ReviewFormPage> createState() => _ReviewFormPageState();
+  State<CoachReviewFormPage> createState() => _CoachReviewFormPageState();
 }
 
-class _ReviewFormPageState extends State<ReviewFormPage> {
+class _CoachReviewFormPageState extends State<CoachReviewFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _namaController = TextEditingController();
   final _ratingController = TextEditingController();
   final _deskripsiController = TextEditingController();
-  final _gambarController = TextEditingController();
 
   bool _isSubmitting = false;
 
@@ -31,26 +31,14 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
     _namaController.dispose();
     _ratingController.dispose();
     _deskripsiController.dispose();
-    _gambarController.dispose();
     super.dispose();
   }
 
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    if (_gambarController.text.isNotEmpty &&
-        _gambarController.text.length > 200) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(
-          content: Text('URL gambar terlalu panjang (maksimal 200 karakter).'),
-        ),
-      );
-      return;
-    }
-
     final rating =
         double.tryParse(_ratingController.text.replaceAll(",", "."));
-
     if (rating == null || rating < 0 || rating > 5) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Rating harus antara 0–5')),
@@ -61,15 +49,13 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
     setState(() => _isSubmitting = true);
 
     try {
-      await ReviewService.addReview(
+      await CoachReviewService.addReview(
         context,
-        lapanganId: widget.lapanganId,
+        coachId: widget.coachId,
         reviewerName:
             _namaController.text.isEmpty ? "Anonim" : _namaController.text,
         rating: rating,
         reviewText: _deskripsiController.text,
-        gambarUrl:
-            _gambarController.text.isEmpty ? null : _gambarController.text,
       );
 
       if (!mounted) return;
@@ -96,7 +82,6 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // AURA BACKGROUND
           Positioned(
             top: -200,
             left: -100,
@@ -131,8 +116,6 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
               ),
             ),
           ),
-
-          // CONTENT
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -158,7 +141,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                         children: [
                           Center(
                             child: Text(
-                              widget.lapanganName,
+                              widget.coachName,
                               textAlign: TextAlign.center,
                               style: GoogleFonts.plusJakartaSans(
                                 color: Colors.white,
@@ -178,13 +161,11 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                             ),
                           ),
                           const SizedBox(height: 24),
-
                           _buildInput(
                             controller: _namaController,
                             label: "Nama (opsional)",
                           ),
                           const SizedBox(height: 16),
-
                           _buildInput(
                             controller: _ratingController,
                             label: "Rating (0.0 - 5.0)",
@@ -202,7 +183,6 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                             },
                           ),
                           const SizedBox(height: 16),
-
                           _buildInput(
                             controller: _deskripsiController,
                             label: "Deskripsi pengalaman",
@@ -214,14 +194,7 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                               return null;
                             },
                           ),
-                          const SizedBox(height: 16),
-
-                          _buildInput(
-                            controller: _gambarController,
-                            label: "URL Gambar (opsional)",
-                          ),
                           const SizedBox(height: 28),
-
                           Container(
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
@@ -237,18 +210,18 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
                                 backgroundColor: Colors.transparent,
                                 shadowColor: Colors.transparent,
                                 foregroundColor: Colors.white,
-                                minimumSize: const Size(double.infinity, 50),
+                                minimumSize:
+                                    const Size(double.infinity, 50),
                               ),
                               child: _isSubmitting
                                   ? const CircularProgressIndicator(
-                                      valueColor:
-                                          AlwaysStoppedAnimation(Colors.white),
+                                      valueColor: AlwaysStoppedAnimation(
+                                          Colors.white),
                                     )
                                   : const Text(
                                       "Kirim Review",
                                       style: TextStyle(
-                                        fontWeight: FontWeight.bold,
-                                      ),
+                                          fontWeight: FontWeight.bold),
                                     ),
                             ),
                           ),
@@ -260,8 +233,6 @@ class _ReviewFormPageState extends State<ReviewFormPage> {
               ),
             ),
           ),
-
-          // BACK BUTTON
           SafeArea(
             child: IconButton(
               onPressed: () => Navigator.pop(context),
