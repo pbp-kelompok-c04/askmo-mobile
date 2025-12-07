@@ -160,7 +160,11 @@ class _MenuPageState extends State<MenuPage>
                 foregroundColor: Colors.black,
                 elevation: 4,
                 shape: const CircleBorder(),
-                child: const Icon(Icons.psychology_alt_rounded, size: 28),
+                child: CircleAvatar(
+                  radius: 28,
+                  backgroundColor: const Color(0xFFA4E4FF),
+                  backgroundImage: const AssetImage('assets/image/avatar_chatbot.png'),
+                ),
               ),
             )
           : null,

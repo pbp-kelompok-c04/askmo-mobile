@@ -201,7 +201,8 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
             Text(
               'Pelatih Virtual Anda',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
                 color: Colors.white70,
               ),
             ),
@@ -213,8 +214,7 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
             child: CircleAvatar(
               radius: 18,
               backgroundColor: const Color(0xFFA4E4FF),
-              // Mengganti Image.asset dengan Icon/placeholder
-              child: const Icon(Icons.psychology, color: Colors.black, size: 20),
+              backgroundImage: const AssetImage('assets/image/avatar_chatbot.png'),
             ),
           ),
         ],
@@ -284,10 +284,12 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
         backgroundColor: const Color(0xFF6C5CE7),
       );
     } else {
-      avatarWidget = const CircleAvatar(
+      avatarWidget = const CircleAvatar( // Gunakan const di sini
         radius: 18,
         backgroundColor: Color(0xFFA4E4FF),
-        child: Icon(Icons.psychology, color: Colors.black, size: 20),
+        backgroundImage: AssetImage(
+            'assets/image/avatar_chatbot.png',
+        ),
       );
     }
 
@@ -329,7 +331,7 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
                     isUser ? displayName : 'ASKMO Assistant',
                     style: GoogleFonts.plusJakartaSans(
                       color: isUser ? Colors.white70 : const Color(0xFFA4E4FF),
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
@@ -387,7 +389,7 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
           ),
           if (isUser) ...[
             const SizedBox(width: 8),
-            avatarWidget, // Menggunakan avatarWidget yang sudah dibuat
+            avatarWidget,
           ],
         ],
       ),
@@ -462,4 +464,3 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
     );
   }
 }
-
