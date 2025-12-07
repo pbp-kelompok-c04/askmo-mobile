@@ -12,12 +12,21 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 
+
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
-  // Only load .env for non-web builds; web should use --dart-define.
-  if (!kIsWeb) {
-    await dotenv.load(fileName: ".env");
+
+  // HANYA load .env ketika bukan release (dev / profile).
+  // Di release (Bitrise, GitHub Actions) kita pakai --dart-define.
+  if (!kReleaseMode && !kIsWeb) {
+    try {
+      await dotenv.load(fileName: ".env");
+    } catch (e, st) {
+      debugPrint('Gagal load .env: $e');
+      debugPrintStack(stackTrace: st);
+    }
   }
+
   await initializeDateFormatting('id_ID', null);
   runApp(const MyApp());
 }
@@ -85,22 +94,35 @@ class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
   Future<void> _checkFirstLaunch() async {
     final prefs = await SharedPreferences.getInstance();
 
-    // UNCOMMENT LINE BELOW TO RESET FIRST LAUNCH (for testing)
-    await prefs.remove('has_launched');
+    // HANYA pakai ini kalau lagi testing:
+    // await prefs.remove('has_launched');
 
     final hasLaunched = prefs.getBool('has_launched') ?? false;
 
-    // Clear cookies on first launch to ensure clean slate
-    if (!hasLaunched) {
-      final request = context.read<CookieRequest>();
-      await request.logout("http://localhost:8000/auth/logout/");
-    }
+    try {
+      // Hanya coba logout kalau memang perlu, dan jangan pakai localhost untuk release
+      if (!hasLaunched) {
+        final request = context.read<CookieRequest>();
 
-    setState(() {
-      _isFirstLaunch = !hasLaunched;
-      _isLoading = false;
-    });
+        // Ganti BASE_URL sesuai environment kamu.
+        // Untuk web dev: bisa  'http://127.0.0.1:8000'
+        // Untuk release HP: gunakan domain / IP server yang benar.
+        const baseUrl = 'http://127.0.0.1:8000';
+
+        await request.logout('$baseUrl/auth/logout/');
+      }
+    } catch (e, st) {
+      debugPrint('Logout failed: $e');
+      debugPrintStack(stackTrace: st);
+    } finally {
+      if (!mounted) return;
+      setState(() {
+        _isFirstLaunch = !hasLaunched;
+        _isLoading = false;
+      });
+    }
   }
+
 
   void _markAsLaunched() async {
     final prefs = await SharedPreferences.getInstance();
