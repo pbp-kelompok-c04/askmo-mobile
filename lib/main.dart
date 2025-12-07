@@ -76,16 +76,27 @@ class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
 
   Future<void> _checkFirstLaunch() async {
     final prefs = await SharedPreferences.getInstance();
+
+    // UNCOMMENT LINE BELOW TO RESET FIRST LAUNCH (for testing)
+    await prefs.remove('has_launched');
+
     final hasLaunched = prefs.getBool('has_launched') ?? false;
+
+    // Clear cookies on first launch to ensure clean slate
+    if (!hasLaunched) {
+      final request = context.read<CookieRequest>();
+      await request.logout("http://localhost:8000/auth/logout/");
+    }
 
     setState(() {
       _isFirstLaunch = !hasLaunched;
       _isLoading = false;
     });
+  }
 
-    if (!hasLaunched) {
-      await prefs.setBool('has_launched', true);
-    }
+  void _markAsLaunched() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_launched', true);
   }
 
   @override
@@ -99,12 +110,18 @@ class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
       );
     }
 
-    return _isFirstLaunch ? const LoginPageWithSkip() : const MenuPage();
+    if (_isFirstLaunch) {
+      return LoginPageWithSkip(onSkip: _markAsLaunched);
+    } else {
+      return const MenuPage();
+    }
   }
 }
 
 class LoginPageWithSkip extends StatelessWidget {
-  const LoginPageWithSkip({super.key});
+  final VoidCallback? onSkip;
+
+  const LoginPageWithSkip({super.key, this.onSkip});
 
   @override
   Widget build(BuildContext context) {
@@ -117,6 +134,7 @@ class LoginPageWithSkip extends StatelessWidget {
             right: 20,
             child: TextButton(
               onPressed: () {
+                onSkip?.call();
                 Navigator.pushReplacement(
                   context,
                   MaterialPageRoute(builder: (context) => const MenuPage()),

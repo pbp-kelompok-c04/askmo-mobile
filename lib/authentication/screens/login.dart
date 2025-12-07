@@ -37,7 +37,9 @@ class LoginApp extends StatelessWidget {
 }
 
 class LoginPage extends StatefulWidget {
-  const LoginPage({super.key});
+  final int? returnToIndex;
+  final Widget? returnRoute;
+  const LoginPage({super.key, this.returnToIndex, this.returnRoute});
 
   @override
   State<LoginPage> createState() => _LoginPageState();
@@ -111,10 +113,24 @@ class _LoginPageState extends State<LoginPage>
           ),
         );
 
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(builder: (context) => const MenuPage()),
-      );
+      if (widget.returnRoute != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => widget.returnRoute!),
+        );
+      } else if (widget.returnToIndex != null) {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (context) => MenuPage(initialIndex: widget.returnToIndex!),
+          ),
+        );
+      } else {
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(builder: (context) => const MenuPage()),
+        );
+      }
     } else {
       if (!mounted) return;
       showDialog(
@@ -216,10 +232,25 @@ class _LoginPageState extends State<LoginPage>
             ),
           );
 
-        Navigator.pushReplacement(
-          context,
-          MaterialPageRoute(builder: (context) => const MenuPage()),
-        );
+        if (widget.returnRoute != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => widget.returnRoute!),
+          );
+        } else if (widget.returnToIndex != null) {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(
+              builder: (context) =>
+                  MenuPage(initialIndex: widget.returnToIndex!),
+            ),
+          );
+        } else {
+          Navigator.pushReplacement(
+            context,
+            MaterialPageRoute(builder: (context) => const MenuPage()),
+          );
+        }
       } else {
         if (!mounted) return;
         final msg =
@@ -300,6 +331,21 @@ class _LoginPageState extends State<LoginPage>
                 );
               },
             ),
+            if (widget.returnToIndex != null || widget.returnRoute != null)
+              Positioned(
+                top: 50,
+                left: 20,
+                child: IconButton(
+                  icon: const Icon(
+                    Icons.arrow_back,
+                    color: Colors.white,
+                    size: 28,
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context);
+                  },
+                ),
+              ),
             Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
