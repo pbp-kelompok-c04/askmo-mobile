@@ -351,23 +351,14 @@ class _CoachFormPageState extends State<CoachFormPage> {
                                   if (response['status'] == 'success') {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(
-                                        backgroundColor: const Color(
-                                          0xFF571E88,
-                                        ),
+                                        backgroundColor: const Color(0xFF571E88),
                                         content: Text(
                                           'Coach berhasil ditambahkan!',
-                                          style: GoogleFonts.plusJakartaSans(
-                                            color: Colors.white,
-                                          ),
+                                          style: GoogleFonts.plusJakartaSans(color: Colors.white),
                                         ),
                                       ),
                                     );
-                                    Navigator.pushReplacement(
-                                      context,
-                                      MaterialPageRoute(
-                                        builder: (context) => const CoachPage(),
-                                      ),
-                                    );
+                                    Navigator.pop(context, true); // return to existing CoachPage so styling stays intact
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

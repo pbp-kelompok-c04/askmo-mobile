@@ -1,3 +1,4 @@
+import 'package:askmo/history/models/booking_history_state.dart';
 import 'package:flutter/material.dart';
 import 'package:askmo/menu.dart';
 import 'package:askmo/authentication/screens/login.dart';
@@ -8,9 +9,15 @@ import 'package:askmo/wishlist/models/wishlist_state.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  // Only load .env for non-web builds; web should use --dart-define.
+  if (!kIsWeb) {
+    await dotenv.load(fileName: ".env");
+  }
   await initializeDateFormatting('id_ID', null);
   runApp(const MyApp());
 }
@@ -27,6 +34,7 @@ class MyApp extends StatelessWidget {
         Provider<CookieRequest>(create: (_) => CookieRequest()),
         ChangeNotifierProvider<UserState>(create: (_) => UserState()),
         ChangeNotifierProvider<WishlistState>(create: (_) => WishlistState()),
+        ChangeNotifierProvider<BookingHistoryState>(create: (_) => BookingHistoryState()),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,

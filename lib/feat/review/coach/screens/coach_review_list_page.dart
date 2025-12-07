@@ -1,37 +1,41 @@
+// lib/feat/review/coach/screens/coach_review_list_page.dart
+
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
-import '../models/review_lapangan.dart';
-import '../services/review_services.dart';
-import 'review_form_page.dart';
-import 'review_edit_page.dart';
 
-class ReviewListPage extends StatefulWidget {
-  final String lapanganId;
-  final String lapanganName;
+import '../models/coach_review.dart';
+import '../services/coach_review_service.dart';
+import 'coach_review_form_page.dart';
+import 'coach_review_edit_page.dart';
 
-  const ReviewListPage({
+class CoachReviewListPage extends StatefulWidget {
+  final int coachId;
+  final String coachName;
+
+  const CoachReviewListPage({
     super.key,
-    required this.lapanganId,
-    required this.lapanganName,
+    required this.coachId,
+    required this.coachName,
   });
 
   @override
-  State<ReviewListPage> createState() => _ReviewListPageState();
+  State<CoachReviewListPage> createState() => _CoachReviewListPageState();
 }
 
-class _ReviewListPageState extends State<ReviewListPage> {
-  late Future<List<ReviewLapangan>> _futureReviews;
+class _CoachReviewListPageState extends State<CoachReviewListPage> {
+  late Future<List<CoachReview>> _futureReviews;
 
   @override
   void initState() {
     super.initState();
-    _futureReviews = ReviewService.fetchReviews(context, widget.lapanganId);
+    _futureReviews = CoachReviewService.fetchReviews(context, widget.coachId);
   }
 
   Future<void> _refresh() async {
     setState(() {
-      _futureReviews = ReviewService.fetchReviews(context, widget.lapanganId);
+      _futureReviews =
+          CoachReviewService.fetchReviews(context, widget.coachId);
     });
   }
 
@@ -39,9 +43,9 @@ class _ReviewListPageState extends State<ReviewListPage> {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ReviewFormPage(
-          lapanganId: widget.lapanganId,
-          lapanganName: widget.lapanganName,
+        builder: (_) => CoachReviewFormPage(
+          coachId: widget.coachId,
+          coachName: widget.coachName,
         ),
       ),
     );
@@ -51,11 +55,11 @@ class _ReviewListPageState extends State<ReviewListPage> {
     }
   }
 
-  void _goToEditReview(ReviewLapangan review) async {
+  void _goToEditReview(CoachReview review) async {
     final result = await Navigator.push(
       context,
       MaterialPageRoute(
-        builder: (_) => ReviewEditPage(review: review),
+        builder: (_) => CoachReviewEditPage(review: review),
       ),
     );
 
@@ -64,7 +68,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
     }
   }
 
-  void _deleteReview(ReviewLapangan review) async {
+  void _deleteReview(CoachReview review) async {
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -105,7 +109,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
     if (confirm != true) return;
 
     try {
-      await ReviewService.deleteReview(context, review.id);
+      await CoachReviewService.deleteReview(context, review.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Review berhasil dihapus')),
@@ -127,7 +131,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // background glow
           Positioned(
             top: -200,
             left: -100,
@@ -166,7 +169,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // HEADER: back + teks kecil
+                // HEADER SAMA KAYAK LAPANGAN
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -212,22 +215,22 @@ class _ReviewListPageState extends State<ReviewListPage> {
                         mainAxisSize: MainAxisSize.min,
                         children: [
                           Text(
-                            'Review Lapangan :',
+                            'Review Coach :',
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white70,
-                              fontSize: 14, // diperbesar
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
                           const SizedBox(height: 2),
                           Text(
-                            widget.lapanganName,
+                            widget.coachName,
                             textAlign: TextAlign.center,
                             maxLines: 2,
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white,
-                              fontSize: 20, // diperbesar
+                              fontSize: 20,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -238,16 +241,12 @@ class _ReviewListPageState extends State<ReviewListPage> {
                 ),
 
                 const SizedBox(height: 8),
-
-                // OVERALL RATING
                 _buildOverallRating(),
                 const SizedBox(height: 12),
-
-                // LIST REVIEW
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _refresh,
-                    child: FutureBuilder<List<ReviewLapangan>>(
+                    child: FutureBuilder<List<CoachReview>>(
                       future: _futureReviews,
                       builder: (context, snapshot) {
                         if (snapshot.connectionState ==
@@ -274,19 +273,12 @@ class _ReviewListPageState extends State<ReviewListPage> {
                           );
                         }
 
-                        if (!snapshot.hasData) {
-                          return const SizedBox.shrink();
-                        }
+                        final reviews = snapshot.data ?? [];
 
-                        final allReviews = snapshot.data!;
-                        // hanya review user (dataset ga ditampilin)
-                        final userReviews =
-                            allReviews.where((e) => !e.isDataset).toList();
-
-                        if (userReviews.isEmpty) {
+                        if (reviews.isEmpty) {
                           return ListView(
                             children: [
-                              const SizedBox(height: 80),
+                              const SizedBox(height: 90),
                               Center(
                                 child: Text(
                                   'Belum ada review.\nJadilah yang pertama!',
@@ -305,9 +297,9 @@ class _ReviewListPageState extends State<ReviewListPage> {
                             horizontal: 16,
                             vertical: 12,
                           ),
-                          itemCount: userReviews.length,
+                          itemCount: reviews.length,
                           itemBuilder: (context, index) {
-                            final review = userReviews[index];
+                            final review = reviews[index];
 
                             return Padding(
                               padding: const EdgeInsets.only(bottom: 16.0),
@@ -354,68 +346,36 @@ class _ReviewListPageState extends State<ReviewListPage> {
   }
 
   Widget _buildOverallRating() {
-    return FutureBuilder<List<ReviewLapangan>>(
+    return FutureBuilder<List<CoachReview>>(
       future: _futureReviews,
       builder: (context, snapshot) {
-        if (snapshot.connectionState == ConnectionState.waiting) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Container(
-              height: 52,
-              decoration: BoxDecoration(
-                color: Colors.white.withOpacity(0.05),
-                borderRadius: BorderRadius.circular(22),
-              ),
-            ),
-          );
-        }
-
         if (!snapshot.hasData || snapshot.data!.isEmpty) {
           return Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Text(
               'Belum ada rating',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
                 color: Colors.white70,
+                fontSize: 16,
               ),
             ),
           );
         }
 
         final reviews = snapshot.data!;
-        final dataset = reviews.where((e) => e.isDataset).toList();
-        final nonDataset = reviews.where((e) => !e.isDataset).toList();
+        final totalUlasan = reviews.length;
 
-        double totalRating = 0;
-        int totalCount = 0;
+        double overallRating;
 
-        if (dataset.isNotEmpty) {
-          totalRating += dataset.first.rating;
-          totalCount += 1;
+        if (totalUlasan == 1) {
+          overallRating = reviews[0].rating;
+        } else {
+          double totalRating = 0;
+          for (final r in reviews) {
+            totalRating += r.rating;
+          }
+          overallRating = totalRating / totalUlasan;
         }
-
-        for (final r in nonDataset) {
-          totalRating += r.rating;
-          totalCount += 1;
-        }
-
-        if (totalCount == 0) {
-          return Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Text(
-              'Belum ada rating',
-              style: GoogleFonts.plusJakartaSans(
-                fontSize: 16,
-                color: Colors.white70,
-              ),
-            ),
-          );
-        }
-
-        final avg =
-            double.parse((totalRating / totalCount).toStringAsFixed(1));
-        final ulasanCount = nonDataset.length;
 
         return Padding(
           padding: const EdgeInsets.symmetric(horizontal: 16),
@@ -459,7 +419,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
                     ),
                     const SizedBox(width: 10),
                     Text(
-                      avg.toStringAsFixed(1),
+                      overallRating.toStringAsFixed(1),
                       style: GoogleFonts.plusJakartaSans(
                         color: Colors.amber,
                         fontSize: 26,
@@ -476,7 +436,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
                     ),
                     const Spacer(),
                     Text(
-                      '$ulasanCount ulasan',
+                      '$totalUlasan ulasan',
                       style: GoogleFonts.plusJakartaSans(
                         color: Colors.white54,
                         fontSize: 14,
@@ -492,7 +452,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
     );
   }
 
-  Widget _buildReviewCard(ReviewLapangan review) {
+  Widget _buildReviewCard(CoachReview review) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
       child: BackdropFilter(
@@ -510,7 +470,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // nama + tanggal
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -535,8 +494,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
                 ],
               ),
               const SizedBox(height: 8),
-
-              // rating kecil
               Row(
                 children: [
                   const Icon(Icons.star, color: Colors.amber, size: 18),
@@ -551,8 +508,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
                 ],
               ),
               const SizedBox(height: 10),
-
-              // teks review
               Text(
                 review.reviewText,
                 style: GoogleFonts.plusJakartaSans(
@@ -561,35 +516,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
                   height: 1.5,
                 ),
               ),
-
-              // gambar (kalau ada)
-              if (review.gambarUrl != null && review.gambarUrl!.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.only(top: 12),
-                  child: ClipRRect(
-                    borderRadius: BorderRadius.circular(12),
-                    child: Image.network(
-                      review.gambarUrl!,
-                      height: 160,
-                      width: double.infinity,
-                      fit: BoxFit.cover,
-                      errorBuilder: (_, __, ___) => Container(
-                        height: 160,
-                        color: Colors.grey.shade900,
-                        child: Center(
-                          child: Text(
-                            'Gagal memuat gambar',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: Colors.white54,
-                            ),
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ),
-
-              // tombol edit / hapus
               if (review.canEdit || review.canDelete) ...[
                 const SizedBox(height: 12),
                 Row(

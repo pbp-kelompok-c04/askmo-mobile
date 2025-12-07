@@ -6,8 +6,10 @@ import 'dart:ui'; // Untuk ImageFilter
 import 'package:askmo/coach/models/coach_model.dart';
 import 'package:askmo/coach/screens/coach_detail.dart';
 import 'package:askmo/coach/screens/coach_form.dart';
-import 'package:askmo/coach/screens/coach_edit_form.dart'; // Pastikan file ini ada
-import 'package:askmo/user_info.dart'; // Import UserInfo
+import 'package:askmo/user_info.dart'; // Import UserInfo untuk cek admin
+import 'package:askmo/feat/review/coach/services/coach_review_service.dart';
+import 'package:askmo/feat/review/coach/models/coach_review.dart';
+import 'package:askmo/coach/screens/coach_edit_form.dart'; // Pastikan file ini ada; // Import UserInfo
 
 class CoachPage extends StatefulWidget {
   const CoachPage({super.key});
@@ -342,8 +344,7 @@ class _CoachPageState extends State<CoachPage> {
                   final result = await Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => const CoachFormPage(),
-                    ),
+                        builder: (context) => const CoachFormPage()),
                   );
                   // Refresh jika berhasil tambah
                   if (result == true) {
@@ -541,7 +542,8 @@ class _CoachPageState extends State<CoachPage> {
         ..._sportOptions.map(
           (sport) => DropdownMenuItem<String>(
             value: sport['value'],
-            child: Text(sport['label']!, style: GoogleFonts.plusJakartaSans()),
+            child:
+                Text(sport['label']!, style: GoogleFonts.plusJakartaSans()),
           ),
         ),
       ],
@@ -743,6 +745,52 @@ class _CoachPageState extends State<CoachPage> {
                               ),
                             ),
                           ],
+                        ),
+                        const SizedBox(height: 6),
+                        // RATING COACH DI CARD
+                        FutureBuilder<List<CoachReview>>(
+                          future: CoachReviewService.fetchReviews(
+                            context,
+                            coach.pk,
+                          ),
+                          builder: (context, snapshot) {
+                            if (!snapshot.hasData ||
+                                snapshot.data!.isEmpty) {
+                              return const SizedBox.shrink();
+                            }
+                            final reviews = snapshot.data!;
+                            double total = 0;
+                            for (final r in reviews) {
+                              total += r.rating;
+                            }
+                            final avg = total / reviews.length;
+
+                            return Row(
+                              children: [
+                                const Icon(
+                                  Icons.star,
+                                  size: 16,
+                                  color: Colors.amber,
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  avg.toStringAsFixed(1),
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: Colors.white,
+                                    fontWeight: FontWeight.w600,
+                                  ),
+                                ),
+                                Text(
+                                  ' / 5.0',
+                                  style: GoogleFonts.plusJakartaSans(
+                                    fontSize: 12,
+                                    color: Colors.white70,
+                                  ),
+                                ),
+                              ],
+                            );
+                          },
                         ),
                       ],
                     ),
