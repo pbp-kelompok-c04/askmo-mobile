@@ -13,6 +13,7 @@ import 'package:askmo/chatbot/screens/gemini_chat_screen.dart';
 import 'package:askmo/right_drawer.dart';
 // Import UserState untuk cek login/username
 import 'package:askmo/profile/models/user_state.dart';
+import 'package:askmo/authentication/screens/login.dart';
 
 // IMPORTS MODEL & SCREENS
 import 'package:askmo/lapangan/models/lapangan.dart';
@@ -80,9 +81,29 @@ class _MenuPageState extends State<MenuPage>
   }
 
   void _onItemTapped(int index) {
-    setState(() {
-      _selectedIndex = index;
-    });
+    final userState = context.read<UserState>();
+    final isLoggedIn = userState.username.isNotEmpty;
+
+    if (index == 0) {
+      // Beranda - always allowed
+      setState(() {
+        _selectedIndex = index;
+      });
+    } else {
+      // Lapangan, Coach, Event - require login
+      if (!isLoggedIn) {
+        Navigator.push(
+          context,
+          MaterialPageRoute(
+            builder: (context) => LoginPage(returnToIndex: index),
+          ),
+        );
+      } else {
+        setState(() {
+          _selectedIndex = index;
+        });
+      }
+    }
   }
 
   TextStyle _t(
@@ -143,18 +164,30 @@ class _MenuPageState extends State<MenuPage>
         ],
       ),
 
-      // === MISSING PART ADDED HERE ===
       floatingActionButton: _selectedIndex == 0
           ? Padding(
               padding: const EdgeInsets.only(bottom: 90.0),
               child: FloatingActionButton(
                 onPressed: () {
-                  Navigator.push(
-                    context,
-                    MaterialPageRoute(
-                      builder: (context) => const GeminiChatScreen(),
-                    ),
-                  );
+                  final userState = context.read<UserState>();
+                  if (userState.username.isEmpty) {
+                    // User not logged in, redirect to login
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) =>
+                            LoginPage(returnRoute: const GeminiChatScreen()),
+                      ),
+                    );
+                  } else {
+                    // User logged in, go to chatbot
+                    Navigator.push(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const GeminiChatScreen(),
+                      ),
+                    );
+                  }
                 },
                 backgroundColor: const Color(0xFFA4E4FF),
                 foregroundColor: Colors.black,
@@ -170,7 +203,6 @@ class _MenuPageState extends State<MenuPage>
           : null,
       floatingActionButtonLocation: FloatingActionButtonLocation.endDocked,
 
-      // ===============================
       bottomNavigationBar: ClipRRect(
         borderRadius: const BorderRadius.only(
           topLeft: Radius.circular(20.0),
@@ -268,6 +300,7 @@ class _HomeContentState extends State<HomeContent> {
   bool _loading = true;
   String? _error;
   String _searchQuery = "";
+  String? _selectedSport;
 
   List<Lapangan> _lapangan = [];
   List<Coach> _coaches = [];
@@ -356,36 +389,85 @@ class _HomeContentState extends State<HomeContent> {
     }
   }
 
-  // --- Search Logic Helpers ---
+  // --- Search and Filter Logic Helpers ---
   List<Lapangan> get _filteredLapangan {
-    if (_searchQuery.isEmpty) return _lapangan;
-    return _lapangan
-        .where(
-          (item) =>
-              item.nama.toLowerCase().contains(_searchQuery.toLowerCase()),
-        )
-        .toList();
+    var result = _lapangan;
+
+    // Filter by sport
+    if (_selectedSport != null) {
+      result = result
+          .where(
+            (item) =>
+                item.olahraga.toLowerCase() == _selectedSport!.toLowerCase(),
+          )
+          .toList();
+    }
+
+    // Filter by search query
+    if (_searchQuery.isNotEmpty) {
+      result = result
+          .where(
+            (item) =>
+                item.nama.toLowerCase().contains(_searchQuery.toLowerCase()),
+          )
+          .toList();
+    }
+
+    return result;
   }
 
   List<Coach> get _filteredCoaches {
-    if (_searchQuery.isEmpty) return _coaches;
-    return _coaches
-        .where(
-          (item) => item.fields.name.toLowerCase().contains(
-            _searchQuery.toLowerCase(),
-          ),
-        )
-        .toList();
+    var result = _coaches;
+
+    // Filter by sport
+    if (_selectedSport != null) {
+      result = result
+          .where(
+            (item) =>
+                item.fields.sportBranch.toLowerCase() ==
+                _selectedSport!.toLowerCase(),
+          )
+          .toList();
+    }
+
+    // Filter by search query
+    if (_searchQuery.isNotEmpty) {
+      result = result
+          .where(
+            (item) => item.fields.name.toLowerCase().contains(
+              _searchQuery.toLowerCase(),
+            ),
+          )
+          .toList();
+    }
+
+    return result;
   }
 
   List<Event> get _filteredEvents {
-    if (_searchQuery.isEmpty) return _events;
-    return _events
-        .where(
-          (item) =>
-              item.nama.toLowerCase().contains(_searchQuery.toLowerCase()),
-        )
-        .toList();
+    var result = _events;
+
+    // Filter by sport
+    if (_selectedSport != null) {
+      result = result
+          .where(
+            (item) =>
+                item.olahraga.toLowerCase() == _selectedSport!.toLowerCase(),
+          )
+          .toList();
+    }
+
+    // Filter by search query
+    if (_searchQuery.isNotEmpty) {
+      result = result
+          .where(
+            (item) =>
+                item.nama.toLowerCase().contains(_searchQuery.toLowerCase()),
+          )
+          .toList();
+    }
+
+    return result;
   }
 
   @override
@@ -418,7 +500,7 @@ class _HomeContentState extends State<HomeContent> {
                     builder: (context, userState, _) {
                       final name = (userState.username.isNotEmpty)
                           ? userState.username
-                          : 'Guest';
+                          : 'Kawan ASKMO';
                       return Text(
                         'Halo, $name',
                         style: GoogleFonts.plusJakartaSans(
@@ -446,6 +528,18 @@ class _HomeContentState extends State<HomeContent> {
                     onChanged: (value) {
                       setState(() {
                         _searchQuery = value;
+                      });
+                    },
+                  ),
+
+                  const SizedBox(height: 20),
+
+                  // Sport Filter
+                  _SportFilter(
+                    selectedSport: _selectedSport,
+                    onSportSelected: (sport) {
+                      setState(() {
+                        _selectedSport = sport;
                       });
                     },
                   ),
@@ -590,6 +684,105 @@ class _SearchBar extends StatelessWidget {
             vertical: 14,
           ),
         ),
+      ),
+    );
+  }
+}
+
+// SPORT FILTER WIDGET
+class _SportFilter extends StatelessWidget {
+  final String? selectedSport;
+  final Function(String?) onSportSelected;
+
+  const _SportFilter({
+    required this.selectedSport,
+    required this.onSportSelected,
+  });
+
+  @override
+  Widget build(BuildContext context) {
+    final sports = [
+      {'name': 'Futsal', 'icon': 'futsal.png'},
+      {'name': 'Sepak Bola', 'icon': 'sepakbola.png'},
+      {'name': 'Basket', 'icon': 'basket.png'},
+      {'name': 'Badminton', 'icon': 'badminton.png'},
+      {'name': 'Voli', 'icon': 'voli.png'},
+      {'name': 'Tenis', 'icon': 'tenis.png'},
+      {'name': 'Golf', 'icon': 'golf.png'},
+      {'name': 'Padel', 'icon': 'padel.png'},
+      {'name': 'Lainnya', 'icon': 'lainnya.png'},
+    ];
+
+    return SizedBox(
+      height: 100,
+      child: ListView.separated(
+        scrollDirection: Axis.horizontal,
+        itemCount: sports.length,
+        separatorBuilder: (_, __) => const SizedBox(width: 16),
+        itemBuilder: (_, index) {
+          final sport = sports[index];
+          final sportName = sport['name']!;
+          final isSelected = selectedSport == sportName;
+
+          return GestureDetector(
+            onTap: () {
+              onSportSelected(isSelected ? null : sportName);
+            },
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Container(
+                  width: 60,
+                  height: 60,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    color: isSelected
+                        ? const Color(0xFF571E88)
+                        : Colors.white.withOpacity(0.1),
+                    border: Border.all(
+                      color: isSelected
+                          ? const Color(0xFFA4E4FF)
+                          : Colors.white.withOpacity(0.3),
+                      width: 2,
+                    ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: const Color(0xFF571E88).withOpacity(0.5),
+                              blurRadius: 10,
+                              offset: const Offset(0, 4),
+                            ),
+                          ]
+                        : null,
+                  ),
+                  child: Padding(
+                    padding: const EdgeInsets.all(12),
+                    child: Image.asset(
+                      'assets/icon-olahraga/${sport['icon']}',
+                      fit: BoxFit.contain,
+                      errorBuilder: (_, __, ___) => Icon(
+                        Icons.sports_soccer,
+                        color: isSelected ? Colors.white : Colors.white54,
+                        size: 28,
+                      ),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  sportName,
+                  style: GoogleFonts.plusJakartaSans(
+                    fontSize: 12,
+                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                    color: isSelected
+                        ? const Color(0xFFA4E4FF)
+                        : Colors.white.withOpacity(0.7),
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
       ),
     );
   }
@@ -889,7 +1082,6 @@ class _SeeMoreCard extends StatelessWidget {
       borderRadius: BorderRadius.circular(18),
       child: Container(
         width: 160,
-        margin: const EdgeInsets.symmetric(vertical: 8),
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(18),
           color: Colors.white.withOpacity(0.08),
@@ -941,9 +1133,14 @@ class _Thumb extends StatelessWidget {
       if (!kIsWeb && s.contains('127.0.0.1')) {
         return s.replaceAll('127.0.0.1', '10.0.2.2');
       }
+      if (!kIsWeb && s.contains('localhost')) {
+        return s.replaceAll('localhost', '10.0.2.2');
+      }
       return s;
     }
-    return 'http://10.0.2.2:8000/media/$s';
+    // Use the same base URL as the API calls
+    final base = _baseUrl();
+    return '$base/media/$s';
   }
 
   @override
@@ -970,6 +1167,45 @@ class _Thumb extends StatelessWidget {
         color: const Color(0xFF2A2A2A),
         child: Image.network(
           fixedUrl,
+          fit: BoxFit.cover,
+          errorBuilder: (_, __, ___) => fallback(),
+        ),
+      ),
+    );
+  }
+}
+
+// THUMBNAIL FOR EVENT (uses proxy-image endpoint)
+class _EventThumb extends StatelessWidget {
+  const _EventThumb({required this.url, required this.fallbackText});
+  final String? url;
+  final String fallbackText;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget fallback() => Center(
+      child: Text(
+        fallbackText,
+        style: GoogleFonts.plusJakartaSans(
+          fontSize: 12,
+          fontWeight: FontWeight.w600,
+          color: Colors.white.withOpacity(0.55),
+        ),
+        textAlign: TextAlign.center,
+      ),
+    );
+
+    if (url == null || url!.trim().isEmpty) return fallback();
+
+    final base = _baseUrl();
+    final proxyUrl = '$base/proxy-image/?url=${Uri.encodeComponent(url!)}';
+
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(14),
+      child: ColoredBox(
+        color: const Color(0xFF2A2A2A),
+        child: Image.network(
+          proxyUrl,
           fit: BoxFit.cover,
           errorBuilder: (_, __, ___) => fallback(),
         ),
@@ -1056,6 +1292,26 @@ class _LapanganCard extends StatelessWidget {
   const _LapanganCard({required this.item});
   final Lapangan item;
 
+  void _handleTap(BuildContext context) {
+    final userState = context.read<UserState>();
+    if (userState.username.isEmpty) {
+      // User not logged in, redirect to login with return route to detail page
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) =>
+              LoginPage(returnRoute: LapanganDetailPage(lapangan: item)),
+        ),
+      );
+    } else {
+      // User logged in, go to detail
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => LapanganDetailPage(lapangan: item)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -1118,14 +1374,7 @@ class _LapanganCard extends StatelessWidget {
                 Expanded(
                   child: _MiniButton(
                     label: 'Detail',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => LapanganDetailPage(lapangan: item),
-                        ),
-                      );
-                    },
+                    onTap: () => _handleTap(context),
                   ),
                 ),
               ],
@@ -1174,6 +1423,25 @@ class _CoachCard extends StatelessWidget {
   const _CoachCard({required this.item});
   final Coach item;
 
+  void _handleTap(BuildContext context) {
+    final userState = context.read<UserState>();
+    if (userState.username.isEmpty) {
+      // User not logged in, redirect to login with return route to detail page
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => LoginPage(returnRoute: CoachDetailPage(coach: item)),
+        ),
+      );
+    } else {
+      // User logged in, go to detail
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => CoachDetailPage(coach: item)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     return SizedBox(
@@ -1202,7 +1470,8 @@ class _CoachCard extends StatelessWidget {
             ),
             const SizedBox(height: 2),
             Text(
-              item.fields.sportBranch,
+              item.fields.sportBranch[0].toUpperCase() +
+                  item.fields.sportBranch.substring(1).toLowerCase(),
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.plusJakartaSans(
@@ -1213,7 +1482,9 @@ class _CoachCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              item.fields.serviceFee,
+              item.fields.serviceFee.startsWith('Rp')
+                  ? item.fields.serviceFee
+                  : 'Rp ${item.fields.serviceFee}',
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.plusJakartaSans(
@@ -1228,14 +1499,7 @@ class _CoachCard extends StatelessWidget {
                 Expanded(
                   child: _MiniButton(
                     label: 'Detail',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => CoachDetailPage(coach: item),
-                        ),
-                      );
-                    },
+                    onTap: () => _handleTap(context),
                   ),
                 ),
               ],
@@ -1284,6 +1548,25 @@ class _EventCard extends StatelessWidget {
   const _EventCard({required this.item});
   final Event item;
 
+  void _handleTap(BuildContext context) {
+    final userState = context.read<UserState>();
+    if (userState.username.isEmpty) {
+      // User not logged in, redirect to login with return route to detail page
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => LoginPage(returnRoute: EventDetailPage(event: item)),
+        ),
+      );
+    } else {
+      // User logged in, go to detail
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => EventDetailPage(event: item)),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final dateStr =
@@ -1299,7 +1582,7 @@ class _EventCard extends StatelessWidget {
             Expanded(
               child: SizedBox(
                 width: double.infinity,
-                child: _Thumb(url: item.thumbnail, fallbackText: 'Foto'),
+                child: _EventThumb(url: item.thumbnail, fallbackText: 'Foto'),
               ),
             ),
             const SizedBox(height: 10),
@@ -1325,14 +1608,7 @@ class _EventCard extends StatelessWidget {
                 Expanded(
                   child: _MiniButton(
                     label: 'Detail',
-                    onTap: () {
-                      Navigator.push(
-                        context,
-                        MaterialPageRoute(
-                          builder: (_) => EventDetailPage(event: item),
-                        ),
-                      );
-                    },
+                    onTap: () => _handleTap(context),
                   ),
                 ),
               ],

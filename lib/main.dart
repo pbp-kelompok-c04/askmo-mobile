@@ -1,5 +1,6 @@
 import 'package:askmo/history/models/booking_history_state.dart';
 import 'package:flutter/material.dart';
+import 'package:askmo/menu.dart';
 import 'package:askmo/authentication/screens/login.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
@@ -7,6 +8,7 @@ import 'package:askmo/profile/models/user_state.dart';
 import 'package:askmo/wishlist/models/wishlist_state.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/date_symbol_data_local.dart';
+import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 
@@ -57,7 +59,117 @@ class MyApp extends StatelessWidget {
             secondary: const Color(0xFFA4E4FF),
           ),
         ),
-        home: const LoginPage(),
+        home: const FirstLaunchWrapper(),
+      ),
+    );
+  }
+}
+
+class FirstLaunchWrapper extends StatefulWidget {
+  const FirstLaunchWrapper({super.key});
+
+  @override
+  State<FirstLaunchWrapper> createState() => _FirstLaunchWrapperState();
+}
+
+class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
+  bool _isFirstLaunch = true;
+  bool _isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _checkFirstLaunch();
+  }
+
+  Future<void> _checkFirstLaunch() async {
+    final prefs = await SharedPreferences.getInstance();
+
+    // UNCOMMENT LINE BELOW TO RESET FIRST LAUNCH (for testing)
+    await prefs.remove('has_launched');
+
+    final hasLaunched = prefs.getBool('has_launched') ?? false;
+
+    // Clear cookies on first launch to ensure clean slate
+    if (!hasLaunched) {
+      final request = context.read<CookieRequest>();
+      await request.logout("http://localhost:8000/auth/logout/");
+    }
+
+    setState(() {
+      _isFirstLaunch = !hasLaunched;
+      _isLoading = false;
+    });
+  }
+
+  void _markAsLaunched() async {
+    final prefs = await SharedPreferences.getInstance();
+    await prefs.setBool('has_launched', true);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    if (_isLoading) {
+      return const Scaffold(
+        backgroundColor: Colors.black,
+        body: Center(
+          child: CircularProgressIndicator(color: Color(0xFF571E88)),
+        ),
+      );
+    }
+
+    if (_isFirstLaunch) {
+      return LoginPageWithSkip(onSkip: _markAsLaunched);
+    } else {
+      return const MenuPage();
+    }
+  }
+}
+
+class LoginPageWithSkip extends StatelessWidget {
+  final VoidCallback? onSkip;
+
+  const LoginPageWithSkip({super.key, this.onSkip});
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      body: Stack(
+        children: [
+          const LoginPage(),
+          Positioned(
+            top: 50,
+            right: 20,
+            child: TextButton(
+              onPressed: () {
+                onSkip?.call();
+                Navigator.pushReplacement(
+                  context,
+                  MaterialPageRoute(builder: (context) => const MenuPage()),
+                );
+              },
+              style: TextButton.styleFrom(
+                backgroundColor: Colors.white.withOpacity(0.1),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 20,
+                  vertical: 10,
+                ),
+                shape: RoundedRectangleBorder(
+                  borderRadius: BorderRadius.circular(20),
+                  side: BorderSide(color: Colors.white.withOpacity(0.3)),
+                ),
+              ),
+              child: Text(
+                'Skip',
+                style: GoogleFonts.plusJakartaSans(
+                  color: Colors.white,
+                  fontWeight: FontWeight.w600,
+                  fontSize: 14,
+                ),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
