@@ -24,7 +24,7 @@ jobs:
 
       - name: Get version from pubspec.yaml
         id: version
-        run: echo "::set-output name=version::$(grep "version:" pubspec.yaml | cut -c10-)"
+        run: echo "version=$(grep "version:" pubspec.yaml | cut -c10-)" >> $GITHUB_OUTPUT
 
       - name: Setup Java
         uses: actions/setup-java@v3
@@ -45,11 +45,11 @@ jobs:
 
       - name: Get current date
         id: date
-        run: echo "::set-output name=date::$(TZ='Asia/Jakarta' date +'%A %d-%m-%Y %T WIB')"
+        run: echo "date=$(TZ='Asia/Jakarta' date +'%A %d-%m-%Y %T WIB')" >> $GITHUB_OUTPUT
 
       - name: Generate unique tag
         id: tag
-        run: echo "::set-output name=tag::v${{ steps.version.outputs.version }}-$(date +'%Y%m%d%H%M%S')"
+        run: echo "tag=v${{ steps.version.outputs.version }}-$(date +'%Y%m%d%H%M%S')" >> $GITHUB_OUTPUT
 
       - name: Release APK
         uses: ncipollo/release-action@v1
