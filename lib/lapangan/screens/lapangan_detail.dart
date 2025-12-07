@@ -1,9 +1,12 @@
 import 'dart:ui'; // Needed for ImageFilter
+
+import 'package:askmo/feat/review/screens/review_list_page.dart';
+import 'package:askmo/feat/review/services/review_services.dart';
+import 'package:askmo/wishlist/models/wishlist_state.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:provider/provider.dart';
-import 'package:askmo/feat/review/screens/review_list_page.dart';
-import 'package:askmo/wishlist/models/wishlist_state.dart';
+
 import '../models/lapangan.dart';
 
 class LapanganDetailPage extends StatefulWidget {
@@ -17,14 +20,12 @@ class LapanganDetailPage extends StatefulWidget {
 
 class _LapanganDetailPageState extends State<LapanganDetailPage>
     with SingleTickerProviderStateMixin {
-  // Animation controllers for the background aura
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
-    // Initialize Animation Controller
     _animationController = AnimationController(
       duration: const Duration(seconds: 15),
       vsync: this,
@@ -41,7 +42,6 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     super.dispose();
   }
 
-  // Helper to convert text to Title Case
   String _toTitleCase(String text) {
     if (text.isEmpty) return text;
     return text.split(' ').map((word) {
@@ -50,7 +50,6 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     }).join(' ');
   }
 
-  // Background Aura Widget
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -105,6 +104,13 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    // rating yg dipakai di detail:
+    // - kalau cache ada → pakai cache (hasil hitung dari reviews JSON)
+    // - kalau tidak → pakai rating dari model Lapangan (sudah diupdate Django)
+    final cachedAvg =
+        ReviewService.getCachedAverage(widget.lapangan.id);
+    final currentRating = cachedAvg ?? widget.lapangan.rating;
+
     return Scaffold(
       backgroundColor: Colors.black,
       extendBodyBehindAppBar: true,
@@ -151,7 +157,8 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                         isWished
                             ? 'Dihapus dari Wishlist'
                             : 'Ditambahkan ke Wishlist',
-                        style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                        style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white),
                       ),
                       duration: const Duration(seconds: 2),
                     ),
@@ -165,10 +172,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
       ),
       body: Stack(
         children: [
-          // 1. Background Aura
           Positioned.fill(child: _buildBackgroundAura()),
-
-          // 2. Main Content
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
@@ -196,20 +200,16 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        // 1. Nama Lapangan (First)
                         Text(
                           widget.lapangan.nama,
                           style: GoogleFonts.plusJakartaSans(
                             color: Colors.white,
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
-                            height: 1.1, // Reduced line height slightly
+                            height: 1.1,
                           ),
                         ),
-
                         const SizedBox(height: 6),
-
-                        // Sport Tag (Title Case)
                         Container(
                           padding: const EdgeInsets.symmetric(
                               horizontal: 12, vertical: 6),
@@ -218,7 +218,8 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                             borderRadius: BorderRadius.circular(999),
                             boxShadow: [
                               BoxShadow(
-                                color: const Color(0xFF06005E).withOpacity(0.4),
+                                color: const Color(0xFF06005E)
+                                    .withOpacity(0.4),
                                 blurRadius: 8,
                                 offset: const Offset(0, 2),
                               )
@@ -234,8 +235,6 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                           ),
                         ),
                         const SizedBox(height: 24),
-
-                        // 2. Alamat (Second)
                         Row(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
@@ -257,13 +256,9 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                           ],
                         ),
                         const SizedBox(height: 24),
-
-                        // 3. Pictures (Third)
                         _buildThumbnail(),
                         const SizedBox(height: 24),
-
-                        // 4. Other Details + Review Button
-                        _buildDetailsSection(),
+                        _buildDetailsSection(currentRating),
                       ],
                     ),
                   ),
@@ -318,15 +313,14 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     );
   }
 
-  Widget _buildDetailsSection() {
+  Widget _buildDetailsSection(double currentRating) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Info Rows
         _buildDetailRow(
           icon: Icons.star,
           label: 'Rating',
-          value: '${widget.lapangan.rating} / 5.0',
+          value: '${currentRating.toStringAsFixed(1)} / 5.0',
         ),
         const SizedBox(height: 16),
         _buildDetailRow(
@@ -343,12 +337,9 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
             value: widget.lapangan.fasilitas!,
           ),
         ],
-
         const SizedBox(height: 24),
         const Divider(color: Colors.white24),
         const SizedBox(height: 24),
-
-        // Price
         Text(
           'Rp ${widget.lapangan.tarifPerSesi} / sesi',
           style: GoogleFonts.plusJakartaSans(
@@ -358,8 +349,6 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
           ),
         ),
         const SizedBox(height: 24),
-
-        // Description
         Text(
           'Deskripsi',
           style: GoogleFonts.plusJakartaSans(
@@ -377,8 +366,6 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
             height: 1.5,
           ),
         ),
-
-        // Peraturan (Optional)
         if (widget.lapangan.peraturan != null &&
             widget.lapangan.peraturan!.isNotEmpty) ...[
           const SizedBox(height: 24),
@@ -400,10 +387,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
             ),
           ),
         ],
-
         const SizedBox(height: 24),
-
-        // Button: Lihat Rating & Review
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
@@ -419,7 +403,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                 context,
                 MaterialPageRoute(
                   builder: (_) => ReviewListPage(
-                    lapanganId: widget.lapangan.id, // UUID string
+                    lapanganId: widget.lapangan.id,
                     lapanganName: widget.lapangan.nama,
                   ),
                 ),

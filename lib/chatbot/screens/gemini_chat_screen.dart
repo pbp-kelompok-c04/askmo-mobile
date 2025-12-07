@@ -5,10 +5,9 @@ import 'dart:ui';
 import 'package:askmo/profile/models/user_state.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert'; // Import untuk base64Decode
-
-// Ganti dengan API Key Anda yang sebenarnya dari Google AI Studio.
-// WARNING: Dalam aplikasi produksi, jangan hardcode seperti ini.
-const String _apiKey = 'AIzaSyDmN6VmHLA1LmsjcYt-N2o5DxUIf79yel0'; 
+import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter/foundation.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 
 class GeminiChatScreen extends StatefulWidget {
   const GeminiChatScreen({super.key});
@@ -25,6 +24,7 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
   final List<Map<String, dynamic>> _messages = [];
   bool _isSending = false;
   
+  late final String _apiKey;
   late final GenerativeModel _model;
   late final ChatSession _chat;
   
@@ -34,6 +34,13 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
   @override
   void initState() {
     super.initState();
+    // Prefer compile-time --dart-define for web; fallback to .env for mobile/desktop.
+    _apiKey = const String.fromEnvironment('GEMINI_API_KEY',
+        defaultValue: '') // web / release define
+      .isNotEmpty
+        ? const String.fromEnvironment('GEMINI_API_KEY')
+        : (dotenv.env['GEMINI_API_KEY'] ?? '');
+    
     _model = GenerativeModel(
       model: 'gemini-2.5-flash',
       apiKey: _apiKey,
@@ -50,9 +57,18 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
     
     _chat = _model.startChat(
       history: [
-        Content.system(
-          'You are ASKMO Sport Assistant, an expert coach, fitness, and nutrition advisor. Your persona is helpful, knowledgeable, and highly motivating. Give direct, high-quality, and specific advice related to the user\'s sports, like training plans, form checks (hypothetically), or nutrition tips. Respond in Indonesian.'
-        )
+        // Gemini accepts only roles "user" or "model". Seed with a user message as instruction.
+        Content(
+          'user',
+          [
+            TextPart(
+              'You are ASKMO Sport Assistant, an expert coach, fitness, and nutrition advisor. '
+              'Your persona is helpful, knowledgeable, and highly motivating. Give direct, high-quality, '
+              'and specific advice related to the user\'s sports, like training plans, form checks '
+              '(hypothetically), or nutrition tips. Respond in Indonesian.',
+            ),
+          ],
+        ),
       ]
     );
     
@@ -89,6 +105,11 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
 
     _textController.clear();
     _addMessage(message, 'user');
+
+    if (_apiKey.isEmpty) {
+      _addMessage('Konfigurasi kunci API belum diatur. Tambahkan GEMINI_API_KEY di file .env.', 'model');
+      return;
+    }
     
     setState(() => _isSending = true);
 
@@ -180,7 +201,8 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
             Text(
               'Pelatih Virtual Anda',
               style: GoogleFonts.plusJakartaSans(
-                fontSize: 12,
+                fontWeight: FontWeight.bold,
+                fontSize: 14,
                 color: Colors.white70,
               ),
             ),
@@ -192,8 +214,7 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
             child: CircleAvatar(
               radius: 18,
               backgroundColor: const Color(0xFFA4E4FF),
-              // Mengganti Image.asset dengan Icon/placeholder
-              child: const Icon(Icons.psychology, color: Colors.black, size: 20),
+              backgroundImage: const AssetImage('assets/image/avatar_chatbot.png'),
             ),
           ),
         ],
@@ -263,10 +284,12 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
         backgroundColor: const Color(0xFF6C5CE7),
       );
     } else {
-      avatarWidget = const CircleAvatar(
+      avatarWidget = const CircleAvatar( // Gunakan const di sini
         radius: 18,
         backgroundColor: Color(0xFFA4E4FF),
-        child: Icon(Icons.psychology, color: Colors.black, size: 20),
+        backgroundImage: AssetImage(
+            'assets/image/avatar_chatbot.png',
+        ),
       );
     }
 
@@ -308,19 +331,46 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
                     isUser ? displayName : 'ASKMO Assistant',
                     style: GoogleFonts.plusJakartaSans(
                       color: isUser ? Colors.white70 : const Color(0xFFA4E4FF),
-                      fontSize: 10,
+                      fontSize: 12,
                       fontWeight: FontWeight.bold,
                     ),
                   ),
                   const SizedBox(height: 4),
-                  Text(
-                    text,
-                    style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white,
-                      fontSize: 14,
-                      height: 1.4,
-                    ),
-                  ),
+                  isUser
+                      ? Text(
+                          text,
+                          style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white,
+                            fontSize: 14,
+                            height: 1.4,
+                          ),
+                        )
+                      : MarkdownBody(
+                          data: text,
+                          styleSheet: MarkdownStyleSheet(
+                            p: GoogleFonts.plusJakartaSans(
+                              color: Colors.white,
+                              fontSize: 14,
+                              height: 1.4,
+                            ),
+                            strong: GoogleFonts.plusJakartaSans(
+                              color: Colors.white,
+                              fontSize: 14,
+                              fontWeight: FontWeight.w700,
+                            ),
+                            listBullet: GoogleFonts.plusJakartaSans(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                          bulletBuilder: (params) => Text(
+                            '• ',
+                            style: GoogleFonts.plusJakartaSans(
+                              color: Colors.white,
+                              fontSize: 14,
+                            ),
+                          ),
+                        ),
                   if (!isUser && isLast && _isSending) 
                     Padding(
                       padding: const EdgeInsets.only(top: 8.0),
@@ -339,7 +389,7 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
           ),
           if (isUser) ...[
             const SizedBox(width: 8),
-            avatarWidget, // Menggunakan avatarWidget yang sudah dibuat
+            avatarWidget,
           ],
         ],
       ),
@@ -414,4 +464,3 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
     );
   }
 }
-

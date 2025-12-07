@@ -46,7 +46,7 @@ class _AboutPageState extends State<AboutPage>
     {
       'name': 'Nisrina Alya Nabilah',
       'role': 'Admin ASKMO',
-      'image': 'assets/image/nisrinaalya.png',
+      'image': 'assets/image/nisrinaalya.jpg',
       'description':
           'Mengembangkan fitur Profile dan Wishlist dengan pengelolaan CRUD: tambah data atau item, lihat profil serta wishlist, ubah data profil dan item wishlist, dan hapus item wishlist bila tidak diperlukan. Dirancang supaya nyaman dipakai dengan UI yang modern dan intuitif.',
     },

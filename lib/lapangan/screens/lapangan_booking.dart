@@ -623,6 +623,11 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
   void _showSuccessSheet() {
     if (!mounted) return;
 
+    final bookingHistoryState = Provider.of<BookingHistoryState>(
+      context,
+      listen: false,
+    );
+
     showModalBottomSheet<void>(
       context: context,
       backgroundColor: Colors.transparent,
@@ -740,6 +745,28 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
           ),
         );
       },
+    );
+
+    DateTime bookingDate = DateTime.now();
+    String dayKey = _selectedDay ?? 'Hari ini';
+    if (dayKey == 'Besok') {
+      bookingDate = bookingDate.add(const Duration(days: 1));
+    } else if (dayKey == 'Lusa') {
+      bookingDate = bookingDate.add(const Duration(days: 2));
+    }
+    
+    final formattedDate = DateFormat('dd MMM yyyy').format(bookingDate);
+    final bookingTime = _selectedSlot ?? 'N/A';
+    
+    // Tambahkan item riwayat
+    bookingHistoryState.addHistoryItem(
+      name: widget.lapangan.nama,
+      lapanganId: widget.lapangan.id,
+      olahraga: widget.lapangan.olahraga,
+      date: '$formattedDate, $bookingTime',
+      paymentMethod: _paymentMethod,
+      price: widget.lapangan.tarifPerSesi,
+      imageUrl: widget.lapangan.thumbnail ?? '',
     );
 
     Future<void>.delayed(const Duration(seconds: 2), () {

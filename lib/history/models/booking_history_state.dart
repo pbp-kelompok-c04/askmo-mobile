@@ -11,6 +11,7 @@ class BookingItem {
   final String price;
   final String timestamp;
   final String imageUrl;
+  final String olahraga;
 
   BookingItem({
     required this.id,
@@ -21,6 +22,7 @@ class BookingItem {
     required this.price,
     required this.timestamp,
     required this.imageUrl,
+    required this.olahraga,
   });
 
   Map<String, dynamic> toJson() => {
@@ -32,6 +34,7 @@ class BookingItem {
     'price': price,
     'timestamp': timestamp,
     'imageUrl': imageUrl,
+    'olahraga': olahraga,
   };
 
   factory BookingItem.fromJson(Map<String, dynamic> json) => BookingItem(
@@ -43,6 +46,7 @@ class BookingItem {
     price: json['price'],
     timestamp: json['timestamp'],
     imageUrl: json['imageUrl'],
+    olahraga: json['olahraga'],
   );
 }
 
@@ -54,6 +58,33 @@ class BookingHistoryState extends ChangeNotifier {
 
   BookingHistoryState() {
     // Don't auto-load, wait for setUsername
+  }
+
+  void addHistoryItem({
+    required String name,
+    required String lapanganId,
+    required String olahraga,
+    required String date, // date & time combined, e.g., "01 Jan 2024, 08:00 - 09:00"
+    required String paymentMethod,
+    required String price,
+    required String imageUrl, // PERLU DITAMBAHKAN
+  }) {
+    final parts = date.split(', ');
+    final dayPart = parts.first;
+    final slotPart = parts.length > 1 ? parts.last : '';
+    
+    final newItem = BookingItem(
+      id: lapanganId,
+      name: name,
+      day: dayPart, // Tanggal: "01 Jan 2024"
+      slot: slotPart, // Jam: "08:00 - 09:00"
+      paymentMethod: paymentMethod,
+      price: price,
+      timestamp: DateTime.now().toIso8601String(), // Waktu pencatatan
+      imageUrl: imageUrl,
+      olahraga: olahraga,
+    );
+  addBooking(newItem);
   }
 
   Future<void> setUsername(String username) async {
