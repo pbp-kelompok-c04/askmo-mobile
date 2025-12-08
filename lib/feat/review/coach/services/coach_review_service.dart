@@ -2,6 +2,7 @@
 
 import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
@@ -161,3 +162,4 @@ class CoachReviewService {
     }
   }
 }
+
