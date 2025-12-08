@@ -1,6 +1,7 @@
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:askmo/config/api_base.dart';
 import 'package:askmo/coach/models/coach_model.dart';
 import 'package:askmo/coach/screens/coach_edit_form.dart';
 import 'package:askmo/user_info.dart';
@@ -72,7 +73,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
       return photoPath;
     }
-    return 'http://127.0.0.1:8000/media/$photoPath';
+    return '$apiBase/media/$photoPath';
   }
 
   /// Background aura animasi untuk tampilan detail
@@ -180,7 +181,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
       try {
         final request = context.read<CookieRequest>();
         final response = await request.post(
-          'http://127.0.0.1:8000/coach/delete-coach-ajax/${widget.coach.pk}/',
+          '$apiBase/coach/delete-coach-ajax/${widget.coach.pk}/',
           {},
         );
 

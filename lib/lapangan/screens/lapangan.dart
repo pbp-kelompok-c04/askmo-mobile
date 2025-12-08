@@ -1,4 +1,5 @@
 // lib/screens/lapangan_page.dart
+import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
@@ -181,9 +182,7 @@ class _LapanganPageState extends State<LapanganPage> {
 
     try {
       final request = context.read<CookieRequest>();
-      // IMPORTANT: Use 10.0.2.2 for Android Emulator, 127.0.0.1 for Web/iOS
-      // Check your Django endpoint name in main/urls.py (assumed 'show_json' mapped to /json/)
-      final response = await request.get('http://127.0.0.1:8000/json/');
+      final response = await request.get('$apiBase/json/');
 
       // The /json/ endpoint returns a List<dynamic> directly
       if (response != null) {
