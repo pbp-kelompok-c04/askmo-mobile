@@ -8,7 +8,9 @@ import 'package:provider/provider.dart';
 import '../models/coach_review.dart';
 
 class CoachReviewService {
-  static String get baseUrl => apiBase;
+  // Base URL sederhana
+  static String get baseUrl =>
+      kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
 
   static String _extractErrorMessage(dynamic response, String defaultMsg) {
     if (response is Map<String, dynamic>) {
@@ -38,7 +40,8 @@ class CoachReviewService {
   ) async {
     final request = context.read<CookieRequest>();
 
-    final url = '$baseUrl/coach/json/$coachId/';
+    // -> /review/coach/json/<coach_id>/
+    final url = '$baseUrl/review/coach/json/$coachId/';
 
     final response = await request.get(url);
 
@@ -64,7 +67,8 @@ class CoachReviewService {
   }) async {
     final request = context.read<CookieRequest>();
 
-    final url = '$baseUrl/coach/add-ajax/$coachId/';
+    // -> /review/coach/add-ajax/<coach_id>/
+    final url = '$baseUrl/review/coach/add-ajax/$coachId/';
 
     final response = await request.post(url, {
       'reviewer_name': reviewerName,
@@ -98,7 +102,8 @@ class CoachReviewService {
   }) async {
     final request = context.read<CookieRequest>();
 
-    final url = '$baseUrl/coach/edit-ajax/$reviewId/';
+    // -> /review/coach/edit-ajax/<review_id>/
+    final url = '$baseUrl/review/coach/edit-ajax/$reviewId/';
 
     final response = await request.post(url, {
       'reviewer_name': reviewerName,
@@ -129,7 +134,8 @@ class CoachReviewService {
   ) async {
     final request = context.read<CookieRequest>();
 
-    final url = '$baseUrl/coach/delete/$reviewId/';
+    // -> /review/coach/delete/<review_id>/
+    final url = '$baseUrl/review/coach/delete/$reviewId/';
 
     final response = await request.post(url, {});
 
