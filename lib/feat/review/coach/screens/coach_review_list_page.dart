@@ -23,13 +23,87 @@ class CoachReviewListPage extends StatefulWidget {
   State<CoachReviewListPage> createState() => _CoachReviewListPageState();
 }
 
-class _CoachReviewListPageState extends State<CoachReviewListPage> {
+class _CoachReviewListPageState extends State<CoachReviewListPage>
+    with SingleTickerProviderStateMixin {
   late Future<List<CoachReview>> _futureReviews;
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
     _futureReviews = CoachReviewService.fetchReviews(context, widget.coachId);
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
+  }
+
+  Widget _buildBackgroundAura() {
+    return AnimatedBuilder(
+      animation: _pulseAnimation,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            Positioned(
+              top: -150,
+              left: -150,
+              child: Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 700,
+                  height: 700,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF571E88).withOpacity(0.7),
+                        const Color(0xFF06005E).withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -200,
+              right: -200,
+              child: Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 800,
+                  height: 800,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF6F0732).withOpacity(0.7),
+                        const Color(0xFF571E88).withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
   }
 
   Future<void> _refresh() async {
@@ -131,40 +205,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          Positioned(
-            top: -200,
-            left: -100,
-            child: Container(
-              width: 500,
-              height: 500,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF571E88).withOpacity(0.7),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -250,
-            right: -120,
-            child: Container(
-              width: 600,
-              height: 600,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF6F0732).withOpacity(0.7),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
+          _buildBackgroundAura(),
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
