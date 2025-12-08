@@ -1,19 +1,25 @@
+// lib/feat/review/services/review_service.dart
+
 import 'dart:math' as math;
+
+import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
 
 import 'package:askmo/config/api_base.dart';
 import 'package:askmo/feat/review/models/review_lapangan.dart';
-import 'package:flutter/material.dart';
-import 'package:pbp_django_auth/pbp_django_auth.dart';
-import 'package:provider/provider.dart';
 
 class ReviewService {
-  static const String baseUrl = apiBase;
+  // pakai base URL dari config/api_base.dart
+  static String get baseUrl => apiBase;
 
+  // cache rata-rata per lapangan (optional, buat tampilan lebih cepat)
   static final Map<String, double> _cachedAverageByLapangan = {};
 
   static double? getCachedAverage(String lapanganId) =>
       _cachedAverageByLapangan[lapanganId];
 
+  // ===== helper rounding biar mirip Python round(..., 1) =====
   static double _roundLikePython(double value, int digits) {
     final factor = math.pow(10, digits);
     final scaled = value * factor;
@@ -31,6 +37,7 @@ class ReviewService {
     }
   }
 
+  // hitung rata-rata rating dari list ReviewLapangan
   static double? calculateAverageFromReviews(List<ReviewLapangan> reviews) {
     if (reviews.isEmpty) return null;
 
@@ -40,7 +47,7 @@ class ReviewService {
 
     for (final r in reviews) {
       if (r.isDataset) {
-        datasetRating ??= r.rating; // kalau ada >1, pakai yg pertama
+        datasetRating ??= r.rating; // kalau lebih dari satu, pakai yang pertama
       } else {
         userTotal += r.rating;
         userCount++;
@@ -63,33 +70,7 @@ class ReviewService {
     return _roundLikePython(avgRating, 1);
   }
 
-  // 1. Ambil semua review utk 1 lapangan
-  static Future<List<ReviewLapangan>> fetchReviews(
-    BuildContext context,
-    String lapanganId,
-  ) async {
-    final request = context.read<CookieRequest>();
-    final url = '$baseUrl/lapangan/review/json/$lapanganId/';
-
-    final response = await request.get(url);
-    final list = response as List<dynamic>;
-
-    final reviews = list
-        .map((e) => ReviewLapangan.fromJson(e as Map<String, dynamic>))
-        .toList();
-
-    // Update cache rata-rata untuk lapangan ini
-    final avg = calculateAverageFromReviews(reviews);
-    if (avg != null) {
-      _cachedAverageByLapangan[lapanganId] = avg;
-    } else {
-      _cachedAverageByLapangan.remove(lapanganId);
-    }
-
-    return reviews;
-  }
-
-  // helper buat ngambil pesan error yg lebih manusiawi
+  // ===== helper ambil pesan error dari response Django =====
   static String _extractErrorMessage(dynamic response, String defaultMsg) {
     if (response is Map<String, dynamic>) {
       if (response['message'] != null) {
@@ -100,7 +81,6 @@ class ReviewService {
         if (errors.isNotEmpty) {
           final firstKey = errors.keys.first;
           final firstVal = errors[firstKey];
-
           if (firstVal is List && firstVal.isNotEmpty) {
             return firstVal.first.toString();
           }
@@ -111,7 +91,46 @@ class ReviewService {
     return defaultMsg;
   }
 
+  // =========================================================
+  // 1. Ambil semua review untuk 1 lapangan (JSON list)
+  // Django: path('lapangan/json/<uuid:lapangan_id>/', ...)
+  // project urls: include('review/', review.urls)
+  // => /review/lapangan/json/<lapangan_id>/
+  // =========================================================
+  static Future<List<ReviewLapangan>> fetchReviews(
+    BuildContext context,
+    String lapanganId,
+  ) async {
+    final request = context.read<CookieRequest>();
+    final url = '$baseUrl/review/lapangan/json/$lapanganId/';
+
+    final response = await request.get(url);
+
+    if (response is! List) {
+      throw Exception(
+          'Server tidak mengembalikan List JSON. Response: $response');
+    }
+
+    final reviews = response
+        .map((e) => ReviewLapangan.fromJson(e as Map<String, dynamic>))
+        .toList();
+
+    // update cache rata-rata
+    final avg = calculateAverageFromReviews(reviews);
+    if (avg != null) {
+      _cachedAverageByLapangan[lapanganId] = avg;
+    } else {
+      _cachedAverageByLapangan.remove(lapanganId);
+    }
+
+    return reviews;
+  }
+
+  // =========================================================
   // 2. Tambah review baru
+  // Django: path('lapangan/add-ajax/<uuid:lapangan_id>/', ...)
+  // => /review/lapangan/add-ajax/<lapangan_id>/
+  // =========================================================
   static Future<void> addReview(
     BuildContext context, {
     required String lapanganId,
@@ -121,7 +140,7 @@ class ReviewService {
     String? gambarUrl,
   }) async {
     final request = context.read<CookieRequest>();
-    final url = '$baseUrl/lapangan/review/add-ajax/$lapanganId/';
+    final url = '$baseUrl/review/lapangan/add-ajax/$lapanganId/';
 
     final response = await request.post(url, {
       'reviewer_name': reviewerName,
@@ -130,7 +149,7 @@ class ReviewService {
       if (gambarUrl != null && gambarUrl.isNotEmpty) 'gambar': gambarUrl,
     });
 
-    if (response['status'] != 'success') {
+    if (response is! Map || response['status']?.toString() != 'success') {
       final msg = _extractErrorMessage(
         response,
         'Terjadi kesalahan saat menambah review.',
@@ -141,19 +160,33 @@ class ReviewService {
     _cachedAverageByLapangan.remove(lapanganId);
   }
 
-  // 3. Ambil 1 review (buat edit)
+  // =========================================================
+  // 3. Ambil satu review (buat form edit)
+  // Django: path('lapangan/json-single/<int:review_id>/', ...)
+  // => /review/lapangan/json-single/<review_id>/
+  // =========================================================
   static Future<ReviewLapangan> fetchSingleReview(
     BuildContext context,
     int reviewId,
   ) async {
     final request = context.read<CookieRequest>();
-    final url = '$baseUrl/lapangan/review/json-single/$reviewId/';
+    final url = '$baseUrl/review/lapangan/json-single/$reviewId/';
 
     final response = await request.get(url);
+
+    if (response is! Map) {
+      throw Exception(
+          'Server tidak mengembalikan Map JSON. Response: $response');
+    }
+
     return ReviewLapangan.fromJson(response as Map<String, dynamic>);
   }
 
+  // =========================================================
   // 4. Update review
+  // Django: path('lapangan/update-ajax/<int:review_id>/', ...)
+  // => /review/lapangan/update-ajax/<review_id>/
+  // =========================================================
   static Future<void> updateReview(
     BuildContext context, {
     required int reviewId,
@@ -163,7 +196,7 @@ class ReviewService {
     String? gambarUrl,
   }) async {
     final request = context.read<CookieRequest>();
-    final url = '$baseUrl/lapangan/review/update-ajax/$reviewId/';
+    final url = '$baseUrl/review/lapangan/update-ajax/$reviewId/';
 
     final response = await request.post(url, {
       'reviewer_name': reviewerName,
@@ -172,7 +205,7 @@ class ReviewService {
       if (gambarUrl != null && gambarUrl.isNotEmpty) 'gambar': gambarUrl,
     });
 
-    if (response['status'] != 'success') {
+    if (response is! Map || response['status']?.toString() != 'success') {
       final msg = _extractErrorMessage(
         response,
         'Terjadi kesalahan saat update review.',
@@ -183,17 +216,21 @@ class ReviewService {
     _cachedAverageByLapangan.clear();
   }
 
+  // =========================================================
   // 5. Hapus review
+  // Django: path('lapangan/delete-ajax/<int:review_id>/', ...)
+  // => /review/lapangan/delete-ajax/<review_id>/
+  // =========================================================
   static Future<void> deleteReview(
     BuildContext context,
     int reviewId,
   ) async {
     final request = context.read<CookieRequest>();
-    final url = '$baseUrl/lapangan/review/delete-ajax/$reviewId/';
+    final url = '$baseUrl/review/lapangan/delete-ajax/$reviewId/';
 
     final response = await request.post(url, {});
 
-    if (response['status'] != 'success') {
+    if (response is! Map || response['status']?.toString() != 'success') {
       final msg = _extractErrorMessage(
         response,
         'Terjadi kesalahan saat menghapus review.',
