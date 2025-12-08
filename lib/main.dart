@@ -11,6 +11,7 @@ import 'package:intl/date_symbol_data_local.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
+import 'package:askmo/config/api_base.dart';
 
 
 void main() async {
@@ -104,12 +105,8 @@ class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
       if (!hasLaunched) {
         final request = context.read<CookieRequest>();
 
-        // Ganti BASE_URL sesuai environment kamu.
-        // Untuk web dev: bisa  'http://127.0.0.1:8000'
-        // Untuk release HP: gunakan domain / IP server yang benar.
-        const baseUrl = 'http://127.0.0.1:8000';
-
-        await request.logout('$baseUrl/auth/logout/');
+        // Use shared API base (deployed) for initial logout attempt.
+        await request.logout('$apiBase/auth/logout/');
       }
     } catch (e, st) {
       debugPrint('Logout failed: $e');

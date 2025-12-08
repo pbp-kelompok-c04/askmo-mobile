@@ -6,6 +6,8 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:askmo/config/api_base.dart';
+
 
 // Import Chatbot from dev branch
 import 'package:askmo/chatbot/screens/gemini_chat_screen.dart';
@@ -35,10 +37,7 @@ const String lapanganEndpoint = '/json/';
 const String coachEndpoint = '/coach/json/';
 const String eventEndpoint = '/get-events-json/';
 
-String _baseUrl() {
-  if (kIsWeb) return 'http://localhost:8000';
-  return 'http://10.0.2.2:8000';
-}
+String _baseUrl() => apiBase;
 
 /// ===============================
 /// MENU PAGE (MAIN SHELL)

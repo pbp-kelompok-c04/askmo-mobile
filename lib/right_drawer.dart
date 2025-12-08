@@ -1,3 +1,4 @@
+import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:askmo/menu.dart';
 import 'package:askmo/authentication/screens/login.dart';
@@ -128,9 +129,8 @@ class RightDrawer extends StatelessWidget {
                         title: 'Logout',
                         onTap: () async {
                           final request = context.read<CookieRequest>();
-                          final response = await request.logout(
-                            "http://localhost:8000/auth/logout/",
-                          );
+                          final response =
+                              await request.logout("$apiBase/auth/logout/");
                           String message = response["message"];
                           if (context.mounted) {
                             if (response['status']) {

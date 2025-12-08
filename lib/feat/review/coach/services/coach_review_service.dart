@@ -1,6 +1,6 @@
 // lib/feat/review/coach/services/coach_review_service.dart
 
-import 'package:flutter/foundation.dart' show kIsWeb;
+import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
@@ -8,11 +8,7 @@ import 'package:provider/provider.dart';
 import '../models/coach_review.dart';
 
 class CoachReviewService {
-  /// Base URL:
-  ///  - Web:      http://localhost:8000
-  ///  - Emulator: http://10.0.2.2:8000
-  static String get baseUrl =>
-      kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
+  static String get baseUrl => apiBase;
 
   static String _extractErrorMessage(dynamic response, String defaultMsg) {
     if (response is Map<String, dynamic>) {

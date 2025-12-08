@@ -1,12 +1,13 @@
 import 'dart:convert';
 import 'dart:ui';
 
-import 'package:flutter/material.dart';
 import 'package:askmo/authentication/screens/login.dart';
-import 'package:pbp_django_auth/pbp_django_auth.dart';
-import 'package:provider/provider.dart';
+import 'package:askmo/config/api_base.dart';
+import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+import 'package:provider/provider.dart';
 
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
@@ -70,7 +71,7 @@ class _RegisterPageState extends State<RegisterPage>
 
     try {
       final response = await request.postJson(
-        'http://localhost:8000/auth/register/',
+        '$apiBase/auth/register/',
         jsonEncode({
           'username': username,
           'password1': password1,
@@ -92,7 +93,7 @@ class _RegisterPageState extends State<RegisterPage>
       }
     } catch (_) {
       _showError(
-        'Terjadi kesalahan koneksi. Pastikan server Django berjalan di http://localhost:8000',
+        'Terjadi kesalahan koneksi. Pastikan server dapat diakses.',
       );
     }
   }
@@ -120,7 +121,7 @@ class _RegisterPageState extends State<RegisterPage>
       };
 
       final response = await request.postJson(
-        'http://localhost:8000/auth/google-login/',
+        '$apiBase/auth/google-login/',
         jsonEncode(payload),
       );
 

@@ -1,12 +1,13 @@
 import 'dart:math' as math;
 
+import 'package:askmo/config/api_base.dart';
 import 'package:askmo/feat/review/models/review_lapangan.dart';
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
 class ReviewService {
-  static const String baseUrl = 'http://localhost:8000';
+  static const String baseUrl = apiBase;
 
   static final Map<String, double> _cachedAverageByLapangan = {};
 
