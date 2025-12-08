@@ -1,3 +1,4 @@
+import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
@@ -206,7 +207,7 @@ class _EventFormPageState extends State<EventFormPage> {
             '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
 
         final response = await request
-            .post('http://localhost:8000/add-event-ajax/', {
+            .post('$apiBase/add-event-ajax/', {
               'nama': _namaController.text,
               'lokasi': _selectedLokasi,
               'tanggal': tanggalFormatted,

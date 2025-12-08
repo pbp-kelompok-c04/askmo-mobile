@@ -1,3 +1,4 @@
+import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
@@ -251,7 +252,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
 
         // Kirim ke endpoint edit-event-ajax dengan ID event
         final response = await request
-            .post('http://localhost:8000/edit-event-ajax/${widget.event.id}/', {
+            .post('$apiBase/edit-event-ajax/${widget.event.id}/', {
               'nama': _namaController.text,
               'lokasi': trimmedLokasi,
               'tanggal': tanggalFormatted,

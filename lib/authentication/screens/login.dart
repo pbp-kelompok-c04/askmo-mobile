@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:askmo/config/api_base.dart';
 import 'package:askmo/profile/models/user_state.dart';
 import 'package:askmo/authentication/screens/register.dart';
 import 'package:askmo/menu.dart';
@@ -84,7 +85,7 @@ class _LoginPageState extends State<LoginPage>
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
 
-    final response = await request.login("http://localhost:8000/auth/login/", {
+    final response = await request.login("$apiBase/auth/login/", {
       'username': username,
       'password': password,
     });
@@ -204,7 +205,7 @@ class _LoginPageState extends State<LoginPage>
       }
 
       final response = await request.login(
-        "http://localhost:8000/auth/google-login/",
+        "$apiBase/auth/google-login/",
         payload,
       );
 
