@@ -53,10 +53,10 @@ class _LoginPageState extends State<LoginPage>
 
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
-
-  final GoogleSignIn _googleSignIn = GoogleSignIn(
-    clientId:
-        '312722822760-3n44rotrtmttqdbqu8l78f3ddhhtcdms.apps.googleusercontent.com',
+  
+  final GoogleSignIn _googleSignIn = 
+  GoogleSignIn(
+    clientId: const String.fromEnvironment('GOOGLE_CLIENT_ID'),
     scopes: ['email', 'profile', 'openid'],
   );
 
