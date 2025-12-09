@@ -1,3 +1,4 @@
+import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
@@ -182,7 +183,7 @@ class _EventPageState extends State<EventPage> {
     try {
       final request = context.read<CookieRequest>();
       final response = await request.get(
-        'http://localhost:8000/get-events-json/',
+        '$apiBase/get-events-json/',
       );
 
       if (response != null && response['events'] != null) {
@@ -210,7 +211,7 @@ class _EventPageState extends State<EventPage> {
           SnackBar(
             backgroundColor: const Color(0xFFFF5555),
             content: Text(
-              'Gagal mengambil data event. Pastikan Django server berjalan di http://localhost:8000',
+              'Gagal mengambil data event.',
               style: GoogleFonts.plusJakartaSans(color: Colors.white),
             ),
             duration: const Duration(seconds: 5),
@@ -301,7 +302,7 @@ class _EventPageState extends State<EventPage> {
       try {
         final request = context.read<CookieRequest>();
         final response = await request.post(
-          'http://localhost:8000/delete-event-ajax/${event.id}/',
+          '$apiBase/delete-event-ajax/${event.id}/',
           {},
         );
 

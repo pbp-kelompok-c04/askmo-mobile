@@ -1,4 +1,5 @@
 import 'dart:convert';
+import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
@@ -340,7 +341,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
                                   );
 
                                   final response = await request.postJson(
-                                    "http://localhost:8000/coach/create-flutter/",
+                                    "$apiBase/coach/create-flutter/",
                                     jsonEncode(requestData),
                                   );
 

@@ -20,13 +20,34 @@ class ReviewListPage extends StatefulWidget {
   State<ReviewListPage> createState() => _ReviewListPageState();
 }
 
-class _ReviewListPageState extends State<ReviewListPage> {
+class _ReviewListPageState extends State<ReviewListPage>
+    with SingleTickerProviderStateMixin {
   late Future<List<ReviewLapangan>> _futureReviews;
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
     _futureReviews = ReviewService.fetchReviews(context, widget.lapanganId);
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
+  }
+
+  @override
+  void dispose() {
+    _pulseController.dispose();
+    super.dispose();
   }
 
   Future<void> _refresh() async {
@@ -121,52 +142,69 @@ class _ReviewListPageState extends State<ReviewListPage> {
     }
   }
 
+  Widget _buildBackgroundAura() {
+    return AnimatedBuilder(
+      animation: _pulseAnimation,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            Positioned(
+              top: -150,
+              left: -150,
+              child: Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 700,
+                  height: 700,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF571E88).withOpacity(0.7),
+                        const Color(0xFF06005E).withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -200,
+              right: -200,
+              child: Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 800,
+                  height: 800,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF6F0732).withOpacity(0.7),
+                        const Color(0xFF571E88).withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // background glow
-          Positioned(
-            top: -200,
-            left: -100,
-            child: Container(
-              width: 500,
-              height: 500,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF571E88).withOpacity(0.7),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -250,
-            right: -120,
-            child: Container(
-              width: 600,
-              height: 600,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF6F0732).withOpacity(0.7),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
+          _buildBackgroundAura(),
           SafeArea(
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // HEADER: back + teks kecil
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -190,7 +228,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
                     ],
                   ),
                 ),
-
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -215,7 +252,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
                             'Review Lapangan :',
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white70,
-                              fontSize: 14, // diperbesar
+                              fontSize: 14,
                               fontWeight: FontWeight.w600,
                             ),
                           ),
@@ -227,7 +264,7 @@ class _ReviewListPageState extends State<ReviewListPage> {
                             overflow: TextOverflow.ellipsis,
                             style: GoogleFonts.plusJakartaSans(
                               color: Colors.white,
-                              fontSize: 20, // diperbesar
+                              fontSize: 20,
                               fontWeight: FontWeight.w800,
                             ),
                           ),
@@ -236,14 +273,9 @@ class _ReviewListPageState extends State<ReviewListPage> {
                     ),
                   ),
                 ),
-
                 const SizedBox(height: 8),
-
-                // OVERALL RATING
                 _buildOverallRating(),
                 const SizedBox(height: 12),
-
-                // LIST REVIEW
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _refresh,
@@ -279,7 +311,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
                         }
 
                         final allReviews = snapshot.data!;
-                        // hanya review user (dataset ga ditampilin)
                         final userReviews =
                             allReviews.where((e) => !e.isDataset).toList();
 
@@ -510,7 +541,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // nama + tanggal
               Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
@@ -535,8 +565,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
                 ],
               ),
               const SizedBox(height: 8),
-
-              // rating kecil
               Row(
                 children: [
                   const Icon(Icons.star, color: Colors.amber, size: 18),
@@ -551,8 +579,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
                 ],
               ),
               const SizedBox(height: 10),
-
-              // teks review
               Text(
                 review.reviewText,
                 style: GoogleFonts.plusJakartaSans(
@@ -561,8 +587,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
                   height: 1.5,
                 ),
               ),
-
-              // gambar (kalau ada)
               if (review.gambarUrl != null && review.gambarUrl!.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.only(top: 12),
@@ -588,8 +612,6 @@ class _ReviewListPageState extends State<ReviewListPage> {
                     ),
                   ),
                 ),
-
-              // tombol edit / hapus
               if (review.canEdit || review.canDelete) ...[
                 const SizedBox(height: 12),
                 Row(

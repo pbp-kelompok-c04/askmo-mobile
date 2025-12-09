@@ -16,13 +16,17 @@ class ReviewEditPage extends StatefulWidget {
   State<ReviewEditPage> createState() => _ReviewEditPageState();
 }
 
-class _ReviewEditPageState extends State<ReviewEditPage> {
+class _ReviewEditPageState extends State<ReviewEditPage>
+    with SingleTickerProviderStateMixin {
   final _formKey = GlobalKey<FormState>();
   final _namaController = TextEditingController();
   final _ratingController = TextEditingController();
   final _deskripsiController = TextEditingController();
   final _gambarController = TextEditingController();
   bool _isSubmitting = false;
+
+  late AnimationController _pulseController;
+  late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
@@ -31,10 +35,23 @@ class _ReviewEditPageState extends State<ReviewEditPage> {
     _ratingController.text = widget.review.rating.toString();
     _deskripsiController.text = widget.review.reviewText;
     _gambarController.text = widget.review.gambarUrl ?? '';
+
+    _pulseController = AnimationController(
+      vsync: this,
+      duration: const Duration(seconds: 4),
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 0.9, end: 1.1).animate(
+      CurvedAnimation(
+        parent: _pulseController,
+        curve: Curves.easeInOut,
+      ),
+    );
   }
 
   @override
   void dispose() {
+    _pulseController.dispose();
     _namaController.dispose();
     _ratingController.dispose();
     _deskripsiController.dispose();
@@ -42,10 +59,63 @@ class _ReviewEditPageState extends State<ReviewEditPage> {
     super.dispose();
   }
 
+  Widget _buildBackgroundAura() {
+    return AnimatedBuilder(
+      animation: _pulseAnimation,
+      builder: (context, child) {
+        return Stack(
+          children: [
+            Positioned(
+              top: -150,
+              left: -150,
+              child: Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 700,
+                  height: 700,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF571E88).withOpacity(0.7),
+                        const Color(0xFF06005E).withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+            Positioned(
+              bottom: -200,
+              right: -200,
+              child: Transform.scale(
+                scale: _pulseAnimation.value,
+                child: Container(
+                  width: 800,
+                  height: 800,
+                  decoration: BoxDecoration(
+                    shape: BoxShape.circle,
+                    gradient: RadialGradient(
+                      colors: [
+                        const Color(0xFF6F0732).withOpacity(0.7),
+                        const Color(0xFF571E88).withOpacity(0.0),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+            ),
+          ],
+        );
+      },
+    );
+  }
+
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
-    final rating = double.tryParse(_ratingController.text.replaceAll(',', '.'));
+    final rating =
+        double.tryParse(_ratingController.text.replaceAll(',', '.'));
     if (rating == null || rating < 0 || rating > 5) {
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Rating harus antara 0 - 5')),
@@ -62,7 +132,8 @@ class _ReviewEditPageState extends State<ReviewEditPage> {
         reviewerName: _namaController.text,
         rating: rating,
         reviewText: _deskripsiController.text,
-        gambarUrl: _gambarController.text.isEmpty ? null : _gambarController.text,
+        gambarUrl:
+            _gambarController.text.isEmpty ? null : _gambarController.text,
       );
 
       if (!mounted) return;
@@ -89,40 +160,7 @@ class _ReviewEditPageState extends State<ReviewEditPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          Positioned(
-            top: -200,
-            left: -100,
-            child: Container(
-              width: 500,
-              height: 500,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF571E88).withOpacity(0.6),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: -200,
-            right: -100,
-            child: Container(
-              width: 600,
-              height: 600,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                gradient: RadialGradient(
-                  colors: [
-                    const Color(0xFF6F0732).withOpacity(0.6),
-                    Colors.transparent,
-                  ],
-                ),
-              ),
-            ),
-          ),
+          _buildBackgroundAura(),
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -157,16 +195,22 @@ class _ReviewEditPageState extends State<ReviewEditPage> {
                             ),
                           ),
                           const SizedBox(height: 24),
-                          _buildInput(controller: _namaController, label: "Nama"),
+                          _buildInput(
+                              controller: _namaController, label: "Nama"),
                           const SizedBox(height: 16),
                           _buildInput(
                             controller: _ratingController,
                             label: "Rating (0.0 - 5.0)",
                             keyboardType: TextInputType.number,
                             validator: (v) {
-                              if (v == null || v.isEmpty) return "Rating wajib diisi";
-                              final r = double.tryParse(v.replaceAll(',', '.'));
-                              if (r == null || r < 0 || r > 5) return "Rating harus antara 0 - 5";
+                              if (v == null || v.isEmpty) {
+                                return "Rating wajib diisi";
+                              }
+                              final r =
+                                  double.tryParse(v.replaceAll(',', '.'));
+                              if (r == null || r < 0 || r > 5) {
+                                return "Rating harus antara 0 - 5";
+                              }
                               return null;
                             },
                           ),
@@ -176,12 +220,17 @@ class _ReviewEditPageState extends State<ReviewEditPage> {
                             label: "Deskripsi",
                             maxLines: 4,
                             validator: (v) {
-                              if (v == null || v.isEmpty) return "Deskripsi wajib diisi";
+                              if (v == null || v.isEmpty) {
+                                return "Deskripsi wajib diisi";
+                              }
                               return null;
                             },
                           ),
                           const SizedBox(height: 16),
-                          _buildInput(controller: _gambarController, label: "URL Gambar (opsional)"),
+                          _buildInput(
+                            controller: _gambarController,
+                            label: "URL Gambar (opsional)",
+                          ),
                           const SizedBox(height: 28),
                           Container(
                             decoration: BoxDecoration(
@@ -201,8 +250,16 @@ class _ReviewEditPageState extends State<ReviewEditPage> {
                                 minimumSize: const Size(double.infinity, 50),
                               ),
                               child: _isSubmitting
-                                  ? const CircularProgressIndicator(valueColor: AlwaysStoppedAnimation(Colors.white))
-                                  : const Text("Simpan Perubahan", style: TextStyle(fontWeight: FontWeight.bold)),
+                                  ? const CircularProgressIndicator(
+                                      valueColor: AlwaysStoppedAnimation(
+                                          Colors.white),
+                                    )
+                                  : const Text(
+                                      "Simpan Perubahan",
+                                      style: TextStyle(
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
                             ),
                           ),
                         ],

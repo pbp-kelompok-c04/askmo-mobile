@@ -5,9 +5,11 @@ import 'dart:ui';
 import 'package:askmo/profile/models/user_state.dart';
 import 'package:provider/provider.dart';
 import 'dart:convert'; // Import untuk base64Decode
-import 'package:flutter_dotenv/flutter_dotenv.dart';
+// import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
+import 'package:askmo/gemini_config.dart'; 
+
 
 class GeminiChatScreen extends StatefulWidget {
   const GeminiChatScreen({super.key});
@@ -32,48 +34,56 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
   late Animation<double> _pulseAnimation;
 
   @override
-  void initState() {
-    super.initState();
-    // Prefer compile-time --dart-define for web; fallback to .env for mobile/desktop.
-    _apiKey = const String.fromEnvironment('GEMINI_API_KEY',
-        defaultValue: '') // web / release define
-      .isNotEmpty
-        ? const String.fromEnvironment('GEMINI_API_KEY')
-        : (dotenv.env['GEMINI_API_KEY'] ?? '');
-    
-    _model = GenerativeModel(
-      model: 'gemini-2.5-flash',
-      apiKey: _apiKey,
-    );
-    
-    _animationController = AnimationController(
-      duration: const Duration(seconds: 15),
-      vsync: this,
-    )..repeat(reverse: true);
+void initState() {
+  super.initState();
 
-    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
-      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+  // Ambil API key dari satu sumber (GeminiConfig)
+  _apiKey = GeminiConfig.apiKey;
+
+  if (_apiKey.isEmpty) {
+    // Jangan crash, cukup log; user akan lihat pesan di UI saat kirim pesan
+    debugPrint(
+      'GEMINI_API_KEY kosong. Pastikan .env terisi saat development, '
+      'dan --dart-define=GEMINI_API_KEY=... diset di CI (GitHub Actions/Bitrise).',
     );
-    
-    _chat = _model.startChat(
-      history: [
-        // Gemini accepts only roles "user" or "model". Seed with a user message as instruction.
-        Content(
-          'user',
-          [
-            TextPart(
-              'You are ASKMO Sport Assistant, an expert coach, fitness, and nutrition advisor. '
-              'Your persona is helpful, knowledgeable, and highly motivating. Give direct, high-quality, '
-              'and specific advice related to the user\'s sports, like training plans, form checks '
-              '(hypothetically), or nutrition tips. Respond in Indonesian.',
-            ),
-          ],
-        ),
-      ]
-    );
-    
-    _addMessage('Halo! Saya ASKMO Assistant, pelatih AI yang siap membantu rencana kebugaran dan olahraga Anda. Ada yang bisa saya bantu?', 'model');
   }
+
+  _model = GenerativeModel(
+    model: 'gemini-2.5-flash',
+    apiKey: _apiKey,
+  );
+
+  _animationController = AnimationController(
+    duration: const Duration(seconds: 15),
+    vsync: this,
+  )..repeat(reverse: true);
+
+  _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+    CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
+  );
+
+  _chat = _model.startChat(
+    history: [
+      Content(
+        'user',
+        [
+          TextPart(
+            'You are ASKMO Sport Assistant, an expert coach, fitness, and nutrition advisor. '
+            'Your persona is helpful, knowledgeable, and highly motivating. Give direct, high-quality, '
+            'and specific advice related to the user\'s sports, like training plans, form checks '
+            '(hypothetically), or nutrition tips. Respond in Indonesian.',
+          ),
+        ],
+      ),
+    ],
+  );
+
+  _addMessage(
+    'Halo! Saya ASKMO Assistant, pelatih AI yang siap membantu rencana kebugaran dan olahraga Anda. Ada yang bisa saya bantu?',
+    'model',
+  );
+}
+
 
   @override
   void dispose() {
@@ -107,7 +117,13 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
     _addMessage(message, 'user');
 
     if (_apiKey.isEmpty) {
-      _addMessage('Konfigurasi kunci API belum diatur. Tambahkan GEMINI_API_KEY di file .env.', 'model');
+      _addMessage(
+        'Konfigurasi kunci API belum diatur.\n\n'
+        '- Untuk development lokal: isi GEMINI_API_KEY di file .env\n'
+        '- Untuk build CI (GitHub Actions / Bitrise): set GEMINI_API_KEY sebagai secret '
+        'dan teruskan via --dart-define=GEMINI_API_KEY=...',
+        'model',
+      );
       return;
     }
     

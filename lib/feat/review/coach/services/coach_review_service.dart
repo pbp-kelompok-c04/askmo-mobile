@@ -1,24 +1,22 @@
 // lib/feat/review/coach/services/coach_review_service.dart
 
-import 'package:flutter/foundation.dart' show kIsWeb;
 import 'package:flutter/material.dart';
-import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+import 'package:pbp_django_auth/pbp_django_auth.dart';
+
+// IMPORT API BASE
+import 'package:askmo/config/api_base.dart';
 
 import '../models/coach_review.dart';
 
 class CoachReviewService {
-  /// Base URL:
-  ///  - Web:      http://localhost:8000
-  ///  - Emulator: http://10.0.2.2:8000
-  static String get baseUrl =>
-      kIsWeb ? 'http://localhost:8000' : 'http://10.0.2.2:8000';
+  // Gunakan apiBase dari api_base.dart
+  static String get baseUrl => apiBase;
 
   static String _extractErrorMessage(dynamic response, String defaultMsg) {
     if (response is Map<String, dynamic>) {
-      if (response['message'] != null) {
-        return response['message'].toString();
-      }
+      if (response['message'] != null) return response['message'].toString();
+
       if (response['errors'] != null && response['errors'] is Map) {
         final errors = response['errors'] as Map;
         if (errors.isNotEmpty) {
@@ -34,21 +32,20 @@ class CoachReviewService {
     return defaultMsg;
   }
 
-  // ===================== FETCH SEMUA REVIEW COACH =====================
+  // ===================== FETCH REVIEWS COACH =====================
 
   static Future<List<CoachReview>> fetchReviews(
     BuildContext context,
     int coachId,
   ) async {
     final request = context.read<CookieRequest>();
-
     final url = '$baseUrl/coach/json/$coachId/';
 
     final response = await request.get(url);
 
     if (response is! List) {
       throw Exception(
-        'Respon server tidak berupa list JSON. Response: $response',
+        'Server tidak mengembalikan List JSON. Response: $response',
       );
     }
 
@@ -57,7 +54,7 @@ class CoachReviewService {
         .toList();
   }
 
-  // ===================== ADD REVIEW COACH (AJAX) =====================
+  // ===================== ADD REVIEW =====================
 
   static Future<void> addReview(
     BuildContext context, {
@@ -67,7 +64,6 @@ class CoachReviewService {
     required String reviewText,
   }) async {
     final request = context.read<CookieRequest>();
-
     final url = '$baseUrl/coach/add-ajax/$coachId/';
 
     final response = await request.post(url, {
@@ -76,22 +72,17 @@ class CoachReviewService {
       'review_text': reviewText,
     });
 
-    if (response is! Map) {
-      throw Exception(
-        'Respon server tidak berupa Map JSON ketika add review: $response',
-      );
-    }
-
-    if (response['status'] != 'success') {
+    if (response is! Map ||
+        response['status']?.toString() != 'success') {
       final msg = _extractErrorMessage(
-        response as Map<String, dynamic>,
-        'Terjadi kesalahan saat menambah review.',
+        response,
+        'Gagal menambah review.',
       );
-      throw Exception('Gagal menambah review: $msg');
+      throw Exception(msg);
     }
   }
 
-  // ===================== UPDATE REVIEW COACH (AJAX) =====================
+  // ===================== UPDATE REVIEW =====================
 
   static Future<void> updateReview(
     BuildContext context, {
@@ -101,7 +92,6 @@ class CoachReviewService {
     required String reviewText,
   }) async {
     final request = context.read<CookieRequest>();
-
     final url = '$baseUrl/coach/edit-ajax/$reviewId/';
 
     final response = await request.post(url, {
@@ -110,52 +100,37 @@ class CoachReviewService {
       'review_text': reviewText,
     });
 
-    if (response is! Map) {
-      throw Exception(
-        'Respon server tidak berupa Map JSON ketika update review: $response',
-      );
-    }
-
-    if (response['status'] != 'success') {
+    if (response is! Map ||
+        response['status']?.toString() != 'success') {
       final msg = _extractErrorMessage(
-        response as Map<String, dynamic>,
-        'Terjadi kesalahan saat mengupdate review.',
+        response,
+        'Gagal update review.',
       );
-      throw Exception('Gagal update review: $msg');
+      throw Exception(msg);
     }
   }
 
-  // ===================== DELETE REVIEW COACH =====================
+  // ===================== DELETE REVIEW =====================
 
   static Future<void> deleteReview(
     BuildContext context,
     int reviewId,
   ) async {
     final request = context.read<CookieRequest>();
-
     final url = '$baseUrl/coach/delete/$reviewId/';
 
     final response = await request.post(url, {});
 
-    if (response is! Map) {
-      throw Exception(
-        'Respon server tidak berupa Map JSON ketika delete review: $response',
-      );
-    }
-
-    final map = response as Map<String, dynamic>;
-    final status = map['status']?.toString();
-    final message = map['message']?.toString() ?? '';
-
-    final bool ok =
-        status == 'success' || message.toLowerCase().contains('berhasil');
-
-    if (!ok) {
+    if (response is! Map ||
+        (response['status']?.toLowerCase() != 'success' &&
+            !(response['message'] ?? '')
+                .toLowerCase()
+                .contains('berhasil'))) {
       final msg = _extractErrorMessage(
-        map,
-        'Terjadi kesalahan saat menghapus review.',
+        response,
+        'Gagal menghapus review.',
       );
-      throw Exception('Gagal menghapus review: $msg');
+      throw Exception(msg);
     }
   }
 }

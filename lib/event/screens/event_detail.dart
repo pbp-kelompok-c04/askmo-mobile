@@ -1,3 +1,4 @@
+import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -199,7 +200,7 @@ class _EventDetailPageState extends State<EventDetailPage>
               widget.event.thumbnail != null &&
                   widget.event.thumbnail!.isNotEmpty
               ? Image.network(
-                  'http://localhost:8000/proxy-image/?url=${Uri.encodeComponent(widget.event.thumbnail!)}',
+                  '$apiBase/proxy-image/?url=${Uri.encodeComponent(widget.event.thumbnail!)}',
                   fit: BoxFit.cover,
                   loadingBuilder: (context, child, loadingProgress) {
                     if (loadingProgress == null) return child;
@@ -481,7 +482,7 @@ class _EventDetailPageState extends State<EventDetailPage>
       try {
         final request = context.read<CookieRequest>();
         final response = await request.post(
-          'http://localhost:8000/delete-event-ajax/${widget.event.id}/',
+          '$apiBase/delete-event-ajax/${widget.event.id}/',
           {},
         );
 

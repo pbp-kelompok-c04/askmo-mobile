@@ -1,0 +1,5 @@
+- flutter-build@0:
+    inputs:
+    - build_mode: release
+    - additional_parameters: >-
+        --dart-define=GEMINI_API_KEY=$GEMINI_API_KEY

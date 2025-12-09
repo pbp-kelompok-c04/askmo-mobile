@@ -1,3 +1,4 @@
+import 'package:askmo/config/api_base.dart';
 import 'package:askmo/history/models/booking_history_state.dart';
 import 'package:askmo/user_info.dart';
 import 'package:flutter/material.dart';
@@ -1104,7 +1105,7 @@ Widget _buildDetailRowSmall({
 Future<List<Lapangan>> _fetchLapanganDetails(List<WishedItem> wishedItems) async {
   try {
     final request = context.read<CookieRequest>();
-    final response = await request.get('http://127.0.0.1:8000/json/');
+    final response = await request.get('$apiBase/json/');
     
     if (response != null) {
       List<Lapangan> allLapangan = [];
@@ -1130,7 +1131,7 @@ Future<List<Lapangan>> _fetchLapanganDetails(List<WishedItem> wishedItems) async
 Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
   try {
     final request = context.read<CookieRequest>();
-    final response = await request.get('http://127.0.0.1:8000/coach/json/');
+    final response = await request.get('$apiBase/coach/json/');
     
     if (response != null) {
       List<Coach> allCoaches = [];

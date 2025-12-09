@@ -1,10 +1,10 @@
+import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'dart:ui'; // Untuk ImageFilter
 import 'package:askmo/coach/models/coach_model.dart';
-import 'package:askmo/user_info.dart'; // Import UserInfo untuk cek admin
 import 'package:askmo/coach/screens/coach_detail.dart';
 import 'package:askmo/coach/screens/coach_form.dart';
 import 'package:askmo/user_info.dart'; // Import UserInfo untuk cek admin
@@ -185,7 +185,7 @@ class _CoachPageState extends State<CoachPage> {
     try {
       final request = context.read<CookieRequest>();
       // Pastikan URL ini benar dan server Django berjalan
-      final response = await request.get('http://127.0.0.1:8000/coach/json/');
+      final response = await request.get('$apiBase/coach/json/');
 
       if (response != null) {
         List<Coach> listData = [];
@@ -301,7 +301,7 @@ class _CoachPageState extends State<CoachPage> {
       final request = context.read<CookieRequest>();
       try {
         final response = await request.post(
-          'http://127.0.0.1:8000/coach/delete-coach-ajax/${coach.pk}/',
+          '$apiBase/coach/delete-coach-ajax/${coach.pk}/',
           {},
         );
         if (context.mounted && response['status'] == 'success') {
@@ -326,7 +326,7 @@ class _CoachPageState extends State<CoachPage> {
       return photoPath;
     }
     if (photoPath.isEmpty) return '';
-    return 'http://127.0.0.1:8000/media/$photoPath';
+    return '$apiBase/media/$photoPath';
   }
 
   @override

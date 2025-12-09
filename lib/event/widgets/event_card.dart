@@ -1,3 +1,4 @@
+import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
@@ -79,7 +80,7 @@ class EventCard extends StatelessWidget {
           ? AspectRatio(
               aspectRatio: 16 / 9,
               child: Image.network(
-                'http://localhost:8000/proxy-image/?url=${Uri.encodeComponent(event.thumbnail!)}',
+                '$apiBase/proxy-image/?url=${Uri.encodeComponent(event.thumbnail!)}',
                 fit: BoxFit.cover,
                 width: double.infinity,
                 loadingBuilder: (context, child, loadingProgress) {
