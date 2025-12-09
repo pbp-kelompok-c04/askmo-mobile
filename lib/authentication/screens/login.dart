@@ -56,7 +56,7 @@ class _LoginPageState extends State<LoginPage>
 
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     clientId:
-        '312722822760-ddcvk4fbt7sm7mefo8hb812lukfsb6ff.apps.googleusercontent.com',
+        '312722822760-3n44rotrtmttqdbqu8l78f3ddhhtcdms.apps.googleusercontent.com',
     scopes: ['email', 'profile', 'openid'],
   );
 
