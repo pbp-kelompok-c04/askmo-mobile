@@ -170,7 +170,7 @@ class ReviewService {
     int reviewId,
   ) async {
     final request = context.read<CookieRequest>();
-    final url = '$baseUrl/review/lapangan/json-single/$reviewId/';
+    final url = '$baseUrl/lapangan/json-single/$reviewId/';
 
     final response = await request.get(url);
 

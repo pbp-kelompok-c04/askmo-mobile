@@ -39,7 +39,7 @@ class CoachReviewService {
     int coachId,
   ) async {
     final request = context.read<CookieRequest>();
-    final url = '$baseUrl/review/coach/json/$coachId/';
+    final url = '$baseUrl/coach/json/$coachId/';
 
     final response = await request.get(url);
 
@@ -64,7 +64,7 @@ class CoachReviewService {
     required String reviewText,
   }) async {
     final request = context.read<CookieRequest>();
-    final url = '$baseUrl/review/coach/add-ajax/$coachId/';
+    final url = '$baseUrl/coach/add-ajax/$coachId/';
 
     final response = await request.post(url, {
       'reviewer_name': reviewerName,
@@ -92,7 +92,7 @@ class CoachReviewService {
     required String reviewText,
   }) async {
     final request = context.read<CookieRequest>();
-    final url = '$baseUrl/review/coach/edit-ajax/$reviewId/';
+    final url = '$baseUrl/coach/edit-ajax/$reviewId/';
 
     final response = await request.post(url, {
       'reviewer_name': reviewerName,
@@ -117,7 +117,7 @@ class CoachReviewService {
     int reviewId,
   ) async {
     final request = context.read<CookieRequest>();
-    final url = '$baseUrl/review/coach/delete/$reviewId/';
+    final url = '$baseUrl/coach/delete/$reviewId/';
 
     final response = await request.post(url, {});
 
