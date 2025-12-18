@@ -5,6 +5,7 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'dart:ui';
 
+// Menampilkan halaman form tambah event baru
 class EventFormPage extends StatefulWidget {
   const EventFormPage({super.key});
 
@@ -12,6 +13,7 @@ class EventFormPage extends StatefulWidget {
   State<EventFormPage> createState() => _EventFormPageState();
 }
 
+// Class ini berfungsi untuk mengelola state dan logika form tambah event
 class _EventFormPageState extends State<EventFormPage> {
   final _formKey = GlobalKey<FormState>();
   final _namaController = TextEditingController();
@@ -24,6 +26,7 @@ class _EventFormPageState extends State<EventFormPage> {
   DateTime? _selectedDate;
   TimeOfDay? _selectedTime;
 
+  // Daftar opsi cabang olahraga
   final List<Map<String, String>> _sportOptions = [
     {'value': 'sepakbola', 'label': 'Sepak Bola'},
     {'value': 'basket', 'label': 'Basket'},
@@ -36,6 +39,7 @@ class _EventFormPageState extends State<EventFormPage> {
     {'value': 'lainnya', 'label': 'Lainnya'},
   ];
 
+  // Daftar opsi lokasi dengan pengelompokan area
   final Map<String, List<String>> _locationOptions = {
     'Jakarta Pusat': [
       'Cempaka Putih',
@@ -157,6 +161,7 @@ class _EventFormPageState extends State<EventFormPage> {
     ],
   };
 
+  // Bersihkan controller saat widget dihancurkan
   @override
   void dispose() {
     _namaController.dispose();
@@ -167,6 +172,7 @@ class _EventFormPageState extends State<EventFormPage> {
     super.dispose();
   }
 
+  // Validasi dan kirim data event baru ke server
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedLokasi.isEmpty) {
@@ -206,20 +212,17 @@ class _EventFormPageState extends State<EventFormPage> {
         final jamFormatted =
             '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
 
-        final response = await request
-            .post('$apiBase/add-event-ajax/', {
-              'nama': _namaController.text,
-              'lokasi': _selectedLokasi,
-              'tanggal': tanggalFormatted,
-              'deskripsi': _deskripsiController.text,
-              'biaya': _biayaController.text.isEmpty
-                  ? '0'
-                  : _biayaController.text,
-              'kontak': _kontakController.text,
-              'jam': jamFormatted,
-              'olahraga': _selectedOlahraga,
-              'thumbnail': _thumbnailController.text,
-            });
+        final response = await request.post('$apiBase/add-event-ajax/', {
+          'nama': _namaController.text,
+          'lokasi': _selectedLokasi,
+          'tanggal': tanggalFormatted,
+          'deskripsi': _deskripsiController.text,
+          'biaya': _biayaController.text.isEmpty ? '0' : _biayaController.text,
+          'kontak': _kontakController.text,
+          'jam': jamFormatted,
+          'olahraga': _selectedOlahraga,
+          'thumbnail': _thumbnailController.text,
+        });
 
         if (!mounted) return;
 
@@ -260,13 +263,13 @@ class _EventFormPageState extends State<EventFormPage> {
     }
   }
 
+  // Membangun tampilan halaman
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Background gradient - full screen
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -278,7 +281,6 @@ class _EventFormPageState extends State<EventFormPage> {
               ),
             ),
           ),
-          // Aura circles - extended to cover full screen
           Positioned(
             top: -200,
             left: -200,
@@ -313,10 +315,8 @@ class _EventFormPageState extends State<EventFormPage> {
               ),
             ),
           ),
-          // Content
           Column(
             children: [
-              // Custom AppBar
               SafeArea(
                 bottom: false,
                 child: Padding(
@@ -341,12 +341,11 @@ class _EventFormPageState extends State<EventFormPage> {
                           ),
                         ),
                       ),
-                      const SizedBox(width: 48), // Balance for back button
+                      const SizedBox(width: 48),
                     ],
                   ),
                 ),
               ),
-              // Scrollable content
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -429,6 +428,7 @@ class _EventFormPageState extends State<EventFormPage> {
     );
   }
 
+  // Membuat dropdown pemilihan cabang olahraga
   Widget _buildDropdown() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
@@ -484,6 +484,7 @@ class _EventFormPageState extends State<EventFormPage> {
     );
   }
 
+  // Membuat dropdown pemilihan lokasi dengan pengelompokan area
   Widget _buildLocationDropdown() {
     List<DropdownMenuItem<String>> items = [
       const DropdownMenuItem<String>(value: '', child: Text('Pilih lokasi')),
@@ -557,6 +558,7 @@ class _EventFormPageState extends State<EventFormPage> {
     );
   }
 
+  // Membuat date picker pemilihan tanggal event
   Widget _buildDatePicker() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
@@ -628,6 +630,7 @@ class _EventFormPageState extends State<EventFormPage> {
     );
   }
 
+  // Membuat time picker pemilihan jam event
   Widget _buildTimePicker() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
@@ -697,6 +700,7 @@ class _EventFormPageState extends State<EventFormPage> {
     );
   }
 
+  // Membuat text field dengan validasi
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,

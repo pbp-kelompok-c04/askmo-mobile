@@ -4,12 +4,12 @@ import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-import 'dart:ui'; // Diperlukan untuk ImageFilter
-
+import 'dart:ui';
 import 'package:askmo/profile/models/user_state.dart';
 import '../models/event.dart';
 import 'event_edit_form.dart';
 
+// Menampilkan halaman detail event
 class EventDetailPage extends StatefulWidget {
   final Event event;
 
@@ -19,11 +19,13 @@ class EventDetailPage extends StatefulWidget {
   State<EventDetailPage> createState() => _EventDetailPageState();
 }
 
+// Mengelola state dan animasi dari EventDetailPage
 class _EventDetailPageState extends State<EventDetailPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
+  // Menginisialisasi animation controller dan pulse animation saat widget dibuat
   @override
   void initState() {
     super.initState();
@@ -37,17 +39,22 @@ class _EventDetailPageState extends State<EventDetailPage>
     );
   }
 
+  // Membersihkan animation controller saat widget dihancurkan
   @override
   void dispose() {
     _animationController.dispose();
     super.dispose();
   }
 
+  // Memeriksa apakah user yang sedang login adalah pemilik event
   bool _isOwner(UserState userState) {
-    if (userState.userId == 0) return false;
+    if (userState.userId == 0) {
+      return false;
+    }
     return widget.event.userId == userState.userId;
   }
 
+  // Membangun efek aura background
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -100,6 +107,7 @@ class _EventDetailPageState extends State<EventDetailPage>
     );
   }
 
+  // Membangun tampilan utama halaman detail event
   @override
   Widget build(BuildContext context) {
     final userState = context.watch<UserState>();
@@ -124,14 +132,13 @@ class _EventDetailPageState extends State<EventDetailPage>
       ),
       body: Stack(
         children: [
-          // 1. Background Aura
+          // Background Aura
           Positioned.fill(child: _buildBackgroundAura()),
 
-          // 2. Main Content
+          // Main Content
           SingleChildScrollView(
             child: Padding(
               padding: const EdgeInsets.all(16),
-              // --- MULAI EDIT GLASSMORPHISM ---
               child: ClipRRect(
                 borderRadius: BorderRadius.circular(16),
                 child: BackdropFilter(
@@ -159,7 +166,6 @@ class _EventDetailPageState extends State<EventDetailPage>
                   ),
                 ),
               ),
-              // --- SELESAI EDIT GLASSMORPHISM ---
             ),
           ),
         ],
@@ -167,6 +173,7 @@ class _EventDetailPageState extends State<EventDetailPage>
     );
   }
 
+  // Membangun layout responsif yang menampilkan gambar dan informasi event
   Widget _buildImageAndInfo(BuildContext context, bool isOwner) {
     return LayoutBuilder(
       builder: (context, constraints) {
@@ -189,6 +196,7 @@ class _EventDetailPageState extends State<EventDetailPage>
     );
   }
 
+  // Menampilkan thumbnail event dengan loading dan error handling
   Widget _buildThumbnail() {
     return Padding(
       padding: const EdgeInsets.all(16),
@@ -227,6 +235,7 @@ class _EventDetailPageState extends State<EventDetailPage>
     );
   }
 
+  // Menampilkan placeholder ketika foto tidak tersedia
   Widget _buildPlaceholder() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -269,6 +278,7 @@ class _EventDetailPageState extends State<EventDetailPage>
     );
   }
 
+  // Menampilkan informasi lengkap event
   Widget _buildEventInfo(BuildContext context, bool isOwner) {
     return Padding(
       padding: const EdgeInsets.all(32),
@@ -438,6 +448,7 @@ class _EventDetailPageState extends State<EventDetailPage>
     );
   }
 
+  // Menghapus event dengan konfirmasi dialog dan menampilkan notifikasi hasil
   Future<void> _deleteEvent(BuildContext context) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -525,6 +536,7 @@ class _EventDetailPageState extends State<EventDetailPage>
     }
   }
 
+  // Membuat satu baris detail informasi
   Widget _buildDetailRow({
     required IconData icon,
     required String label,

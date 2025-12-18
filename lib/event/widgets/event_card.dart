@@ -5,6 +5,7 @@ import 'package:intl/intl.dart';
 import 'dart:ui';
 import '../models/event.dart';
 
+// Menampilkan kartu event dengan glassmorphism effect dan action buttons
 class EventCard extends StatelessWidget {
   final Event event;
   final VoidCallback onTap;
@@ -19,6 +20,7 @@ class EventCard extends StatelessWidget {
     this.onDelete,
   });
 
+  // Membangun tampilan kartu event dengan glassmorphism container
   @override
   Widget build(BuildContext context) {
     return Container(
@@ -73,6 +75,7 @@ class EventCard extends StatelessWidget {
     );
   }
 
+  //  Menampilkan thumbnail event dengan loading dan error handling
   Widget _buildThumbnail() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -107,6 +110,7 @@ class EventCard extends StatelessWidget {
     );
   }
 
+  //  Menampilkan placeholder dengan glassmorphism effect ketika foto tidak tersedia
   Widget _buildPlaceholder() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -151,6 +155,7 @@ class EventCard extends StatelessWidget {
     );
   }
 
+  // Menampilkan judul event dengan text truncation
   Widget _buildTitle() {
     return Text(
       event.nama,
@@ -164,6 +169,7 @@ class EventCard extends StatelessWidget {
     );
   }
 
+  // Menampilkan detail event seperti tanggal, lokasi, dan olahraga dalam bentuk wrap
   Widget _buildEventDetails() {
     return Wrap(
       spacing: 24,
@@ -179,6 +185,7 @@ class EventCard extends StatelessWidget {
     );
   }
 
+  // Membuat satu item detail dengan icon dan text
   Widget _buildDetailItem({required IconData icon, required String text}) {
     return Row(
       mainAxisSize: MainAxisSize.min,
@@ -200,6 +207,7 @@ class EventCard extends StatelessWidget {
     );
   }
 
+  // Menampilkan deskripsi event dengan text truncation
   Widget _buildDescription() {
     return Text(
       event.deskripsi,
@@ -213,6 +221,7 @@ class EventCard extends StatelessWidget {
     );
   }
 
+  // Menampilkan tombol action seperti selengkapnya, edit, dan hapus
   Widget _buildActions(BuildContext context) {
     return Row(
       children: [

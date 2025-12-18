@@ -12,6 +12,7 @@ import 'event_detail.dart';
 import 'event_form.dart';
 import 'event_edit_form.dart';
 
+// Menampilkan halaman daftar event dengan fitur pencarian dan filter
 class EventPage extends StatefulWidget {
   const EventPage({super.key});
 
@@ -19,6 +20,7 @@ class EventPage extends StatefulWidget {
   State<EventPage> createState() => _EventPageState();
 }
 
+// Mengelola state dan logika halaman event termasuk filter dan CRUD operations
 class _EventPageState extends State<EventPage> {
   List<Event> _events = [];
   List<Event> _filteredEvents = [];
@@ -162,18 +164,21 @@ class _EventPageState extends State<EventPage> {
     {'value': 'lainnya', 'label': 'Lainnya'},
   ];
 
+  // Menginisialisasi state dan mengambil data event dari server
   @override
   void initState() {
     super.initState();
     _fetchEvents();
   }
 
+  // Membersihkan controller saat widget dihancurkan
   @override
   void dispose() {
     _searchController.dispose();
     super.dispose();
   }
 
+  // Mengambil data event dari server dan menangani loading dan error state
   Future<void> _fetchEvents() async {
     setState(() {
       _isLoading = true;
@@ -182,9 +187,7 @@ class _EventPageState extends State<EventPage> {
 
     try {
       final request = context.read<CookieRequest>();
-      final response = await request.get(
-        '$apiBase/get-events-json/',
-      );
+      final response = await request.get('$apiBase/get-events-json/');
 
       if (response != null && response['events'] != null) {
         final List<Event> events = [];
@@ -225,6 +228,7 @@ class _EventPageState extends State<EventPage> {
     }
   }
 
+  // Memfilter daftar event berdasarkan pencarian, lokasi, dan cabang olahraga
   void _applyFilters() {
     setState(() {
       String? trimmedLocation = _selectedLocation?.trim();
@@ -248,6 +252,7 @@ class _EventPageState extends State<EventPage> {
     });
   }
 
+  // Navigasi ke halaman edit event dan refresh data setelah edit
   Future<void> _editEvent(Event event) async {
     final result = await Navigator.push(
       context,
@@ -258,6 +263,7 @@ class _EventPageState extends State<EventPage> {
     }
   }
 
+  // Menghapus event dengan konfirmasi dialog dan menampilkan notifikasi hasil
   Future<void> _deleteEvent(Event event) async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -345,11 +351,13 @@ class _EventPageState extends State<EventPage> {
     }
   }
 
+  // Memeriksa apakah user yang sedang login adalah owner event
   bool _isOwner(UserState userState, Event event) {
     if (userState.userId == 0) return false;
     return event.userId == userState.userId;
   }
 
+  // Membangun tampilan halaman event
   @override
   Widget build(BuildContext context) {
     final userState = context.watch<UserState>();
@@ -364,6 +372,7 @@ class _EventPageState extends State<EventPage> {
                 child: Column(
                   children: [
                     Text(
+                      // Judul halaman
                       'EVENT',
                       style: GoogleFonts.plusJakartaSans(
                         color: Colors.white,
@@ -373,6 +382,7 @@ class _EventPageState extends State<EventPage> {
                     ),
                     const SizedBox(height: 8),
                     Text(
+                      // Deskripsi singkat halaman
                       'Bagikan dan temukan event olahraga di sekitarmu!',
                       style: GoogleFonts.plusJakartaSans(
                         color: Colors.white,
@@ -410,11 +420,11 @@ class _EventPageState extends State<EventPage> {
                       ),
                       child: Column(
                         children: [
-                          _buildSearchField(),
+                          _buildSearchField(), // Search field untuk nama event
                           const SizedBox(height: 12),
-                          _buildLocationDropdown(),
+                          _buildLocationDropdown(), // Filter lokasi
                           const SizedBox(height: 12),
-                          _buildSportDropdown(),
+                          _buildSportDropdown(), // Filter cabang olahraga
                           const SizedBox(height: 12),
                           SizedBox(
                             width: double.infinity,
@@ -478,6 +488,7 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
+  // Membuat field pencarian nama event
   Widget _buildSearchField() {
     return TextField(
       controller: _searchController,
@@ -497,6 +508,7 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
+  // Membuat dropdown filter lokasi dengan pengelompokan area
   Widget _buildLocationDropdown() {
     List<DropdownMenuItem<String>> locationItems = [
       const DropdownMenuItem<String>(value: null, child: Text('Semua Lokasi')),
@@ -558,6 +570,7 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
+  // Membuat dropdown filter cabang olahraga
   Widget _buildSportDropdown() {
     return DropdownButtonFormField<String>(
       initialValue: _selectedSport,
@@ -598,6 +611,7 @@ class _EventPageState extends State<EventPage> {
     );
   }
 
+  // Membuat daftar event
   Widget _buildEventList(UserState userState) {
     if (_isLoading) {
       return const SliverFillRemaining(

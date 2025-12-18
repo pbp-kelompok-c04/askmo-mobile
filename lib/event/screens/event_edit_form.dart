@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'dart:ui';
 import '../models/event.dart';
 
+// Menampilkan halaman form edit event
 class EventEditFormPage extends StatefulWidget {
   final Event event;
 
@@ -15,6 +16,7 @@ class EventEditFormPage extends StatefulWidget {
   State<EventEditFormPage> createState() => _EventEditFormPageState();
 }
 
+// Mengelola state dan logika form edit event
 class _EventEditFormPageState extends State<EventEditFormPage> {
   final _formKey = GlobalKey<FormState>();
   late final TextEditingController _namaController;
@@ -27,6 +29,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
   late DateTime? _selectedDate;
   late TimeOfDay? _selectedTime;
 
+  // Opsi cabang olahraga untuk dropdown
   final List<Map<String, String>> _sportOptions = [
     {'value': 'sepakbola', 'label': 'Sepak Bola'},
     {'value': 'basket', 'label': 'Basket'},
@@ -39,6 +42,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     {'value': 'lainnya', 'label': 'Lainnya'},
   ];
 
+  // Opsi lokasi dengan pengelompokan area untuk dropdown
   final Map<String, List<String>> _locationOptions = {
     'Jakarta Pusat': [
       'Cempaka Putih',
@@ -160,10 +164,11 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     ],
   };
 
+  // Menginisialisasi controller dan state dengan data event yang akan diedit
   @override
   void initState() {
     super.initState();
-    // Initialize controllers dengan data dari event yang sudah ada
+
     _namaController = TextEditingController(text: widget.event.nama);
     _deskripsiController = TextEditingController(text: widget.event.deskripsi);
     _biayaController = TextEditingController(
@@ -173,12 +178,12 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     _thumbnailController = TextEditingController(
       text: widget.event.thumbnail ?? '',
     );
-    // Normalize olahraga to lowercase to match dropdown values
+
     _selectedOlahraga = widget.event.olahraga.toLowerCase();
-    // Validate that the value exists in options, otherwise default to futsal
+
     final validValues = _sportOptions.map((s) => s['value']!).toList();
     if (!validValues.contains(_selectedOlahraga)) {
-      _selectedOlahraga = 'futsal';
+      _selectedOlahraga = 'futsal'; // Default jika tidak valid
     }
     _selectedLokasi = widget.event.lokasi;
     _selectedDate = widget.event.tanggal;
@@ -199,6 +204,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     }
   }
 
+  // Membersihkan controller saat widget dihancurkan
   @override
   void dispose() {
     _namaController.dispose();
@@ -209,6 +215,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     super.dispose();
   }
 
+  // Validasi dan mengirim data edit event ke server
   Future<void> _submitForm() async {
     if (_formKey.currentState!.validate()) {
       if (_selectedLokasi.isEmpty) {
@@ -247,7 +254,6 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
         final jamFormatted =
             '${_selectedTime!.hour.toString().padLeft(2, '0')}:${_selectedTime!.minute.toString().padLeft(2, '0')}';
 
-        // Trim lokasi sebelum submit
         final trimmedLokasi = _selectedLokasi.trim();
 
         // Kirim ke endpoint edit-event-ajax dengan ID event
@@ -305,13 +311,13 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     }
   }
 
+  // Membangun tampilan halaman form edit event
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Background gradient
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -323,7 +329,6 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
               ),
             ),
           ),
-          // Aura circles
           Positioned(
             top: -200,
             left: -200,
@@ -474,7 +479,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     );
   }
 
-  // Helper widgets (sama seperti di event_form.dart)
+  // Membuat dropdown pemilihan cabang olahraga
   Widget _buildDropdown() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
@@ -530,6 +535,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     );
   }
 
+  // Membuat dropdown pemilihan lokasi
   Widget _buildLocationDropdown() {
     List<DropdownMenuItem<String>> items = [
       const DropdownMenuItem<String>(value: '', child: Text('Pilih lokasi')),
@@ -602,6 +608,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     );
   }
 
+  // Membuat date picker pemilihan tanggal
   Widget _buildDatePicker() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
@@ -673,6 +680,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     );
   }
 
+  // Membuat time picker pemilihan jam event dengan glassmorphism effect
   Widget _buildTimePicker() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(8),
@@ -742,6 +750,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     );
   }
 
+  // Membuat text field dengan validasi
   Widget _buildTextField({
     required TextEditingController controller,
     required String label,
