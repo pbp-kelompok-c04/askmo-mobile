@@ -4,13 +4,13 @@ import 'package:google_generative_ai/google_generative_ai.dart';
 import 'dart:ui';
 import 'package:askmo/profile/models/user_state.dart';
 import 'package:provider/provider.dart';
-import 'dart:convert'; // Import untuk base64Decode
-// import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'dart:convert';
 import 'package:flutter/foundation.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:askmo/gemini_config.dart'; 
 
-
+// feature AI bot assistent, menggunakan Gemini API key
 class GeminiChatScreen extends StatefulWidget {
   const GeminiChatScreen({super.key});
 
@@ -37,11 +37,10 @@ class _GeminiChatScreenState extends State<GeminiChatScreen>
 void initState() {
   super.initState();
 
-  // Ambil API key dari satu sumber (GeminiConfig)
+  // API key dari GeminiConfig
   _apiKey = GeminiConfig.apiKey;
 
   if (_apiKey.isEmpty) {
-    // Jangan crash, cukup log; user akan lihat pesan di UI saat kirim pesan
     debugPrint(
       'GEMINI_API_KEY kosong. Pastikan .env terisi saat development, '
       'dan --dart-define=GEMINI_API_KEY=... diset di CI (GitHub Actions/Bitrise).',
@@ -68,7 +67,7 @@ void initState() {
         'user',
         [
           TextPart(
-            'You are ASKMO Sport Assistant, an expert coach, fitness, and nutrition advisor. '
+            'You are MOMO, ASKMO Sport Assistant, an expert coach, fitness, and nutrition advisor. '
             'Your persona is helpful, knowledgeable, and highly motivating. Give direct, high-quality, '
             'and specific advice related to the user\'s sports, like training plans, form checks '
             '(hypothetically), or nutrition tips. Respond in Indonesian.',
@@ -79,7 +78,7 @@ void initState() {
   );
 
   _addMessage(
-    'Halo! Saya ASKMO Assistant, pelatih AI yang siap membantu rencana kebugaran dan olahraga Anda. Ada yang bisa saya bantu?',
+    'Halo! Saya MOMO, pelatih AI yang siap membantu rencana kebugaran dan olahraga Anda. Ada yang bisa saya bantu?',
     'model',
   );
 }
@@ -193,6 +192,13 @@ void initState() {
     );
   }
 
+  List<String> get _suggestedPrompts => const [
+    'Bagaimana cara memulai latihan lari untuk pemula?',
+    'Berikan saya ide sarapan sehat tinggi protein.',
+    'Apa saja kesalahan umum saat melakukan squat?',
+    'Buatkan jadwal gym 3 hari seminggu.',
+  ];
+
   @override
   Widget build(BuildContext context) {
     final userState = context.watch<UserState>();
@@ -208,7 +214,7 @@ void initState() {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              'ASKMO Assistant',
+              'MOMO',
               style: GoogleFonts.plusJakartaSans(
                 fontWeight: FontWeight.bold,
                 fontSize: 18,
@@ -266,6 +272,7 @@ void initState() {
     );
   }
 
+  // Widget message bubble, untuk menampilkan pesan dari AI atau user
   Widget _buildMessageBubble({
     required String text, 
     required String role, 
@@ -285,13 +292,12 @@ void initState() {
       } else {
         avatarImage = const AssetImage('assets/avatar/default_avatar.png');
       }
-      displayName = userState.displayName.split(' ').first; // Nama depan saja
+      displayName = userState.displayName.split(' ').first;
     } else {
-      // Logika untuk avatar Gemini/ASKMO Assistant
-      displayName = 'ASKMO Assistant';
+      displayName = 'MOMO';
     }
 
-    // Menggabungkan logika penampilan avatar/ikon
+    // Widget avatar widget, untuk menampilkan avatar/ikon
     Widget avatarWidget;
     if (isUser) {
       avatarWidget = CircleAvatar(
@@ -300,7 +306,7 @@ void initState() {
         backgroundColor: const Color(0xFF6C5CE7),
       );
     } else {
-      avatarWidget = const CircleAvatar( // Gunakan const di sini
+      avatarWidget = const CircleAvatar(
         radius: 18,
         backgroundColor: Color(0xFFA4E4FF),
         backgroundImage: AssetImage(
@@ -308,7 +314,6 @@ void initState() {
         ),
       );
     }
-
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
@@ -340,66 +345,69 @@ void initState() {
                 ],
               ),
               padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    isUser ? displayName : 'ASKMO Assistant',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: isUser ? Colors.white70 : const Color(0xFFA4E4FF),
-                      fontSize: 12,
-                      fontWeight: FontWeight.bold,
+              child: SelectionArea(
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      isUser ? displayName : 'MOMO',
+                      style: GoogleFonts.plusJakartaSans(
+                        color: isUser ? Colors.white70 : const Color(0xFFA4E4FF),
+                        fontSize: 12,
+                        fontWeight: FontWeight.bold,
+                      ),
                     ),
-                  ),
-                  const SizedBox(height: 4),
-                  isUser
-                      ? Text(
-                          text,
-                          style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white,
-                            fontSize: 14,
-                            height: 1.4,
-                          ),
-                        )
-                      : MarkdownBody(
-                          data: text,
-                          styleSheet: MarkdownStyleSheet(
-                            p: GoogleFonts.plusJakartaSans(
+                    const SizedBox(height: 4),
+                    isUser
+                        ? Text(
+                            text,
+                            style: GoogleFonts.plusJakartaSans(
                               color: Colors.white,
                               fontSize: 14,
                               height: 1.4,
                             ),
-                            strong: GoogleFonts.plusJakartaSans(
-                              color: Colors.white,
-                              fontSize: 14,
-                              fontWeight: FontWeight.w700,
+                          )
+                        : MarkdownBody(
+                            data: text,
+                            selectable: true,
+                            styleSheet: MarkdownStyleSheet(
+                              p: GoogleFonts.plusJakartaSans(
+                                color: Colors.white,
+                                fontSize: 14,
+                                height: 1.4,
+                              ),
+                              strong: GoogleFonts.plusJakartaSans(
+                                color: Colors.white,
+                                fontSize: 14,
+                                fontWeight: FontWeight.w700,
+                              ),
+                              listBullet: GoogleFonts.plusJakartaSans(
+                                color: Colors.white,
+                                fontSize: 14,
+                              ),
                             ),
-                            listBullet: GoogleFonts.plusJakartaSans(
-                              color: Colors.white,
-                              fontSize: 14,
+                            bulletBuilder: (params) => Text(
+                              '• ',
+                              style: GoogleFonts.plusJakartaSans(
+                                color: Colors.white,
+                                fontSize: 14,
+                              ),
                             ),
                           ),
-                          bulletBuilder: (params) => Text(
-                            '• ',
-                            style: GoogleFonts.plusJakartaSans(
-                              color: Colors.white,
-                              fontSize: 14,
-                            ),
+                    if (!isUser && isLast && _isSending) 
+                      Padding(
+                        padding: const EdgeInsets.only(top: 8.0),
+                        child: Text(
+                          'Mengetik...',
+                          style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white54,
+                            fontSize: 10,
+                            fontStyle: FontStyle.italic,
                           ),
-                        ),
-                  if (!isUser && isLast && _isSending) 
-                    Padding(
-                      padding: const EdgeInsets.only(top: 8.0),
-                      child: Text(
-                        'Mengetik...',
-                        style: GoogleFonts.plusJakartaSans(
-                          color: Colors.white54,
-                          fontSize: 10,
-                          fontStyle: FontStyle.italic,
                         ),
                       ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
@@ -424,53 +432,109 @@ void initState() {
               top: BorderSide(color: Colors.white.withOpacity(0.2), width: 1),
             ),
           ),
-          child: Row(
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
             children: [
-              Expanded(
-                child: TextField(
-                  controller: _textController,
-                  style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                  decoration: InputDecoration(
-                    hintText: 'Tanyakan tentang latihan, nutrisi...',
-                    hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white54),
-                    filled: true,
-                    fillColor: Colors.black.withOpacity(0.3),
-                    contentPadding: const EdgeInsets.symmetric(
-                      horizontal: 16,
-                      vertical: 14,
-                    ),
-                    border: OutlineInputBorder(
-                      borderRadius: BorderRadius.circular(28),
-                      borderSide: BorderSide.none,
-                    ),
-                    suffixIcon: _isSending
-                        ? const Padding(
-                            padding: EdgeInsets.all(12.0),
-                            child: SizedBox(
-                              width: 20,
-                              height: 20,
-                              child: CircularProgressIndicator(
-                                strokeWidth: 2,
-                                color: Color(0xFFA4E4FF),
-                              ),
-                            ),
-                          )
-                        : null,
-                  ),
-                  onSubmitted: (_) => _sendMessage(),
+              // suggested prompts row
+              SingleChildScrollView(
+                scrollDirection: Axis.horizontal,
+                padding: const EdgeInsets.only(bottom: 12),
+                child: Row(
+                  children: _suggestedPrompts.map((prompt) {
+                    return GestureDetector(
+                      onTap: () {
+                        _textController.text = prompt;
+                        _sendMessage();
+                      },
+                      child: Container(
+                        margin: const EdgeInsets.only(right: 8),
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 12,
+                          vertical: 8,
+                        ),
+                        decoration: BoxDecoration(
+                          color: Colors.black.withOpacity(0.3),
+                          borderRadius: BorderRadius.circular(16),
+                          border: Border.all(
+                            color: Colors.white.withOpacity(0.3),
+                            width: 1,
+                          ),
+                        ),
+                        child: Text(
+                          prompt,
+                          style: GoogleFonts.plusJakartaSans(
+                            color: Colors.white,
+                            fontSize: 12,
+                          ),
+                        ),
+                      ),
+                    );
+                  }).toList(),
                 ),
               ),
-              const SizedBox(width: 8),
-              GestureDetector(
-                onTap: _isSending ? null : _sendMessage,
-                child: Container(
-                  width: 50,
-                  height: 50,
-                  decoration: BoxDecoration(
-                    color: _isSending ? Colors.grey : const Color(0xFF571E88),
-                    shape: BoxShape.circle,
+
+              // input row
+              Row(
+                children: [
+                  Expanded(
+                    child: TextField(
+                      controller: _textController,
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                      decoration: InputDecoration(
+                        hintText: 'Tanyakan tentang latihan, nutrisi...',
+                        hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white54),
+                        filled: true,
+                        fillColor: Colors.black.withOpacity(0.3),
+                        contentPadding: const EdgeInsets.symmetric(
+                          horizontal: 16,
+                          vertical: 14,
+                        ),
+                        border: OutlineInputBorder(
+                          borderRadius: BorderRadius.circular(28),
+                          borderSide: BorderSide.none,
+                        ),
+                        suffixIcon: _isSending
+                            ? const Padding(
+                          padding: EdgeInsets.all(12.0),
+                          child: SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Color(0xFFA4E4FF),
+                            ),
+                          ),
+                        )
+                            : null,
+                      ),
+                      onSubmitted: (_) => _sendMessage(),
+                    ),
                   ),
-                  child: const Icon(Icons.send_rounded, color: Colors.white),
+                  const SizedBox(width: 8),
+                  GestureDetector(
+                    onTap: _isSending ? null : _sendMessage,
+                    child: Container(
+                      width: 50,
+                      height: 50,
+                      decoration: BoxDecoration(
+                        color: _isSending ? Colors.grey : const Color(0xFF571E88),
+                        shape: BoxShape.circle,
+                      ),
+                      child: const Icon(Icons.send_rounded, color: Colors.white),
+                    ),
+                  ),
+                ],
+              ),
+
+              // teks disclaimer 
+              Padding(
+                padding: const EdgeInsets.only(top: 10.0, bottom: 4.0),
+                child: Text(
+                  'MOMO bisa membuat kesalahan, verifikasi lagi ya!',
+                  style: GoogleFonts.plusJakartaSans(
+                    color: Colors.white54,
+                    fontSize: 10,
+                  ),
                 ),
               ),
             ],

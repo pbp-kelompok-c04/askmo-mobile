@@ -287,7 +287,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
                         _buildTextField(
                           controller: _serviceFeeController,
                           label: 'Tarif Jasa',
-                          hint: 'Contoh: Rp 100.000 / Jam',
+                          hint: 'Contoh: 100.000',
                         ),
                         const SizedBox(height: 16),
                         _buildTextField(
@@ -333,7 +333,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
                                     'certifications':
                                         _certificationsController.text,
                                     'service_fee': _serviceFeeController.text,
-                                    'photo': photoValue, // Kirim URL lengkap
+                                    'photo': photoValue,
                                   };
 
                                   print(

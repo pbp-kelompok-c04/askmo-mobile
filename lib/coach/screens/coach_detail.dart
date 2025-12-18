@@ -566,7 +566,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
           ),
           const SizedBox(height: 20),
 
-          // === Tombol Lihat Rating & Review (ungu) ===
+          // Button lihat rating dan review
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(

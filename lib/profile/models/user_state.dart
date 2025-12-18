@@ -69,7 +69,6 @@ class UserState extends ChangeNotifier {
     }
   }
 
-  // Extract nama dari email (sebelum @)
   String _extractNameFromEmail(String email) {
     if (!email.contains('@')) return email;
     String localPart = email.split('@')[0];

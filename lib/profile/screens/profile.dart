@@ -558,7 +558,7 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  // Card untuk coach wishlist (mirip feature coach card)
+  // Card untuk coach wishlist
   Widget _buildCoachWishlistCard({
     required String name,
     required String sportBranch,
@@ -755,7 +755,7 @@ class _ProfilePageState extends State<ProfilePage>
             message: 'Tidak ada Lapangan yang di-Wishlist. Ayo temukan Lapangan favoritmu!',
           );
         } else {
-          // Your existing FutureBuilder for lapangan...
+
           return FutureBuilder<List<Lapangan>>(
             future: _fetchLapanganDetails(lapanganItems),
             builder: (context, snapshot) {
@@ -851,7 +851,7 @@ class _ProfilePageState extends State<ProfilePage>
             message: 'Tidak ada Coach dalam daftar favorit. Cari Coach terbaik sekarang!',
           );
         } else {
-          // Your existing FutureBuilder for coach...
+
           return FutureBuilder<List<Coach>>(
             future: _fetchCoachDetails(coachItems),
             builder: (context, snapshot) {
@@ -977,8 +977,7 @@ class _ProfilePageState extends State<ProfilePage>
           ),
         );
       }
-      
-      // Wrap empty states with LayoutBuilder for full-page height
+
       if (isEmpty) {
         return LayoutBuilder(
           builder: (context, constraints) {
@@ -1026,7 +1025,7 @@ Widget _buildHistoryCard(BookingItem item) {
             ),
           ],
         ),
-        // const Divider(color: Colors.white24, height: 2.0),
+
         const SizedBox(height: 15),
         // Detail Booking
         _buildDetailRowSmall(
@@ -1069,7 +1068,6 @@ Widget _buildHistoryCard(BookingItem item) {
   );
 }
 
-// Helper tambahan untuk baris detail kecil
 Widget _buildDetailRowSmall({
   required IconData icon,
   required String label,
@@ -1188,7 +1186,7 @@ Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
 
             return StatefulBuilder(
               builder: (context, setModalState) {
-                // Method untuk memilih foto dari galeri atau file
+                // Feature memilih foto dari galeri atau file
                 Future<void> showImageSourcePicker() async {
                   await showModalBottomSheet(
                     context: context,
@@ -1335,7 +1333,7 @@ Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
                         ),
                         const SizedBox(height: 18),
 
-                        // Username (Read-only)
+                        // Username
                         Text(
                           'Username',
                           style: GoogleFonts.plusJakartaSans(
@@ -1368,7 +1366,7 @@ Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
                         ),
                         const SizedBox(height: 16),
 
-                        // Name (Editable)
+                        // Name
                         Text(
                           'Name',
                           style: GoogleFonts.plusJakartaSans(
@@ -1705,7 +1703,6 @@ Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
     ),
   ),
 ),
-          // ),
         ],
       ),
     );
