@@ -64,7 +64,7 @@ class CoachReviewService {
     required String reviewText,
   }) async {
     final request = context.read<CookieRequest>();
-    final url = '$baseUrl/coach/add-ajax/$coachId/';
+    final url = '$baseUrl/review/coach/add-ajax/$coachId/';
 
     final response = await request.post(url, {
       'reviewer_name': reviewerName,

@@ -126,7 +126,7 @@ class _ReviewFormPageState extends State<ReviewFormPage>
 
     if (rating == null || rating < 0 || rating > 5) {
       ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Rating harus antara 0–5')),
+        const SnackBar(content: Text('Rating harus antara 0-5')),
       );
       return;
     }
