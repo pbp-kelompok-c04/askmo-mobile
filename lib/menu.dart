@@ -288,7 +288,7 @@ class _HomeContentState extends State<HomeContent> {
   bool _loading = true;
   String? _error;
   String _searchQuery = "";
-  String? _selectedSport;
+  Set<String> _selectedSports = {};
 
   List<Lapangan> _lapangan = [];
   List<Coach> _coaches = [];
@@ -381,14 +381,23 @@ class _HomeContentState extends State<HomeContent> {
   List<Lapangan> get _filteredLapangan {
     var result = _lapangan;
 
-    // Filter cabang olahraga
-    if (_selectedSport != null) {
-      result = result
-          .where(
-            (item) =>
-                item.olahraga.toLowerCase() == _selectedSport!.toLowerCase(),
-          )
-          .toList();
+    // Filter cabang olahraga - support multiple selection
+    if (_selectedSports.isNotEmpty) {
+      result = result.where((item) {
+        // Split olahraga yang bisa mengandung beberapa cabang (comma-separated)
+        final itemSports = item.olahraga
+            .toLowerCase()
+            .split(',')
+            .map((s) => s.trim())
+            .toSet();
+
+        // Check if any of selected sports matches with item's sports
+        return _selectedSports.any(
+          (selected) => itemSports.any(
+            (itemSport) => itemSport == selected.toLowerCase(),
+          ),
+        );
+      }).toList();
     }
 
     // Filter search query
@@ -408,15 +417,14 @@ class _HomeContentState extends State<HomeContent> {
   List<Coach> get _filteredCoaches {
     var result = _coaches;
 
-    // Filter cabang olahraga
-    if (_selectedSport != null) {
-      result = result
-          .where(
-            (item) =>
-                item.fields.sportBranch.toLowerCase() ==
-                _selectedSport!.toLowerCase(),
-          )
-          .toList();
+    // Filter cabang olahraga - support multiple selection
+    if (_selectedSports.isNotEmpty) {
+      result = result.where((item) {
+        return _selectedSports.any(
+          (selected) =>
+              item.fields.sportBranch.toLowerCase() == selected.toLowerCase(),
+        );
+      }).toList();
     }
 
     // Filter search query
@@ -437,14 +445,13 @@ class _HomeContentState extends State<HomeContent> {
   List<Event> get _filteredEvents {
     var result = _events;
 
-    // Filter cabang olahraga
-    if (_selectedSport != null) {
-      result = result
-          .where(
-            (item) =>
-                item.olahraga.toLowerCase() == _selectedSport!.toLowerCase(),
-          )
-          .toList();
+    // Filter cabang olahraga - support multiple selection
+    if (_selectedSports.isNotEmpty) {
+      result = result.where((item) {
+        return _selectedSports.any(
+          (selected) => item.olahraga.toLowerCase() == selected.toLowerCase(),
+        );
+      }).toList();
     }
 
     // Filter search query
@@ -533,10 +540,14 @@ class _HomeContentState extends State<HomeContent> {
 
                   // Filter cabang olahraga
                   _SportFilter(
-                    selectedSport: _selectedSport,
+                    selectedSports: _selectedSports,
                     onSportSelected: (sport) {
                       setState(() {
-                        _selectedSport = sport;
+                        if (_selectedSports.contains(sport)) {
+                          _selectedSports.remove(sport);
+                        } else {
+                          _selectedSports.add(sport);
+                        }
                       });
                     },
                   ),
@@ -668,13 +679,13 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-// Filter cabang olahraga
+// Filter cabang olahraga - Updated for multiple selection
 class _SportFilter extends StatelessWidget {
-  final String? selectedSport;
-  final Function(String?) onSportSelected;
+  final Set<String> selectedSports;
+  final Function(String) onSportSelected;
 
   const _SportFilter({
-    required this.selectedSport,
+    required this.selectedSports,
     required this.onSportSelected,
   });
 
@@ -692,77 +703,126 @@ class _SportFilter extends StatelessWidget {
       {'name': 'Lainnya', 'icon': 'lainnya.png'},
     ];
 
-    return SizedBox(
-      height: 100,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: sports.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder: (_, index) {
-          final sport = sports[index];
-          final sportName = sport['name']!;
-          final isSelected = selectedSport == sportName;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (selectedSports.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              '${selectedSports.length} olahraga dipilih',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFFA4E4FF),
+              ),
+            ),
+          ),
+        SizedBox(
+          height: 100,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: sports.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (_, index) {
+              final sport = sports[index];
+              final sportName = sport['name']!;
+              final isSelected = selectedSports.contains(sportName);
 
-          return GestureDetector(
-            onTap: () {
-              onSportSelected(isSelected ? null : sportName);
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected
-                        ? const Color(0xFF571E88)
-                        : Colors.white.withOpacity(0.1),
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFFA4E4FF)
-                          : Colors.white.withOpacity(0.3),
-                      width: 2,
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFF571E88).withOpacity(0.5),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+              return GestureDetector(
+                onTap: () {
+                  onSportSelected(sportName);
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isSelected
+                                ? const Color(0xFF571E88)
+                                : Colors.white.withOpacity(0.1),
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFFA4E4FF)
+                                  : Colors.white.withOpacity(0.3),
+                              width: 2,
                             ),
-                          ]
-                        : null,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Image.asset(
-                      'assets/icon-olahraga/${sport['icon']}',
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.sports_soccer,
-                        color: isSelected ? Colors.white : Colors.white54,
-                        size: 28,
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF571E88,
+                                      ).withOpacity(0.5),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Image.asset(
+                              'assets/icon-olahraga/${sport['icon']}',
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.sports_soccer,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.white54,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (isSelected)
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFA4E4FF),
+                                border: Border.all(
+                                  color: const Color(0xFF571E88),
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.check,
+                                size: 12,
+                                color: Color(0xFF571E88),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      sportName,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? const Color(0xFFA4E4FF)
+                            : Colors.white.withOpacity(0.7),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  sportName,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected
-                        ? const Color(0xFFA4E4FF)
-                        : Colors.white.withOpacity(0.7),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
