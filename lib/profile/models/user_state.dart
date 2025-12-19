@@ -144,9 +144,9 @@ class UserState extends ChangeNotifier {
 
     if (oldUsername.isNotEmpty) {
       await prefs.remove('${oldUsername}_isEmailLogin');
-      await prefs.remove('${oldUsername}_name');
-      await prefs.remove('${oldUsername}_avatarPath');
-      await prefs.remove('${oldUsername}_favoriteSport');
+      // await prefs.remove('${oldUsername}_name');
+      // await prefs.remove('${oldUsername}_avatarPath');
+      // await prefs.remove('${oldUsername}_favoriteSport');
       await prefs.remove('${oldUsername}_userId');
     }
 

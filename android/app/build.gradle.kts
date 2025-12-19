@@ -16,8 +16,13 @@ if (keystorePropertiesFile.exists()) {
 
 
 android {
+<<<<<<< Updated upstream
     namespace = "com.askmo.mobile"
     compileSdk = 36
+=======
+    namespace = "com.example.askmo"
+    compileSdk = flutter.compileSdkVersion
+>>>>>>> Stashed changes
 
     compileOptions {
         sourceCompatibility = JavaVersion.VERSION_11

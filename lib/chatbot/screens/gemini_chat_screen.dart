@@ -61,6 +61,7 @@ void initState() {
     CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
   );
 
+  // Mendefinisikan model untuk AI Assitant ASKMO (MOMO)
   _chat = _model.startChat(
     history: [
       Content(
@@ -133,7 +134,7 @@ void initState() {
       final responseText = response.text ?? 'Maaf, saya gagal memproses permintaan Anda.';
       _addMessage(responseText, 'model');
     } catch (e) {
-      _addMessage('Error: Gagal terhubung ke server Gemini.', 'model');
+      _addMessage('Error: Gagal terhubung dengan MOMO. Periksa kembali internet-mu ya!', 'model');
       print('Gemini Error: $e');
     } finally {
       setState(() => _isSending = false);
@@ -272,7 +273,7 @@ void initState() {
     );
   }
 
-  // Widget message bubble, untuk menampilkan pesan dari AI atau user
+  // Widget message bubble, untuk menampilkan pesan dari MOMO dan user
   Widget _buildMessageBubble({
     required String text, 
     required String role, 
@@ -420,6 +421,7 @@ void initState() {
     );
   }
 
+  // Widget input bar yang menyediakan beberapa saran prompt terkait olahraga, 
   Widget _buildInputBar() {
     return ClipRRect(
       child: BackdropFilter(
@@ -435,7 +437,7 @@ void initState() {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // suggested prompts row
+              // suggested prompts
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.only(bottom: 12),
@@ -473,7 +475,7 @@ void initState() {
                 ),
               ),
 
-              // input row
+              // input row dengan disclaimer text field dan tombol kirim
               Row(
                 children: [
                   Expanded(
@@ -526,11 +528,11 @@ void initState() {
                 ],
               ),
 
-              // teks disclaimer 
+              // teks disclaimer bahwa MOMO AI Assistant bisa saja melakukan kesalahan, memberikan saran untuk user untuk mem-verifikasi jawaban yang diberikan MOMO
               Padding(
                 padding: const EdgeInsets.only(top: 10.0, bottom: 4.0),
                 child: Text(
-                  'MOMO bisa membuat kesalahan, verifikasi lagi ya!',
+                  'MOMO bisa membuat kesalahan, verifikasi jawaban MOMO lagi ya!',
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.white54,
                     fontSize: 10,

@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:askmo/feat/review/services/review_services.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 
 import '../models/lapangan.dart';
 
@@ -159,7 +160,11 @@ class LapanganCard extends StatelessWidget {
                                 MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
-                                'Rp ${lapangan.tarifPerSesi}',
+                                "${NumberFormat.currency(
+                                  locale: 'id', 
+                                  symbol: 'Rp ', 
+                                  decimalDigits: 0 
+                                ).format(double.parse(lapangan.tarifPerSesi))} / Sesi",
                                 style: GoogleFonts.plusJakartaSans(
                                   color: const Color(0xFFA4B3FF),
                                   fontSize: 14,
