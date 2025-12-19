@@ -8,7 +8,6 @@ import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 import 'package:askmo/config/api_base.dart';
 
-
 // Import Chatbot from dev branch
 import 'package:askmo/chatbot/screens/gemini_chat_screen.dart';
 
@@ -136,6 +135,7 @@ class _MenuPageState extends State<MenuPage>
       endDrawer: RightDrawer(currentIndex: _selectedIndex),
 
       appBar: AppBar(
+        automaticallyImplyLeading: _selectedIndex == 0 ? false : true,
         backgroundColor: Colors.black.withOpacity(0.25),
         elevation: 0,
         title: Text(
@@ -195,7 +195,9 @@ class _MenuPageState extends State<MenuPage>
                 child: CircleAvatar(
                   radius: 28,
                   backgroundColor: const Color(0xFFA4E4FF),
-                  backgroundImage: const AssetImage('assets/image/avatar_chatbot.png'),
+                  backgroundImage: const AssetImage(
+                    'assets/image/avatar_chatbot.png',
+                  ),
                 ),
               ),
             )
@@ -570,8 +572,7 @@ class _HomeContentState extends State<HomeContent> {
                   // ===== COACH =====
                   _SectionHeader(
                     title: 'Temui Coach',
-                    subtitle:
-                        'Pilih coach yang cocok dan mulai upgrade skill.',
+                    subtitle: 'Pilih coach yang cocok dan mulai upgrade skill.',
                   ),
                   const SizedBox(height: 10),
                   if (_filteredCoaches.isNotEmpty)
@@ -1683,10 +1684,7 @@ class _PromoSlideshowState extends State<_PromoSlideshow> {
               controller: _ctrl,
               itemCount: _images.length,
               onPageChanged: (i) => setState(() => _page = i),
-              itemBuilder: (_, i) => Image.asset(
-                _images[i],
-                fit: BoxFit.cover,
-              ),
+              itemBuilder: (_, i) => Image.asset(_images[i], fit: BoxFit.cover),
             ),
           ),
         ),
