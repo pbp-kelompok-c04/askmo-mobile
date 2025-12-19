@@ -73,12 +73,12 @@ class _MenuPageState extends State<MenuPage>
     final isLoggedIn = userState.username.isNotEmpty;
 
     if (index == 0) {
-      // Beranda - always allowed
       setState(() {
+        // Beranda selalu bisa diakses
         _selectedIndex = index;
       });
     } else {
-      // Lapangan, Coach, Event - require login
+      // Lapangan, Coach, Event hanya bisa diakses kalau sudah login
       if (!isLoggedIn) {
         Navigator.push(
           context,
