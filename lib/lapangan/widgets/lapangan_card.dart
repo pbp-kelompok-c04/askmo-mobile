@@ -24,9 +24,6 @@ class LapanganCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Rating yang ditampilkan di card:
-    // - kalau cache ada → pakai cache
-    // - kalau tidak → pakai lapangan.rating dari backend
     final displayRating =
         ReviewService.getCachedAverage(lapangan.id) ?? lapangan.rating;
 
@@ -64,10 +61,12 @@ class LapanganCard extends StatelessWidget {
                       children: [
                         ClipRRect(
                           borderRadius: const BorderRadius.vertical(
-                              top: Radius.circular(16)),
+                            top: Radius.circular(16),
+                          ),
                           child: AspectRatio(
                             aspectRatio: 16 / 9,
-                            child: lapangan.thumbnail != null &&
+                            child:
+                                lapangan.thumbnail != null &&
                                     lapangan.thumbnail!.isNotEmpty
                                 ? Image.network(
                                     lapangan.thumbnail!,
@@ -107,22 +106,7 @@ class LapanganCard extends StatelessWidget {
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          Container(
-                            padding: const EdgeInsets.symmetric(
-                                horizontal: 10, vertical: 4),
-                            decoration: BoxDecoration(
-                              color: const Color(0xFF06005E),
-                              borderRadius: BorderRadius.circular(6),
-                            ),
-                            child: Text(
-                              toTitleCase(lapangan.olahraga),
-                              style: GoogleFonts.plusJakartaSans(
-                                color: Colors.white,
-                                fontSize: 10,
-                                fontWeight: FontWeight.w600,
-                              ),
-                            ),
-                          ),
+                          _buildSportBubbles(lapangan.olahraga),
                           const SizedBox(height: 12),
                           Text(
                             lapangan.nama,
@@ -137,8 +121,11 @@ class LapanganCard extends StatelessWidget {
                           const SizedBox(height: 4),
                           Row(
                             children: [
-                              const Icon(Icons.location_on,
-                                  size: 14, color: Colors.grey),
+                              const Icon(
+                                Icons.location_on,
+                                size: 14,
+                                color: Colors.grey,
+                              ),
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
@@ -155,8 +142,7 @@ class LapanganCard extends StatelessWidget {
                           ),
                           const SizedBox(height: 12),
                           Row(
-                            mainAxisAlignment:
-                                MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 'Rp ${lapangan.tarifPerSesi}',
@@ -168,8 +154,11 @@ class LapanganCard extends StatelessWidget {
                               ),
                               Row(
                                 children: [
-                                  const Icon(Icons.star,
-                                      size: 16, color: Colors.amber),
+                                  const Icon(
+                                    Icons.star,
+                                    size: 16,
+                                    color: Colors.amber,
+                                  ),
                                   const SizedBox(width: 4),
                                   Text(
                                     displayRating.toStringAsFixed(1),
@@ -192,19 +181,19 @@ class LapanganCard extends StatelessWidget {
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: Colors.white,
                                     side: BorderSide(
-                                      color:
-                                          Colors.white.withOpacity(0.6),
+                                      color: Colors.white.withOpacity(0.6),
                                     ),
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
-                                  icon: const Icon(Icons.info_outline,
-                                      size: 18),
+                                  icon: const Icon(
+                                    Icons.info_outline,
+                                    size: 18,
+                                  ),
                                   label: Text(
                                     'Detail',
                                     style: GoogleFonts.plusJakartaSans(
@@ -218,14 +207,12 @@ class LapanganCard extends StatelessWidget {
                                 child: ElevatedButton.icon(
                                   onPressed: onBook,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor:
-                                        const Color(0xFF06005E),
+                                    backgroundColor: const Color(0xFF06005E),
                                     padding: const EdgeInsets.symmetric(
                                       vertical: 12,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius:
-                                          BorderRadius.circular(10),
+                                      borderRadius: BorderRadius.circular(10),
                                     ),
                                   ),
                                   icon: const Icon(
@@ -257,6 +244,37 @@ class LapanganCard extends StatelessWidget {
     );
   }
 
+  Widget _buildSportBubbles(String olahragaString) {
+    // Split by comma and trim whitespace
+    List<String> sports = olahragaString
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    return Wrap(
+      spacing: 6,
+      runSpacing: 6,
+      children: sports.map((sport) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          decoration: BoxDecoration(
+            color: const Color(0xFF06005E),
+            borderRadius: BorderRadius.circular(6),
+          ),
+          child: Text(
+            toTitleCase(sport),
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.white,
+              fontSize: 10,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+      }).toList(),
+    );
+  }
+
   Widget _buildPlaceholder() {
     return Container(
       color: const Color(0xFF4F4F4F),
@@ -273,8 +291,11 @@ class LapanganCard extends StatelessWidget {
 
 String toTitleCase(String text) {
   if (text.isEmpty) return text;
-  return text.split(' ').map((word) {
-    if (word.isEmpty) return word;
-    return word[0].toUpperCase() + word.substring(1).toLowerCase();
-  }).join(' ');
+  return text
+      .split(' ')
+      .map((word) {
+        if (word.isEmpty) return word;
+        return word[0].toUpperCase() + word.substring(1).toLowerCase();
+      })
+      .join(' ');
 }

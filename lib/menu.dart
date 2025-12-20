@@ -6,18 +6,13 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
+
 import 'package:askmo/config/api_base.dart';
-
-
-// Import Chatbot from dev branch
 import 'package:askmo/chatbot/screens/gemini_chat_screen.dart';
-
 import 'package:askmo/right_drawer.dart';
-// Import UserState untuk cek login/username
 import 'package:askmo/profile/models/user_state.dart';
 import 'package:askmo/authentication/screens/login.dart';
 
-// IMPORTS MODEL & SCREENS
 import 'package:askmo/lapangan/models/lapangan.dart';
 import 'package:askmo/lapangan/screens/lapangan.dart';
 import 'package:askmo/lapangan/screens/lapangan_detail.dart';
@@ -30,18 +25,12 @@ import 'package:askmo/event/models/event.dart';
 import 'package:askmo/event/screens/event.dart';
 import 'package:askmo/event/screens/event_detail.dart';
 
-/// ===============================
-/// CONFIG
-/// ===============================
 const String lapanganEndpoint = '/json/';
 const String coachEndpoint = '/coach/json/';
 const String eventEndpoint = '/get-events-json/';
 
 String _baseUrl() => apiBase;
 
-/// ===============================
-/// MENU PAGE (MAIN SHELL)
-/// ===============================
 class MenuPage extends StatefulWidget {
   final int initialIndex;
   const MenuPage({super.key, this.initialIndex = 0});
@@ -84,12 +73,12 @@ class _MenuPageState extends State<MenuPage>
     final isLoggedIn = userState.username.isNotEmpty;
 
     if (index == 0) {
-      // Beranda - always allowed
       setState(() {
+        // Beranda selalu bisa diakses
         _selectedIndex = index;
       });
     } else {
-      // Lapangan, Coach, Event - require login
+      // Lapangan, Coach, Event hanya bisa diakses kalau sudah login
       if (!isLoggedIn) {
         Navigator.push(
           context,
@@ -136,6 +125,7 @@ class _MenuPageState extends State<MenuPage>
       endDrawer: RightDrawer(currentIndex: _selectedIndex),
 
       appBar: AppBar(
+        automaticallyImplyLeading: _selectedIndex == 0 ? false : true,
         backgroundColor: Colors.black.withOpacity(0.25),
         elevation: 0,
         title: Text(
@@ -170,7 +160,7 @@ class _MenuPageState extends State<MenuPage>
                 onPressed: () {
                   final userState = context.read<UserState>();
                   if (userState.username.isEmpty) {
-                    // User not logged in, redirect to login
+                    // User belum login, redirect ke login
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -179,7 +169,7 @@ class _MenuPageState extends State<MenuPage>
                       ),
                     );
                   } else {
-                    // User logged in, go to chatbot
+                    // User sudah login, pergi ke chatbot
                     Navigator.push(
                       context,
                       MaterialPageRoute(
@@ -195,7 +185,9 @@ class _MenuPageState extends State<MenuPage>
                 child: CircleAvatar(
                   radius: 28,
                   backgroundColor: const Color(0xFFA4E4FF),
-                  backgroundImage: const AssetImage('assets/image/avatar_chatbot.png'),
+                  backgroundImage: const AssetImage(
+                    'assets/image/avatar_chatbot.png',
+                  ),
                 ),
               ),
             )
@@ -278,9 +270,6 @@ class _MenuPageState extends State<MenuPage>
   }
 }
 
-/// ===============================
-/// HOME CONTENT
-/// ===============================
 class HomeContent extends StatefulWidget {
   final Function(int) onTabChange;
   const HomeContent({super.key, required this.onTabChange});
@@ -299,7 +288,7 @@ class _HomeContentState extends State<HomeContent> {
   bool _loading = true;
   String? _error;
   String _searchQuery = "";
-  String? _selectedSport;
+  Set<String> _selectedSports = {};
 
   List<Lapangan> _lapangan = [];
   List<Coach> _coaches = [];
@@ -308,7 +297,6 @@ class _HomeContentState extends State<HomeContent> {
   @override
   void initState() {
     super.initState();
-    // HERO Infinite Slide Logic
     _heroCtrl = PageController(initialPage: 999);
     _heroTimer = Timer.periodic(const Duration(seconds: 4), (_) {
       if (!mounted) return;
@@ -388,21 +376,31 @@ class _HomeContentState extends State<HomeContent> {
     }
   }
 
-  // --- Search and Filter Logic Helpers ---
+  // Logika search & filter
+  // Filter lapangan
   List<Lapangan> get _filteredLapangan {
     var result = _lapangan;
 
-    // Filter by sport
-    if (_selectedSport != null) {
-      result = result
-          .where(
-            (item) =>
-                item.olahraga.toLowerCase() == _selectedSport!.toLowerCase(),
-          )
-          .toList();
+    // Filter cabang olahraga - support multiple selection
+    if (_selectedSports.isNotEmpty) {
+      result = result.where((item) {
+        // Split olahraga yang bisa mengandung beberapa cabang (comma-separated)
+        final itemSports = item.olahraga
+            .toLowerCase()
+            .split(',')
+            .map((s) => s.trim())
+            .toSet();
+
+        // Check if any of selected sports matches with item's sports
+        return _selectedSports.any(
+          (selected) => itemSports.any(
+            (itemSport) => itemSport == selected.toLowerCase(),
+          ),
+        );
+      }).toList();
     }
 
-    // Filter by search query
+    // Filter search query
     if (_searchQuery.isNotEmpty) {
       result = result
           .where(
@@ -415,21 +413,21 @@ class _HomeContentState extends State<HomeContent> {
     return result;
   }
 
+  // Filter coach
   List<Coach> get _filteredCoaches {
     var result = _coaches;
 
-    // Filter by sport
-    if (_selectedSport != null) {
-      result = result
-          .where(
-            (item) =>
-                item.fields.sportBranch.toLowerCase() ==
-                _selectedSport!.toLowerCase(),
-          )
-          .toList();
+    // Filter cabang olahraga - support multiple selection
+    if (_selectedSports.isNotEmpty) {
+      result = result.where((item) {
+        return _selectedSports.any(
+          (selected) =>
+              item.fields.sportBranch.toLowerCase() == selected.toLowerCase(),
+        );
+      }).toList();
     }
 
-    // Filter by search query
+    // Filter search query
     if (_searchQuery.isNotEmpty) {
       result = result
           .where(
@@ -443,20 +441,20 @@ class _HomeContentState extends State<HomeContent> {
     return result;
   }
 
+  // Filter event
   List<Event> get _filteredEvents {
     var result = _events;
 
-    // Filter by sport
-    if (_selectedSport != null) {
-      result = result
-          .where(
-            (item) =>
-                item.olahraga.toLowerCase() == _selectedSport!.toLowerCase(),
-          )
-          .toList();
+    // Filter cabang olahraga - support multiple selection
+    if (_selectedSports.isNotEmpty) {
+      result = result.where((item) {
+        return _selectedSports.any(
+          (selected) => item.olahraga.toLowerCase() == selected.toLowerCase(),
+        );
+      }).toList();
     }
 
-    // Filter by search query
+    // Filter search query
     if (_searchQuery.isNotEmpty) {
       result = result
           .where(
@@ -466,13 +464,20 @@ class _HomeContentState extends State<HomeContent> {
           .toList();
     }
 
+    // Urutkan event berdasarkan tanggal terdekat dari hari ini
+    result.sort((a, b) {
+      final now = DateTime.now();
+      final diffA = a.tanggal.difference(now).abs();
+      final diffB = b.tanggal.difference(now).abs();
+      return diffA.compareTo(diffB);
+    });
+
     return result;
   }
 
   @override
   Widget build(BuildContext context) {
     final pad = const EdgeInsets.symmetric(horizontal: 16);
-    // Cek apakah user sedang mencari
     final bool isSearchActive = _searchQuery.isNotEmpty;
 
     return RefreshIndicator(
@@ -484,7 +489,7 @@ class _HomeContentState extends State<HomeContent> {
         physics: const AlwaysScrollableScrollPhysics(),
         child: Column(
           children: [
-            // 1. Hero Infinite Slide
+            // Slide looping
             _Hero(controller: _heroCtrl),
 
             Padding(
@@ -494,7 +499,7 @@ class _HomeContentState extends State<HomeContent> {
                 children: [
                   const SizedBox(height: 24),
 
-                  // 2. Halo, [Username]
+                  // Halo, [Username]
                   Consumer<UserState>(
                     builder: (context, userState, _) {
                       final name = (userState.username.isNotEmpty)
@@ -521,7 +526,7 @@ class _HomeContentState extends State<HomeContent> {
 
                   const SizedBox(height: 20),
 
-                  // 3. Search Engine (Search Bar)
+                  // Search Engine (Search Bar)
                   _SearchBar(
                     controller: _searchController,
                     onChanged: (value) {
@@ -533,12 +538,16 @@ class _HomeContentState extends State<HomeContent> {
 
                   const SizedBox(height: 20),
 
-                  // Sport Filter
+                  // Filter cabang olahraga
                   _SportFilter(
-                    selectedSport: _selectedSport,
+                    selectedSports: _selectedSports,
                     onSportSelected: (sport) {
                       setState(() {
-                        _selectedSport = sport;
+                        if (_selectedSports.contains(sport)) {
+                          _selectedSports.remove(sport);
+                        } else {
+                          _selectedSports.add(sport);
+                        }
                       });
                     },
                   ),
@@ -547,8 +556,7 @@ class _HomeContentState extends State<HomeContent> {
                   if (_loading) const _LoadingBox(),
                   if (_error != null) _ErrorBox(message: _error!),
 
-                  // ===== LAPANGAN (Filtered) =====
-                  // ===== LAPANGAN =====
+                  // Bagian Lapangan
                   _SectionHeader(
                     title: 'Cari Lapangan',
                     subtitle:
@@ -567,11 +575,10 @@ class _HomeContentState extends State<HomeContent> {
                     const _EmptyData(label: 'Lapangan belum tersedia.'),
                   const SizedBox(height: 22),
 
-                  // ===== COACH =====
+                  // Bagian Coach
                   _SectionHeader(
                     title: 'Temui Coach',
-                    subtitle:
-                        'Pilih coach yang cocok dan mulai upgrade skill.',
+                    subtitle: 'Pilih coach yang cocok dan mulai upgrade skill.',
                   ),
                   const SizedBox(height: 10),
                   if (_filteredCoaches.isNotEmpty)
@@ -586,7 +593,7 @@ class _HomeContentState extends State<HomeContent> {
                     const _EmptyData(label: 'Coach belum tersedia.'),
                   const SizedBox(height: 22),
 
-                  // ===== EVENT =====
+                  // Bagian Event
                   _SectionHeader(
                     title: 'Event yang Akan Datang',
                     subtitle: 'Gabung event seru dan temukan komunitas baru.',
@@ -604,26 +611,14 @@ class _HomeContentState extends State<HomeContent> {
                     const _EmptyData(label: 'Event belum tersedia.'),
                   const SizedBox(height: 28),
 
-                  // ===== PROMO SLIDESHOW =====
+                  //  Bagian Promo
                   const _PromoSlideshow(),
                   const SizedBox(height: 40),
 
-                  // ===== FITUR (FLIP CARDS) =====
-                  // const _FeaturesSection(),
-                  // const SizedBox(height: 40),
-
-                  // ===== TESTIMONIAL (GLASSMORPHISM) =====
+                  //  Bagian Testimonial (Glassmorphism)
                   const _TestimonialSection(),
                   const SizedBox(height: 40),
 
-                  // ===== STATISTICS (ANIMATED ON SCROLL) =====
-                  // _StatsSection(
-                  //   scrollController: _scrollController,
-                  //   lapanganCount: _lapangan.length,
-                  //   coachCount: _coaches.length,
-                  //   eventCount: _events.length,
-                  // ),
-                  // const SizedBox(height: 40),
                   _Footer(),
                   const SizedBox(height: 100),
                 ],
@@ -636,11 +631,7 @@ class _HomeContentState extends State<HomeContent> {
   }
 }
 
-/// ===============================
-/// WIDGETS & COMPONENTS
-/// ===============================
-
-// CUSTOM SEARCH BAR WIDGET
+// Custom Search Bar
 class _SearchBar extends StatelessWidget {
   final TextEditingController controller;
   final Function(String) onChanged;
@@ -688,13 +679,13 @@ class _SearchBar extends StatelessWidget {
   }
 }
 
-// SPORT FILTER WIDGET
+// Filter cabang olahraga - Updated for multiple selection
 class _SportFilter extends StatelessWidget {
-  final String? selectedSport;
-  final Function(String?) onSportSelected;
+  final Set<String> selectedSports;
+  final Function(String) onSportSelected;
 
   const _SportFilter({
-    required this.selectedSport,
+    required this.selectedSports,
     required this.onSportSelected,
   });
 
@@ -712,77 +703,126 @@ class _SportFilter extends StatelessWidget {
       {'name': 'Lainnya', 'icon': 'lainnya.png'},
     ];
 
-    return SizedBox(
-      height: 100,
-      child: ListView.separated(
-        scrollDirection: Axis.horizontal,
-        itemCount: sports.length,
-        separatorBuilder: (_, __) => const SizedBox(width: 16),
-        itemBuilder: (_, index) {
-          final sport = sports[index];
-          final sportName = sport['name']!;
-          final isSelected = selectedSport == sportName;
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        if (selectedSports.isNotEmpty)
+          Padding(
+            padding: const EdgeInsets.only(bottom: 8),
+            child: Text(
+              '${selectedSports.length} olahraga dipilih',
+              style: GoogleFonts.plusJakartaSans(
+                fontSize: 12,
+                fontWeight: FontWeight.w600,
+                color: const Color(0xFFA4E4FF),
+              ),
+            ),
+          ),
+        SizedBox(
+          height: 100,
+          child: ListView.separated(
+            scrollDirection: Axis.horizontal,
+            itemCount: sports.length,
+            separatorBuilder: (_, __) => const SizedBox(width: 16),
+            itemBuilder: (_, index) {
+              final sport = sports[index];
+              final sportName = sport['name']!;
+              final isSelected = selectedSports.contains(sportName);
 
-          return GestureDetector(
-            onTap: () {
-              onSportSelected(isSelected ? null : sportName);
-            },
-            child: Column(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Container(
-                  width: 60,
-                  height: 60,
-                  decoration: BoxDecoration(
-                    shape: BoxShape.circle,
-                    color: isSelected
-                        ? const Color(0xFF571E88)
-                        : Colors.white.withOpacity(0.1),
-                    border: Border.all(
-                      color: isSelected
-                          ? const Color(0xFFA4E4FF)
-                          : Colors.white.withOpacity(0.3),
-                      width: 2,
-                    ),
-                    boxShadow: isSelected
-                        ? [
-                            BoxShadow(
-                              color: const Color(0xFF571E88).withOpacity(0.5),
-                              blurRadius: 10,
-                              offset: const Offset(0, 4),
+              return GestureDetector(
+                onTap: () {
+                  onSportSelected(sportName);
+                },
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Stack(
+                      children: [
+                        Container(
+                          width: 60,
+                          height: 60,
+                          decoration: BoxDecoration(
+                            shape: BoxShape.circle,
+                            color: isSelected
+                                ? const Color(0xFF571E88)
+                                : Colors.white.withOpacity(0.1),
+                            border: Border.all(
+                              color: isSelected
+                                  ? const Color(0xFFA4E4FF)
+                                  : Colors.white.withOpacity(0.3),
+                              width: 2,
                             ),
-                          ]
-                        : null,
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(12),
-                    child: Image.asset(
-                      'assets/icon-olahraga/${sport['icon']}',
-                      fit: BoxFit.contain,
-                      errorBuilder: (_, __, ___) => Icon(
-                        Icons.sports_soccer,
-                        color: isSelected ? Colors.white : Colors.white54,
-                        size: 28,
+                            boxShadow: isSelected
+                                ? [
+                                    BoxShadow(
+                                      color: const Color(
+                                        0xFF571E88,
+                                      ).withOpacity(0.5),
+                                      blurRadius: 10,
+                                      offset: const Offset(0, 4),
+                                    ),
+                                  ]
+                                : null,
+                          ),
+                          child: Padding(
+                            padding: const EdgeInsets.all(12),
+                            child: Image.asset(
+                              'assets/icon-olahraga/${sport['icon']}',
+                              fit: BoxFit.contain,
+                              errorBuilder: (_, __, ___) => Icon(
+                                Icons.sports_soccer,
+                                color: isSelected
+                                    ? Colors.white
+                                    : Colors.white54,
+                                size: 28,
+                              ),
+                            ),
+                          ),
+                        ),
+                        if (isSelected)
+                          Positioned(
+                            top: 0,
+                            right: 0,
+                            child: Container(
+                              width: 20,
+                              height: 20,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: const Color(0xFFA4E4FF),
+                                border: Border.all(
+                                  color: const Color(0xFF571E88),
+                                  width: 2,
+                                ),
+                              ),
+                              child: const Icon(
+                                Icons.check,
+                                size: 12,
+                                color: Color(0xFF571E88),
+                              ),
+                            ),
+                          ),
+                      ],
+                    ),
+                    const SizedBox(height: 8),
+                    Text(
+                      sportName,
+                      style: GoogleFonts.plusJakartaSans(
+                        fontSize: 12,
+                        fontWeight: isSelected
+                            ? FontWeight.w600
+                            : FontWeight.w500,
+                        color: isSelected
+                            ? const Color(0xFFA4E4FF)
+                            : Colors.white.withOpacity(0.7),
                       ),
                     ),
-                  ),
+                  ],
                 ),
-                const SizedBox(height: 8),
-                Text(
-                  sportName,
-                  style: GoogleFonts.plusJakartaSans(
-                    fontSize: 12,
-                    fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
-                    color: isSelected
-                        ? const Color(0xFFA4E4FF)
-                        : Colors.white.withOpacity(0.7),
-                  ),
-                ),
-              ],
-            ),
-          );
-        },
-      ),
+              );
+            },
+          ),
+        ),
+      ],
     );
   }
 }
@@ -835,7 +875,7 @@ class _EmptyData extends StatelessWidget {
   }
 }
 
-// HERO SECTION (INFINITE SLIDER)
+// 3 foto dengan infinit slide
 class _Hero extends StatelessWidget {
   const _Hero({required this.controller});
   final PageController controller;
@@ -843,15 +883,12 @@ class _Hero extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return SizedBox(
-      height: 250, // Tinggi banner
-      // PERUBAHAN: Gunakan PageView.builder untuk infinite scroll
+      height: 250,
       child: PageView.builder(
         controller: controller,
-        // Tidak ada itemCount, jadi infinite
         itemBuilder: (context, index) {
-          // Ambil sisa bagi 3 agar looping 0 -> 1 -> 2 -> 0 dst
+          // Modulo 3 agar looping 0 -> 1 -> 2 -> 0 dst
           final int i = index % 3;
-          // Map ke nama file: 1.png, 2.png, 3.png
           return _HeroSlide(asset: 'assets/image/${i + 1}.png');
         },
       ),
@@ -874,7 +911,7 @@ class _HeroSlide extends StatelessWidget {
   }
 }
 
-// AURA BACKGROUND
+// Background
 class _AuraBackground extends StatelessWidget {
   const _AuraBackground({required this.pulse});
   final Animation<double> pulse;
@@ -943,7 +980,7 @@ class _AuraBlob extends StatelessWidget {
   }
 }
 
-// LOADING & ERROR
+// Loading & Error
 class _LoadingBox extends StatelessWidget {
   const _LoadingBox();
   @override
@@ -1038,7 +1075,7 @@ class _SectionHeader extends StatelessWidget {
   }
 }
 
-// SOLID CARD
+// Solid Card
 class _SolidCard extends StatelessWidget {
   const _SolidCard({
     required this.child,
@@ -1069,7 +1106,7 @@ class _SolidCard extends StatelessWidget {
   }
 }
 
-// CARD FOR "SEE MORE"
+// Card "Lihat Lebih Banyak"
 class _SeeMoreCard extends StatelessWidget {
   final VoidCallback onTap;
   const _SeeMoreCard({required this.onTap});
@@ -1118,7 +1155,7 @@ class _SeeMoreCard extends StatelessWidget {
   }
 }
 
-// THUMBNAIL
+// Thumbnail umum
 class _Thumb extends StatelessWidget {
   const _Thumb({required this.url, required this.fallbackText});
   final String? url;
@@ -1137,7 +1174,6 @@ class _Thumb extends StatelessWidget {
       }
       return s;
     }
-    // Use the same base URL as the API calls
     final base = _baseUrl();
     return '$base/media/$s';
   }
@@ -1174,7 +1210,7 @@ class _Thumb extends StatelessWidget {
   }
 }
 
-// THUMBNAIL FOR EVENT (uses proxy-image endpoint)
+// Thumbnail Event
 class _EventThumb extends StatelessWidget {
   const _EventThumb({required this.url, required this.fallbackText});
   final String? url;
@@ -1246,10 +1282,7 @@ class _MiniButton extends StatelessWidget {
   }
 }
 
-// ===============================
-// HORIZONTAL LISTS
-// ===============================
-
+// Horizontal Lapangan Card List
 class _LapanganHorizontal extends StatelessWidget {
   const _LapanganHorizontal({
     required this.list,
@@ -1262,21 +1295,17 @@ class _LapanganHorizontal extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Handling list kosong
     if (list.isEmpty) return const SizedBox.shrink();
 
-    // JIKA SEARCH MODE: Tampilkan semua list. JIKA TIDAK: Ambil 3 teratas.
     final displayList = isSearchMode ? list : list.take(3).toList();
 
     return SizedBox(
       height: 252,
       child: ListView.separated(
         scrollDirection: Axis.horizontal,
-        // JIKA SEARCH MODE: count = length. JIKA TIDAK: length + 1 (buat See More)
         itemCount: isSearchMode ? displayList.length : displayList.length + 1,
         separatorBuilder: (_, __) => const SizedBox(width: 12),
         itemBuilder: (_, i) {
-          // Hanya tampilkan See More jika BUKAN search mode
           if (!isSearchMode && i == displayList.length) {
             return _SeeMoreCard(onTap: onSeeMore);
           }
@@ -1294,8 +1323,8 @@ class _LapanganCard extends StatelessWidget {
   void _handleTap(BuildContext context) {
     final userState = context.read<UserState>();
     if (userState.username.isEmpty) {
-      // User not logged in, redirect to login with return route to detail page
       Navigator.push(
+        // User belum log in, redirect ke halaman login
         context,
         MaterialPageRoute(
           builder: (_) =>
@@ -1303,8 +1332,8 @@ class _LapanganCard extends StatelessWidget {
         ),
       );
     } else {
-      // User logged in, go to detail
       Navigator.push(
+        // User sudah log in, langsung ke halaman detail
         context,
         MaterialPageRoute(builder: (_) => LapanganDetailPage(lapangan: item)),
       );
@@ -1385,6 +1414,7 @@ class _LapanganCard extends StatelessWidget {
   }
 }
 
+// Horizontal Coach Card List
 class _CoachHorizontal extends StatelessWidget {
   const _CoachHorizontal({
     required this.list,
@@ -1425,15 +1455,15 @@ class _CoachCard extends StatelessWidget {
   void _handleTap(BuildContext context) {
     final userState = context.read<UserState>();
     if (userState.username.isEmpty) {
-      // User not logged in, redirect to login with return route to detail page
       Navigator.push(
+        // User belum log in, redirect ke halaman login
         context,
         MaterialPageRoute(
           builder: (_) => LoginPage(returnRoute: CoachDetailPage(coach: item)),
         ),
       );
     } else {
-      // User logged in, go to detail
+      // User sudah log in, langsung ke halaman detail
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => CoachDetailPage(coach: item)),
@@ -1510,6 +1540,7 @@ class _CoachCard extends StatelessWidget {
   }
 }
 
+// Horizontal Event Card List
 class _EventHorizontal extends StatelessWidget {
   const _EventHorizontal({
     required this.list,
@@ -1550,15 +1581,15 @@ class _EventCard extends StatelessWidget {
   void _handleTap(BuildContext context) {
     final userState = context.read<UserState>();
     if (userState.username.isEmpty) {
-      // User not logged in, redirect to login with return route to detail page
       Navigator.push(
+        // User belum log in, redirect ke halaman login
         context,
         MaterialPageRoute(
           builder: (_) => LoginPage(returnRoute: EventDetailPage(event: item)),
         ),
       );
     } else {
-      // User logged in, go to detail
+      // User sudah log in, langsung ke halaman detail
       Navigator.push(
         context,
         MaterialPageRoute(builder: (_) => EventDetailPage(event: item)),
@@ -1646,7 +1677,7 @@ class _MiniLine extends StatelessWidget {
   }
 }
 
-// PROMO SLIDESHOW (manual swipe, 3 images with bar indicators)
+// Promo Slideshow (Swipe Manual)
 class _PromoSlideshow extends StatefulWidget {
   const _PromoSlideshow();
 
@@ -1683,10 +1714,7 @@ class _PromoSlideshowState extends State<_PromoSlideshow> {
               controller: _ctrl,
               itemCount: _images.length,
               onPageChanged: (i) => setState(() => _page = i),
-              itemBuilder: (_, i) => Image.asset(
-                _images[i],
-                fit: BoxFit.cover,
-              ),
+              itemBuilder: (_, i) => Image.asset(_images[i], fit: BoxFit.cover),
             ),
           ),
         ),
@@ -1762,239 +1790,7 @@ class _Footer extends StatelessWidget {
   }
 }
 
-// =========================================================
-// NEW SECTIONS: FEATURES, TESTIMONIALS, STATISTICS
-// =========================================================
-
-/// --------------------------------------------------------
-/// 1. FEATURES SECTION (FLIP CARDS)
-/// gajadi. kata ka farrell ga kaya apk.
-/// --------------------------------------------------------
-// class _FeaturesSection extends StatelessWidget {
-//   const _FeaturesSection();
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       crossAxisAlignment: CrossAxisAlignment.center,
-//       children: [
-//         Text(
-//           'Keuntungan Bergabung',
-//           textAlign: TextAlign.center,
-//           style: GoogleFonts.plusJakartaSans(
-//             fontSize: 24,
-//             fontWeight: FontWeight.w700,
-//             color: Colors.white,
-//           ),
-//         ),
-//         const SizedBox(height: 8),
-//         Text(
-//           'Semua yang Anda butuhkan untuk pengalaman olahraga terbaik.',
-//           textAlign: TextAlign.center,
-//           style: GoogleFonts.plusJakartaSans(
-//             fontSize: 13,
-//             color: Colors.white.withOpacity(0.65),
-//           ),
-//         ),
-//         const SizedBox(height: 24),
-//         // Kartu disusun vertikal (Column)
-//         const _FlipCard(
-//           frontIcon: Icons.layers_rounded,
-//           frontTitle: 'Satu Platform',
-//           backTitle: 'Satu Platform Terintegrasi',
-//           backDesc:
-//               'Semua kebutuhan olahragamu—lapangan, coach, dan event—ada di satu tempat. Tidak perlu ganti-ganti aplikasi.',
-//           gradientColors: [Color(0xFF571E88), Color(0xFF06005E)],
-//         ),
-//         const SizedBox(height: 16),
-//         const _FlipCard(
-//           frontIcon: Icons.map_rounded,
-//           frontTitle: 'Lokasi Akurat',
-//           backTitle: 'Navigasi Mudah',
-//           backDesc:
-//               'Tidak perlu bingung mencari lokasi. Lihat peta interaktif di setiap detail lapangan untuk navigasi yang mudah dan akurat.',
-//           gradientColors: [Color(0xFF6F0732), Color(0xFF571E88)],
-//         ),
-//         const SizedBox(height: 16),
-//         const _FlipCard(
-//           frontIcon: Icons.bolt_rounded,
-//           frontTitle: 'Kembangkan Skill',
-//           backTitle: 'Kembangkan Skill Anda',
-//           backDesc:
-//               'Cari coach profesional untuk meningkatkan level permainanmu. Lihat portofolio dan tarif mereka secara transparan.',
-//           gradientColors: [Color(0xFF06005E), Color(0xFF2E1065)],
-//         ),
-//       ],
-//     );
-//   }
-// }
-
-// class _FlipCard extends StatefulWidget {
-//   final IconData frontIcon;
-//   final String frontTitle;
-//   final String backTitle;
-//   final String backDesc;
-//   final List<Color> gradientColors;
-
-//   const _FlipCard({
-//     required this.frontIcon,
-//     required this.frontTitle,
-//     required this.backTitle,
-//     required this.backDesc,
-//     required this.gradientColors,
-//   });
-
-//   @override
-//   State<_FlipCard> createState() => _FlipCardState();
-// }
-
-// class _FlipCardState extends State<_FlipCard>
-//     with SingleTickerProviderStateMixin {
-//   late AnimationController _controller;
-//   late Animation<double> _animation;
-//   bool _isFront = true;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     _controller = AnimationController(
-//       vsync: this,
-//       duration: const Duration(milliseconds: 600),
-//     );
-//     _animation = Tween<double>(begin: 0, end: 1).animate(
-//       CurvedAnimation(parent: _controller, curve: Curves.easeInOutBack),
-//     );
-//   }
-
-//   @override
-//   void dispose() {
-//     _controller.dispose();
-//     super.dispose();
-//   }
-
-//   void _toggleCard() {
-//     if (_isFront) {
-//       _controller.forward();
-//     } else {
-//       _controller.reverse();
-//     }
-//     setState(() {
-//       _isFront = !_isFront;
-//     });
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return GestureDetector(
-//       onTap: _toggleCard,
-//       child: AnimatedBuilder(
-//         animation: _animation,
-//         builder: (context, child) {
-//           // Calculate rotation angle (0 to pi)
-//           final angle = _animation.value * 3.14159;
-
-//           // Determine which side is visible
-//           final isFrontVisible = angle <= 3.14159 / 2;
-
-//           return Transform(
-//             transform: Matrix4.identity()
-//               ..setEntry(3, 2, 0.001) // Perspective
-//               ..rotateY(angle),
-//             alignment: Alignment.center,
-//             child: Container(
-//               height: 220,
-//               width: double.infinity,
-//               decoration: BoxDecoration(
-//                 borderRadius: BorderRadius.circular(20),
-//                 // Gradient styling
-//                 gradient: LinearGradient(
-//                   begin: Alignment.topLeft,
-//                   end: Alignment.bottomRight,
-//                   colors: widget.gradientColors,
-//                 ),
-//                 boxShadow: [
-//                   BoxShadow(
-//                     color: Colors.black.withOpacity(0.3),
-//                     blurRadius: 10,
-//                     offset: const Offset(0, 5),
-//                   ),
-//                 ],
-//               ),
-//               child: isFrontVisible
-//                   ? _buildFront()
-//                   : Transform(
-//                       alignment: Alignment.center,
-//                       transform: Matrix4.identity()
-//                         ..rotateY(3.14159), // Mirror back
-//                       child: _buildBack(),
-//                     ),
-//             ),
-//           );
-//         },
-//       ),
-//     );
-//   }
-
-//   Widget _buildFront() {
-//     return Column(
-//       mainAxisAlignment: MainAxisAlignment.center,
-//       children: [
-//         Icon(widget.frontIcon, size: 48, color: const Color(0xFFA4E4FF)),
-//         const SizedBox(height: 16),
-//         Text(
-//           widget.frontTitle,
-//           style: GoogleFonts.plusJakartaSans(
-//             fontSize: 20,
-//             fontWeight: FontWeight.bold,
-//             color: Colors.white,
-//           ),
-//         ),
-//         const SizedBox(height: 8),
-//         Text(
-//           '(Tap untuk membalik)',
-//           style: GoogleFonts.plusJakartaSans(
-//             fontSize: 10,
-//             color: Colors.white.withOpacity(0.5),
-//           ),
-//         ),
-//       ],
-//     );
-//   }
-
-//   Widget _buildBack() {
-//     return Padding(
-//       padding: const EdgeInsets.all(24.0),
-//       child: Column(
-//         mainAxisAlignment: MainAxisAlignment.center,
-//         children: [
-//           Text(
-//             widget.backTitle,
-//             style: GoogleFonts.plusJakartaSans(
-//               fontSize: 18,
-//               fontWeight: FontWeight.bold,
-//               color: Colors.white,
-//             ),
-//             textAlign: TextAlign.center,
-//           ),
-//           const SizedBox(height: 12),
-//           Text(
-//             widget.backDesc,
-//             style: GoogleFonts.plusJakartaSans(
-//               fontSize: 13,
-//               color: Colors.white.withOpacity(0.9),
-//               height: 1.5,
-//             ),
-//             textAlign: TextAlign.center,
-//           ),
-//         ],
-//       ),
-//     );
-//   }
-// }
-
-/// --------------------------------------------------------
-/// 2. TESTIMONIAL SECTION (GLASS MORPHISM)
-/// --------------------------------------------------------
+// Bagian Testimoni
 class _TestimonialSection extends StatefulWidget {
   const _TestimonialSection();
 
@@ -2041,7 +1837,6 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
 
   @override
   Widget build(BuildContext context) {
-    // Menggunakan Container dengan style Glass Morphism (seperti _SolidCard)
     return Container(
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.05),
@@ -2057,7 +1852,6 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
       ),
       child: Column(
         children: [
-          // Header (Gradient Title but refined for glass look)
           Container(
             width: double.infinity,
             padding: const EdgeInsets.symmetric(vertical: 24),
@@ -2066,7 +1860,6 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
                 topLeft: Radius.circular(20),
                 topRight: Radius.circular(20),
               ),
-              // Optional: slight gradient overlay for the header part
               gradient: LinearGradient(
                 colors: [Color(0xFF06005E), Color(0xFF571E88)],
                 begin: Alignment.topLeft,
@@ -2086,7 +1879,7 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
 
           // Slider Content
           SizedBox(
-            height: 350, // Height increased for vertical layout
+            height: 350,
             child: PageView.builder(
               controller: _pageCtrl,
               onPageChanged: (idx) => setState(() => _currIndex = idx),
@@ -2098,7 +1891,7 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
                   child: Column(
                     mainAxisAlignment: MainAxisAlignment.center,
                     children: [
-                      // 1. Profile Picture (Large & Round & Centered)
+                      // Profile Picture
                       Container(
                         decoration: BoxDecoration(
                           shape: BoxShape.circle,
@@ -2111,9 +1904,8 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
                           ],
                         ),
                         child: CircleAvatar(
-                          radius: 40, // Agak gede
+                          radius: 40,
                           backgroundColor: Colors.grey.shade700,
-                          // Menggunakan logic load image seperti sebelumnya
                           child: Text(
                             item['name']![0],
                             style: GoogleFonts.plusJakartaSans(
@@ -2126,7 +1918,7 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
                       ),
                       const SizedBox(height: 16),
 
-                      // 2. Name
+                      // Name
                       Text(
                         item['name']!,
                         textAlign: TextAlign.center,
@@ -2137,19 +1929,19 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
                         ),
                       ),
 
-                      // 3. Role
+                      // Role
                       const SizedBox(height: 4),
                       Text(
                         item['role']!,
                         textAlign: TextAlign.center,
                         style: GoogleFonts.plusJakartaSans(
-                          color: const Color(0xFFA4E4FF), // Aksen warna
+                          color: const Color(0xFFA4E4FF),
                           fontSize: 13,
                           fontWeight: FontWeight.w500,
                         ),
                       ),
 
-                      // 4. Detail/Quote
+                      // Testimoni
                       const SizedBox(height: 20),
                       Text(
                         '"${item['quote']}"',
@@ -2168,7 +1960,7 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
             ),
           ),
 
-          // Indicators / Controls
+          // Kontrol
           Padding(
             padding: const EdgeInsets.fromLTRB(24, 0, 24, 24),
             child: Row(
@@ -2219,174 +2011,3 @@ class _TestimonialSectionState extends State<_TestimonialSection> {
     );
   }
 }
-
-/// --------------------------------------------------------
-/// 3. STATS SECTION (ANIMATED ON SCROLL)
-/// --------------------------------------------------------
-// class _StatsSection extends StatefulWidget {
-//   final int lapanganCount;
-//   final int coachCount;
-//   final int eventCount;
-//   final ScrollController scrollController;
-
-//   const _StatsSection({
-//     required this.lapanganCount,
-//     required this.coachCount,
-//     required this.eventCount,
-//     required this.scrollController,
-//   });
-
-//   @override
-//   State<_StatsSection> createState() => _StatsSectionState();
-// }
-
-// class _StatsSectionState extends State<_StatsSection> {
-//   bool _isVisible = false;
-
-//   @override
-//   void initState() {
-//     super.initState();
-//     widget.scrollController.addListener(_onScroll);
-//     WidgetsBinding.instance.addPostFrameCallback((_) => _onScroll());
-//   }
-
-//   @override
-//   void dispose() {
-//     widget.scrollController.removeListener(_onScroll);
-//     super.dispose();
-//   }
-
-//   void _onScroll() {
-//     if (!mounted) return;
-
-//     final RenderObject? box = context.findRenderObject();
-//     if (box is! RenderBox) return;
-
-//     final position = box.localToGlobal(Offset.zero);
-//     final viewportHeight = MediaQuery.of(context).size.height;
-
-//     final topY = position.dy;
-//     final bottomY = topY + box.size.height;
-
-//     final bool visible = topY < viewportHeight - 50 && bottomY > 50;
-
-//     if (visible != _isVisible) {
-//       setState(() {
-//         _isVisible = visible;
-//       });
-//     }
-//   }
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return Column(
-//       children: [
-//         Text(
-//           'Statistik ASKMO',
-//           style: GoogleFonts.plusJakartaSans(
-//             fontSize: 24,
-//             fontWeight: FontWeight.bold,
-//             color: Colors.white,
-//           ),
-//         ),
-//         const SizedBox(height: 24),
-//         // Disusun Horizontal (Row)
-//         Row(
-//           children: [
-//             Expanded(
-//               child: _StatCard(
-//                 count: widget.lapanganCount,
-//                 label: 'Lapangan',
-//                 animate: _isVisible,
-//               ),
-//             ),
-//             const SizedBox(width: 12),
-//             Expanded(
-//               child: _StatCard(
-//                 count: widget.coachCount,
-//                 label: 'Coach',
-//                 animate: _isVisible,
-//               ),
-//             ),
-//             const SizedBox(width: 12),
-//             Expanded(
-//               child: _StatCard(
-//                 count: widget.eventCount,
-//                 label: 'Event',
-//                 animate: _isVisible,
-//               ),
-//             ),
-//           ],
-//         ),
-//       ],
-//     );
-//   }
-// }
-
-// class _StatCard extends StatelessWidget {
-//   final int count;
-//   final String label;
-//   final bool animate;
-
-//   const _StatCard({
-//     required this.count,
-//     required this.label,
-//     required this.animate,
-//   });
-
-//   @override
-//   Widget build(BuildContext context) {
-//     return AspectRatio(
-//       aspectRatio: 1.0,
-//       child: Container(
-//         padding: const EdgeInsets.all(12),
-//         decoration: BoxDecoration(
-//           gradient: const LinearGradient(
-//             colors: [Color(0xFF06005E), Color(0xFF571E88)],
-//             begin: Alignment.topLeft,
-//             end: Alignment.bottomRight,
-//           ),
-//           borderRadius: BorderRadius.circular(20),
-//           boxShadow: [
-//             BoxShadow(
-//               color: Colors.black.withOpacity(0.4),
-//               blurRadius: 8,
-//               offset: const Offset(0, 4),
-//             ),
-//           ],
-//         ),
-//         child: Column(
-//           mainAxisAlignment: MainAxisAlignment.center,
-//           children: [
-//             TweenAnimationBuilder<int>(
-//               tween: IntTween(begin: 0, end: animate ? count : 0),
-//               duration: animate
-//                   ? const Duration(seconds: 2)
-//                   : const Duration(milliseconds: 0),
-//               curve: Curves.easeOutExpo,
-//               builder: (context, value, child) {
-//                 return Text(
-//                   '$value',
-//                   style: GoogleFonts.plusJakartaSans(
-//                     fontSize: 24,
-//                     fontWeight: FontWeight.bold,
-//                     color: Colors.white,
-//                   ),
-//                 );
-//               },
-//             ),
-//             const SizedBox(height: 4),
-//             Text(
-//               label,
-//               textAlign: TextAlign.center,
-//               style: GoogleFonts.plusJakartaSans(
-//                 fontSize: 12,
-//                 color: Colors.white.withOpacity(0.8),
-//               ),
-//             ),
-//           ],
-//         ),
-//       ),
-//     );
-//   }
-// }
