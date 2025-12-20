@@ -141,8 +141,8 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
 
   @override
   Widget build(BuildContext context) {
-    final cachedAvg = ReviewService.getCachedAverage(widget.lapangan.id);
-    final currentRating = cachedAvg ?? widget.lapangan.rating;
+    final double? currentRating =ReviewService.getCachedAverage(widget.lapangan.id);
+
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -412,15 +412,19 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     return 'Rp $raw / Sesi';
   }
 
-  Widget _buildDetailsSection(double currentRating) {
+  Widget _buildDetailsSection(double? currentRating) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        _buildDetailRow(
-          icon: Icons.star,
-          label: 'Rating',
-          value: '${currentRating.toStringAsFixed(1)} / 5.0',
-        ),
+      _buildDetailRow(
+        icon: Icons.star,
+        label: 'Rating',
+        value: currentRating == null
+            ? 'Belum ada rating'
+            : '${currentRating.toStringAsFixed(1)} / 5.0',
+        valueItalic: currentRating == null,
+      ),
+
         const SizedBox(height: 16),
         GestureDetector(
           onTap: () => _openWhatsApp(widget.lapangan.kontak ?? ""),
@@ -529,6 +533,8 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     required IconData icon,
     required String label,
     required String value,
+    bool valueItalic = false,
+
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -550,9 +556,10 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
               Text(
                 value,
                 style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white,
+                  color: valueItalic ? Colors.white70 : Colors.white,
                   fontSize: 16,
-                  fontWeight: FontWeight.w600,
+                  fontStyle: valueItalic ? FontStyle.italic : FontStyle.normal,
+                  fontWeight: valueItalic ? FontWeight.normal : FontWeight.w600,
                 ),
               ),
             ],

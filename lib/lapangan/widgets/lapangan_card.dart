@@ -25,9 +25,7 @@ class LapanganCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final displayRating =
-        ReviewService.getCachedAverage(lapangan.id) ?? lapangan.rating;
-
+  final double? displayRating = ReviewService.getCachedAverage(lapangan.id);
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: ClipRRect(
@@ -166,11 +164,16 @@ class LapanganCard extends StatelessWidget {
                                   ),
                                   const SizedBox(width: 4),
                                   Text(
-                                    displayRating.toStringAsFixed(1),
+                                    displayRating == null
+                                        ? 'Belum ada rating'
+                                        : displayRating.toStringAsFixed(1),
                                     style: GoogleFonts.plusJakartaSans(
-                                      color: Colors.amber,
+                                      color: const Color.fromARGB(255, 255, 255, 255),
                                       fontSize: 12,
-                                      fontWeight: FontWeight.w600,
+                                      fontStyle:
+                                          displayRating == null ? FontStyle.italic : FontStyle.normal,
+                                      fontWeight:
+                                          displayRating == null ? FontWeight.normal : FontWeight.w600,
                                     ),
                                   ),
                                 ],
