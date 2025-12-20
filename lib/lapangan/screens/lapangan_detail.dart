@@ -1,4 +1,5 @@
 import 'dart:ui';
+
 import 'package:askmo/feat/review/screens/review_list_page.dart';
 import 'package:askmo/feat/review/services/review_services.dart';
 import 'package:askmo/wishlist/models/wishlist_state.dart';
@@ -44,10 +45,13 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
 
   String _toTitleCase(String text) {
     if (text.isEmpty) return text;
-    return text.split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
+    return text
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
   }
 
   // Fungsi untuk redirect alamat ke GoogleMaps
@@ -175,8 +179,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                         isWished
                             ? 'Dihapus dari Wishlist'
                             : 'Ditambahkan ke Wishlist',
-                        style: GoogleFonts.plusJakartaSans(
-                            color: Colors.white),
+                        style: GoogleFonts.plusJakartaSans(color: Colors.white),
                       ),
                       duration: const Duration(seconds: 2),
                     ),
@@ -228,29 +231,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                           ),
                         ),
                         const SizedBox(height: 12),
-                        Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                          decoration: BoxDecoration(
-                            color: const Color(0xFF06005E),
-                            borderRadius: BorderRadius.circular(999),
-                            boxShadow: [
-                              BoxShadow(
-                                color: const Color(0xFF06005E)
-                                    .withOpacity(0.4),
-                                blurRadius: 8,
-                                offset: const Offset(0, 2),
-                              )
-                            ],
-                          ),
-                          child: Text(
-                            _toTitleCase(widget.lapangan.olahraga),
-                            style: GoogleFonts.plusJakartaSans(
-                              color: Colors.white,
-                              fontSize: 12,
-                              fontWeight: FontWeight.w600,
-                            ),
-                          ),
-                        ),
+                        _buildSportBubbles(widget.lapangan.olahraga),
                         const SizedBox(height: 24),
                         _buildThumbnail(),
                         const SizedBox(height: 24),
@@ -302,6 +283,40 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
           ],
         ),
       // ),
+  Widget _buildSportBubbles(String olahragaString) {
+    List<String> sports = olahragaString
+        .split(',')
+        .map((s) => s.trim())
+        .where((s) => s.isNotEmpty)
+        .toList();
+
+    return Wrap(
+      spacing: 8,
+      runSpacing: 8,
+      children: sports.map((sport) {
+        return Container(
+          padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
+          decoration: BoxDecoration(
+            color: const Color(0xFF06005E),
+            borderRadius: BorderRadius.circular(999),
+            boxShadow: [
+              BoxShadow(
+                color: const Color(0xFF06005E).withOpacity(0.4),
+                blurRadius: 8,
+                offset: const Offset(0, 2),
+              ),
+            ],
+          ),
+          child: Text(
+            _toTitleCase(sport),
+            style: GoogleFonts.plusJakartaSans(
+              color: Colors.white,
+              fontSize: 12,
+              fontWeight: FontWeight.w600,
+            ),
+          ),
+        );
+      }).toList(),
     );
   }
 
@@ -310,7 +325,8 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
       borderRadius: BorderRadius.circular(12),
       child: AspectRatio(
         aspectRatio: 16 / 9,
-        child: widget.lapangan.thumbnail != null &&
+        child:
+            widget.lapangan.thumbnail != null &&
                 widget.lapangan.thumbnail!.isNotEmpty
             ? Image.network(
                 widget.lapangan.thumbnail!,
@@ -331,8 +347,11 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Icon(Icons.image_not_supported,
-                color: Colors.white54, size: 40),
+            const Icon(
+              Icons.image_not_supported,
+              color: Colors.white54,
+              size: 40,
+            ),
             const SizedBox(height: 8),
             Text(
               'Foto tidak tersedia',

@@ -13,12 +13,11 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:askmo/config/api_base.dart';
 
-
 void main() async {
+  // Inisialisasi Flutter binding
   WidgetsFlutterBinding.ensureInitialized();
 
-  // HANYA load .env ketika bukan release (dev / profile).
-  // Di release (Bitrise, GitHub Actions) kita pakai --dart-define.
+  // Load environment variables (development only)
   if (!kReleaseMode && !kIsWeb) {
     try {
       await dotenv.load(fileName: ".env");
@@ -28,6 +27,7 @@ void main() async {
     }
   }
 
+  // Inisialisasi format tanggal Indonesia
   await initializeDateFormatting('id_ID', null);
   runApp(const MyApp());
 }
@@ -39,12 +39,15 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final base = ThemeData.dark(useMaterial3: true);
 
+    // Setup providers untuk state management
     return MultiProvider(
       providers: [
         Provider<CookieRequest>(create: (_) => CookieRequest()),
         ChangeNotifierProvider<UserState>(create: (_) => UserState()),
         ChangeNotifierProvider<WishlistState>(create: (_) => WishlistState()),
-        ChangeNotifierProvider<BookingHistoryState>(create: (_) => BookingHistoryState()),
+        ChangeNotifierProvider<BookingHistoryState>(
+          create: (_) => BookingHistoryState(),
+        ),
       ],
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
@@ -94,18 +97,12 @@ class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
 
   Future<void> _checkFirstLaunch() async {
     final prefs = await SharedPreferences.getInstance();
-
-    // HANYA pakai ini kalau lagi testing:
-    // await prefs.remove('has_launched');
-
     final hasLaunched = prefs.getBool('has_launched') ?? false;
 
+    // Logout otomatis saat pertama kali buka aplikasi
     try {
-      // Hanya coba logout kalau memang perlu, dan jangan pakai localhost untuk release
       if (!hasLaunched) {
         final request = context.read<CookieRequest>();
-
-        // Use shared API base (deployed) for initial logout attempt.
         await request.logout('$apiBase/auth/logout/');
       }
     } catch (e, st) {
@@ -120,7 +117,7 @@ class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
     }
   }
 
-
+  // Tandai aplikasi sudah pernah dibuka
   void _markAsLaunched() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setBool('has_launched', true);
@@ -128,6 +125,7 @@ class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
 
   @override
   Widget build(BuildContext context) {
+    // Tampilkan loading saat cek first launch
     if (_isLoading) {
       return const Scaffold(
         backgroundColor: Colors.black,
@@ -137,6 +135,7 @@ class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
       );
     }
 
+    // Tampilkan login dengan skip jika pertama kali
     if (_isFirstLaunch) {
       return LoginPageWithSkip(onSkip: _markAsLaunched);
     } else {
@@ -156,6 +155,7 @@ class LoginPageWithSkip extends StatelessWidget {
       body: Stack(
         children: [
           const LoginPage(),
+          // Tombol skip di pojok kanan atas
           Positioned(
             top: 50,
             right: 20,
