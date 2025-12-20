@@ -137,7 +137,7 @@ class _RegisterPageState extends State<RegisterPage>
         );
       } else {
         _showError(
-          response['error']?.toString() ?? 'Pendaftaran dengan Google gagal',
+          response['message']?.toString() ?? 'Pendaftaran dengan Google gagal',
         );
       }
     } catch (_) {

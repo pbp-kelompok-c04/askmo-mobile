@@ -295,8 +295,19 @@ class _CoachFormPageState extends State<CoachFormPage> {
                           label: 'URL Foto Profil (opsional)',
                           hint: 'https://example.com/photo.jpg',
                           required: false,
-                          onChanged: (value) {
-                            setState(() {});
+                          onChanged: (value) => setState(() {}),
+                          customValidator: (value) {
+                            final v = (value ?? '').trim();
+                            if (v.isEmpty) return null;
+
+                            final uri = Uri.tryParse(v);
+                            if (uri == null || !uri.isAbsolute) {
+                              return 'URL tidak valid';
+                            }
+                            if (uri.scheme != 'https') {
+                              return 'Gunakan URL https:// agar aman di web';
+                            }
+                            return null;
                           },
                         ),
                         const SizedBox(height: 12),
@@ -322,7 +333,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
 
                                 try {
                                   // Kirim URL lengkap foto, bukan hanya nama file
-                                  String photoValue = _thumbnailController.text;
+                                  final photoValue = _thumbnailController.text.trim();
 
                                   final requestData = <String, String>{
                                     'name': _nameController.text,
@@ -423,6 +434,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
     TextInputType? keyboardType,
     bool required = true,
     Function(String)? onChanged,
+    String? Function(String?)? customValidator,
   }) {
     return Container(
       decoration: BoxDecoration(
@@ -451,6 +463,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
           border: InputBorder.none,
         ),
         validator: (value) {
+          if (customValidator != null) return customValidator(value);
           if (required && (value == null || value.isEmpty)) {
             return 'Field ini wajib diisi';
           }
