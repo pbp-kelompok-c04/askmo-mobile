@@ -29,7 +29,7 @@ class _RegisterPageState extends State<RegisterPage>
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: <String>['email', 'profile', 'openid'],
     clientId:
-        '312722822760-3n44rotrtmttqdbqu8l78f3ddhhtcdms.apps.googleusercontent.com',
+        '990231107870-uheikav6hi1qovpmgfbspecru0h4hbou.apps.googleusercontent.com',
   );
 
   @override

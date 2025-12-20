@@ -55,8 +55,6 @@ buildTypes {
             signingConfigs.getByName("debug")
     }
 }
-
-    // keep your signingConfigs + buildTypes here if you already added them earlier
 }
 
 
