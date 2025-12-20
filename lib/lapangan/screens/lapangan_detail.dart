@@ -5,8 +5,9 @@ import 'package:askmo/feat/review/services/review_services.dart';
 import 'package:askmo/wishlist/models/wishlist_state.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
-
+import 'package:url_launcher/url_launcher.dart';
 import '../models/lapangan.dart';
 
 class LapanganDetailPage extends StatefulWidget {
@@ -51,6 +52,31 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
           return word[0].toUpperCase() + word.substring(1).toLowerCase();
         })
         .join(' ');
+  }
+
+  // Fungsi untuk redirect alamat ke GoogleMaps
+  Future<void> _openMap(String address) async {
+    final Uri url = Uri.parse("https://www.google.com/maps/search/?api=1&query=${Uri.encodeComponent(address)}");
+    if (!await launchUrl(url, mode: LaunchMode.externalApplication)) {
+      throw 'Could not launch $url';
+    }
+  }
+
+  // Fungsi untuk redirect alamat ke GoogleMaps
+  Future<void> _openWhatsApp(String phone) async {
+    String cleanedPhone = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanedPhone.startsWith('0')) {
+      cleanedPhone = '62${cleanedPhone.substring(1)}';
+    }
+
+    final whatsappUrl = "https://wa.me/$cleanedPhone";
+    final uri = Uri.parse(whatsappUrl);
+
+    if (await canLaunchUrl(uri)) {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } else {
+      throw 'Nomor ini belum tersedia di WhatsApp.';
+    }
   }
 
   Widget _buildBackgroundAura() {
@@ -130,10 +156,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
         actions: [
           Consumer<WishlistState>(
             builder: (context, wishlistState, child) {
-              final isWished = wishlistState.isWished(
-                widget.lapangan.id,
-                'lapangan',
-              );
+              final isWished = wishlistState.isWished(widget.lapangan.id, 'lapangan');
               return IconButton(
                 icon: Icon(
                   isWished ? Icons.favorite : Icons.favorite_border,
@@ -210,28 +233,9 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                         const SizedBox(height: 12),
                         _buildSportBubbles(widget.lapangan.olahraga),
                         const SizedBox(height: 24),
-                        Row(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Icon(
-                              Icons.location_on,
-                              color: Colors.white70,
-                              size: 20,
-                            ),
-                            const SizedBox(width: 8),
-                            Expanded(
-                              child: Text(
-                                widget.lapangan.alamat ?? "-",
-                                style: GoogleFonts.plusJakartaSans(
-                                  color: Colors.white70,
-                                  fontSize: 16,
-                                ),
-                              ),
-                            ),
-                          ],
-                        ),
-                        const SizedBox(height: 24),
                         _buildThumbnail(),
+                        const SizedBox(height: 24),
+                        _buildInteractiveAddress(),
                         const SizedBox(height: 24),
                         _buildDetailsSection(currentRating),
                       ],
@@ -246,6 +250,39 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     );
   }
 
+  Widget _buildInteractiveAddress() {
+    return GestureDetector(
+      onTap: () => _openMap(widget.lapangan.alamat ?? ""),
+        child: Row(
+          children: [
+            const Icon(Icons.location_on_outlined, color: Colors.white, size: 24),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Text(
+                widget.lapangan.alamat ?? "Alamat tidak tersedia",
+                style: GoogleFonts.plusJakartaSans(
+                  color: Colors.white.withOpacity(0.8),
+                  fontSize: 14,
+                  height: 1.4,
+                ),
+              ),
+            ),
+            const SizedBox(width: 8),
+            Container(
+              padding: const EdgeInsets.all(6),
+              decoration: BoxDecoration(
+                color: const Color(0xFF571E88).withOpacity(0.3),
+                shape: BoxShape.circle,
+              ),
+              child: const Icon(
+                Icons.north_east,
+                color: Color(0xFFA4B3FF),
+                size: 18,
+              ),
+            ),
+          ],
+        ),
+      // ),
   Widget _buildSportBubbles(String olahragaString) {
     List<String> sports = olahragaString
         .split(',')
@@ -339,10 +376,13 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
           value: '${currentRating.toStringAsFixed(1)} / 5.0',
         ),
         const SizedBox(height: 16),
-        _buildDetailRow(
-          icon: Icons.contact_phone,
-          label: 'Kontak',
-          value: widget.lapangan.kontak ?? "-",
+        GestureDetector(
+          onTap: () => _openWhatsApp(widget.lapangan.kontak ?? ""),
+          child: _buildDetailRow(
+            icon: Icons.contact_phone,
+            label: 'Kontak',
+            value: widget.lapangan.kontak ?? "-",
+          ),
         ),
         if (widget.lapangan.fasilitas != null &&
             widget.lapangan.fasilitas!.isNotEmpty) ...[
@@ -357,9 +397,13 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
         const Divider(color: Colors.white24),
         const SizedBox(height: 24),
         Text(
-          'Rp ${widget.lapangan.tarifPerSesi} / sesi',
+          "${NumberFormat.currency(
+            locale: 'id', 
+            symbol: 'Rp ', 
+            decimalDigits: 0 
+          ).format(double.parse(widget.lapangan.tarifPerSesi))} / Sesi",
           style: GoogleFonts.plusJakartaSans(
-            color: const Color(0xFFA4E4FF),
+            color: const Color(0xFFA4B3FF),
             fontSize: 28,
             fontWeight: FontWeight.bold,
           ),

@@ -168,7 +168,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
     final request = context.watch<CookieRequest>();
 
     return Scaffold(
-      backgroundColor: Colors.black, // Dasar hitam
+      backgroundColor: Colors.black,
       appBar: AppBar(
         title: Text(
           'Edit Coach',
@@ -183,9 +183,6 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
       ),
       body: Stack(
         children: [
-          // ============================================================
-          // BACKGROUND AURA SAMA DENGAN COACH FORM
-          // ============================================================
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -241,77 +238,99 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   _buildLabel('Nama Coach'),
-                  TextFormField(
-                    initialValue: _name,
-                    style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                    decoration: _buildInputDecoration('Nama Lengkap'),
-                    onChanged: (val) => _name = val,
-                    validator: (val) => val == null || val.isEmpty
-                        ? "Nama tidak boleh kosong!"
-                        : null,
+                  _buildGlassContainer(
+                    child: TextFormField(
+                      initialValue: _name,
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                      decoration: _buildInputDecoration('Masukkan nama coach'),
+                      onChanged: (val) => _name = val,
+                      validator: (val) => val == null || val.isEmpty
+                          ? "Nama tidak boleh kosong!"
+                          : null,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _buildLabel('Cabang Olahraga'),
-                  DropdownButtonFormField<String>(
-                    value: _sportOptions.firstWhere(
-                      (e) => e.toLowerCase() == _sportBranch.toLowerCase(),
-                      orElse: () => _sportOptions[0],
+                  _buildGlassContainer(
+                    child: DropdownButtonFormField<String>(
+                      value: _sportOptions.firstWhere(
+                        (e) => e.toLowerCase() == _sportBranch.toLowerCase(),
+                        orElse: () => _sportOptions[0],
+                      ),
+                      dropdownColor: const Color(0xFF2A2A2A), // Warna pop-up gelap
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                      decoration: _buildInputDecoration('Pilih Olahraga'),
+                      items: _sportOptions
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (val) => setState(() => _sportBranch = val!),
                     ),
-                    dropdownColor: const Color(0xFF4F4F4F),
-                    style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                    decoration: _buildInputDecoration('Pilih Olahraga'),
-                    items: _sportOptions
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (val) => setState(() => _sportBranch = val!),
                   ),
                   const SizedBox(height: 16),
                   _buildLabel('Lokasi'),
-                  DropdownButtonFormField<String>(
-                    value: _locationOptions.contains(_location)
-                        ? _location
-                        : null,
-                    dropdownColor: const Color(0xFF4F4F4F),
-                    style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                    decoration: _buildInputDecoration('Pilih Lokasi'),
-                    items: _locationOptions
-                        .map((e) => DropdownMenuItem(value: e, child: Text(e)))
-                        .toList(),
-                    onChanged: (val) => setState(() => _location = val!),
+                  _buildGlassContainer(
+                    child: DropdownButtonFormField<String>(
+                      value: _locationOptions.firstWhere(
+                          (e) => e.toLowerCase() == _location.toLowerCase(),
+                          orElse: () => _locationOptions[0],
+                        ),
+                      dropdownColor: const Color(0xFF2A2A2A),
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                      decoration: _buildInputDecoration('Pilih Lokasi'),
+                      items: _locationOptions
+                          .map((e) => DropdownMenuItem(value: e, child: Text(e)))
+                          .toList(),
+                      onChanged: (val) => setState(() => _location = val!),
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  _buildLabel('Kontak'),
-                  TextFormField(
-                    initialValue: _contact,
-                    style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                    decoration: _buildInputDecoration('08xxxxx'),
-                    onChanged: (val) => _contact = val,
+                  _buildLabel('Kontak (No. HP/Email)'),
+                  _buildGlassContainer(
+                    child: TextFormField(
+                      initialValue: _contact,
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                      decoration: _buildInputDecoration('081234567890'),
+                      onChanged: (val) => _contact = val,
+                      validator: (val) => val == null || val.isEmpty
+                          ? "Kontak tidak boleh kosong!"
+                          : null,
+                    ),
                   ),
                   const SizedBox(height: 16),
-                  _buildLabel('Tarif'),
-                  TextFormField(
-                    initialValue: _serviceFee,
-                    style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                    decoration: _buildInputDecoration('Rp...'),
-                    onChanged: (val) => _serviceFee = val,
+                  _buildLabel('Tarif Jasa'),
+                  _buildGlassContainer(
+                    child: TextFormField(
+                      initialValue: _serviceFee,
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                      decoration: _buildInputDecoration('Contoh: 100000'),
+                      onChanged: (val) => _serviceFee = val,
+                      validator: (val) => val == null || val.isEmpty
+                          ? "Tarif jasa tidak boleh kosong!"
+                          : null,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _buildLabel('Pengalaman'),
-                  TextFormField(
-                    initialValue: _experience,
-                    style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                    maxLines: 3,
-                    decoration: _buildInputDecoration('Pengalaman...'),
-                    onChanged: (val) => _experience = val,
+                  _buildGlassContainer(
+                    child: TextFormField(
+                      initialValue: _experience,
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                      decoration: _buildInputDecoration('Masukkan pengalaman Anda'),
+                      onChanged: (val) => _experience = val,
+                    ),
                   ),
                   const SizedBox(height: 16),
                   _buildLabel('Sertifikasi'),
-                  TextFormField(
-                    initialValue: _certifications,
-                    style: GoogleFonts.plusJakartaSans(color: Colors.white),
-                    maxLines: 2,
-                    decoration: _buildInputDecoration('Sertifikasi...'),
-                    onChanged: (val) => _certifications = val,
+                  _buildGlassContainer(
+                    child: TextFormField(
+                      initialValue: _certifications,
+                      style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                      decoration: _buildInputDecoration('Masukkan sertifikasi Anda'),
+                      onChanged: (val) => _certifications = val,
+                      validator: (val) => val == null || val.isEmpty
+                          ? "Sertifikasi tidak boleh kosong!"
+                          : null,
+                    ),
                   ),
                   const SizedBox(height: 32),
                   SizedBox(
@@ -399,13 +418,23 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
 
   InputDecoration _buildInputDecoration(String hint) => InputDecoration(
     hintText: hint,
-    hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white24),
-    filled: true,
-    fillColor: const Color(0xFF4F4F4F),
-    border: OutlineInputBorder(
-      borderRadius: BorderRadius.circular(8),
-      borderSide: BorderSide.none,
-    ),
+    hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white.withOpacity(0.3)),
+    filled: false,
+    border: InputBorder.none,
     contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 16),
   );
+
+  Widget _buildGlassContainer({required Widget child}) {
+    return Container(
+      decoration: BoxDecoration(
+        color: Colors.white.withOpacity(0.08),
+        borderRadius: BorderRadius.circular(8),
+        border: Border.all(
+          color: Colors.white.withOpacity(0.2),
+          width: 1.5,
+        ),
+      ),
+      child: child,
+    );
+  }
 }

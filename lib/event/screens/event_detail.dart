@@ -357,7 +357,11 @@ class _EventDetailPageState extends State<EventDetailPage>
           ),
           const SizedBox(height: 24),
           Text(
-            'Rp ${widget.event.biaya}',
+            "${NumberFormat.currency(
+                locale: 'id', 
+                symbol: 'Rp ', 
+                decimalDigits: 0 
+              ).format(double.parse(widget.event.biaya.toString()) ?? 0)} / Sesi",
             style: GoogleFonts.plusJakartaSans(
               color: const Color(0xFFA4B3FF),
               fontSize: 36,

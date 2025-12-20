@@ -4,6 +4,7 @@ import 'dart:ui';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
@@ -1511,9 +1512,11 @@ class _CoachCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              item.fields.serviceFee.startsWith('Rp')
-                  ? item.fields.serviceFee
-                  : 'Rp ${item.fields.serviceFee}',
+              "${NumberFormat.currency(
+                  locale: 'id', 
+                  symbol: 'Rp ', 
+                  decimalDigits: 0 
+                ).format(double.parse(item.fields.serviceFee))} / Sesi",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.plusJakartaSans(

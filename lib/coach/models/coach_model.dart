@@ -1,5 +1,6 @@
 import 'dart:convert';
 
+
 List<Coach> coachFromJson(String str) =>
     List<Coach>.from(json.decode(str).map((x) => Coach.fromJson(x)));
 
@@ -34,7 +35,7 @@ class Fields {
   String experience;
   String certifications;
   String serviceFee;
-  String? photo; // Bisa null jika tidak ada foto
+  String? photo;
 
   Fields({
     required this.name,
@@ -55,7 +56,6 @@ class Fields {
         experience: json["experience"] ?? "",
         certifications: json["certifications"] ?? "",
         serviceFee: json["service_fee"] ?? "",
-        // Biarkan null jika tidak ada / null di backend
         photo: json["photo"],
       );
 

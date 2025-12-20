@@ -5,6 +5,7 @@ import 'package:askmo/config/api_base.dart';
 import 'package:askmo/coach/models/coach_model.dart';
 import 'package:askmo/coach/screens/coach_edit_form.dart';
 import 'package:askmo/user_info.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:askmo/wishlist/models/wishlist_state.dart';
@@ -30,7 +31,6 @@ class _CoachDetailPageState extends State<CoachDetailPage>
   @override
   void initState() {
     super.initState();
-    // Animasi Aura
     _animationController = AnimationController(
       duration: const Duration(seconds: 15),
       vsync: this,
@@ -47,7 +47,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     super.dispose();
   }
 
-  /// Helper untuk memformat nama olahraga (Contoh: "voli" -> "Voli")
+  /// Helper untuk memformat nama olahraga
   String _formatSportLabel(String rawValue) {
     if (rawValue.isEmpty) return rawValue;
     return rawValue
@@ -59,7 +59,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
         .join(' ');
   }
 
-  /// Helper umum untuk mengubah teks menjadi Title Case (disimpan jika nanti butuh)
+  /// Helper untuk mengubah teks menjadi Title Case (disimpan jika nanti butuh)
   String _toTitleCase(String text) {
     if (text.isEmpty) return text;
     return text.split(' ').map((word) {
@@ -68,7 +68,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     }).join(' ');
   }
 
-  /// Helper untuk membangun URL foto coach
+  /// Helper untuk URL foto coach
   String _buildPhotoUrl(String photoPath) {
     if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
       return photoPath;
@@ -76,7 +76,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     return '$apiBase/media/$photoPath';
   }
 
-  /// Background aura animasi untuk tampilan detail
+  /// Background
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -557,7 +557,11 @@ class _CoachDetailPageState extends State<CoachDetailPage>
         const SizedBox(height: 24),
         if (widget.coach.fields.serviceFee.isNotEmpty) ...[
           Text(
-            'Rp ${widget.coach.fields.serviceFee} / Sesi',
+            "${NumberFormat.currency(
+                locale: 'id', 
+                symbol: 'Rp ', 
+                decimalDigits: 0 
+              ).format(double.parse(widget.coach.fields.serviceFee))} / Sesi",
             style: GoogleFonts.plusJakartaSans(
               color: const Color(0xFFA4E4FF),
               fontSize: 28,

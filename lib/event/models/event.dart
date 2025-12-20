@@ -1,7 +1,3 @@
-// To parse this JSON data, do
-//
-//     final eventEntry = eventEntryFromJson(jsonString);
-
 import 'dart:convert';
 
 EventEntry eventEntryFromJson(String str) =>

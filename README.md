@@ -23,7 +23,7 @@
 ## Daftar modul yang diimplementasikan
 ### 1. Wishlist
 - **Target Pengguna**: User
-- **Deskripsi**: Simpan lapangan favoritmu! Dengan fitur Wishlist, kamu bisa menandai semua lapangan yang ingin kamu coba atau yang sering kamu kunjungi. Tidak perlu lagi repot mencari ulang, semua lapangan favoritmu akan tersimpan rapi dalam satu daftar pribadi. Rencanakan permainanmu selanjutnya dengan lebih cepat dan praktis!
+- **Deskripsi**: Simpan lapangan favoritmu! Dengan fitur Wishlist, user bisa menandai semua lapangan yang ingin di coba atau yang sering user kunjungi. Tidak perlu lagi repot mencari ulang, semua lapangan favoritakan tersimpan rapi dalam satu daftar pribadi. Rencanakan permainanmu selanjutnya dengan lebih cepat dan praktis!
 - **Person In Charge (PIC)**: Nisrina Alya Nabilah (2406425924)
 
 ### 2. Lapangan
@@ -47,6 +47,10 @@
 - **Deskripsi**: Fitur ini memungkinkan Admin untuk menambahkan dan mengelola profil para pelatih (coach) yang terhubung dengan ASKMO. Tampilkan informasi penting seperti spesialisasi cabang olahraga, pengalaman, sertifikasi, dan tarif jasa mereka. Ini akan memberikan pilihan pelatih berkualitas bagi User yang ingin meningkatkan kemampuan bermainnya.
 - **Person In Charge (PIC)**: Ahmad Fauzan Al Ayubi (2406344284)
 
+### 6. AI Chatbot (Momo)
+- **Target Pengguna**: User
+- **Deskripsi**: Kenalan dengan Momo, asisten pintar berbasis AI yang siap membantu kebutuhan olahragamu! Bingung memilih lapangan yang cocok atau butuh rekomendasi pelatih berdasarkan budget? Cukup tanya Momo. Momo dapat memberikan rekomendasi instan berdasarkan lokasi, preferensi jenis olahraga, dan ketersediaan fasilitas. Dengan teknologi Natural Language Processing (NLP), berinteraksi dengan ASKMO jadi terasa lebih personal dan intuitif, seperti berbicara dengan teman olahraga sendiri.
+- **Person In Charge (PIC)**: Matthew Wijaya, Nisrina Alya Nabilah, Lessyarta Kamali Sopamena Pirade, Syafiq Faqih, Ahmad Fauzan Al Ayubi
 
 ## Link sumber dataset
 Link sumber initial dataset kecamatan di seluruh Jabodetabek: https://id.wikipedia.org/wiki/Daftar_kecamatan_dan_kelurahan_di_Jabodetabek
@@ -58,6 +62,8 @@ User merupakan peran utama dalam aplikasi. Berikut adalah deskripsi peran User d
 - **Cari Event**: User dapat mencari dan menghadiri berbagai event, seperti turnamen persahabatan, sesi latihan bersama, hingga coaching clinic. Pencarian event dapat disesuaikan dengan lokasi, waktu, jumlah peserta, dan biaya sesuai preferensi masing-masing User.
 - **Review Lapangan**: User dapat memberi ulasan terhadap lapangan yang telah mereka kunjungi. Fitur ini memudahkan User lain mengetahui lapangan yang paling sesuai dengan kebutuhan masing-masing.
 - **Terhubung dengan Coach**: User dapat mencari pelatih sesuai dengan kemampuan, lokasi, dan jenis olahraga yang dinikmati. Kontak pelatih akan diberikan melalui aplikasi sehingga memudahkan User untuk menghubungi pelatih.
+- **Konsultasi dengan Momo**: User dapat bertanya langsung kepada Momo untuk mendapatkan rekomendasi cepat (misalnya: "Momo, buatkan jadwal gym 3 hari seminggu").
+- **Booking Lapangan**: User dapat memesan lapangan melalui aplikasi yang disimulasikan langsung berhasil, yang kemudian riwayat pemesanan lapangan di tampilan melalui tab "History" di Profile.
 
 ### 2. Admin
 Admin mempunyai peran dalam mengurus keberlangsungan sebagian besar fitur pada ASKMO. Berikut merupakan deskripsi peran Admin dari masing-masing fitur, antara lain:
@@ -65,19 +71,14 @@ Admin mempunyai peran dalam mengurus keberlangsungan sebagian besar fitur pada A
 - **Tambah Event**: Admin dapat menambahkan event baru yang akan berlangsung di lapangan tertentu agar dapat ditampilkan di aplikasi mobile.
 - **Review Lapangan**: Admin dapat menambahkan review awal lapangan, yang kemudian bisa ditambahkan serta diakumulasi lebih lanjut oleh User.
 - **Tambah Pelatih**: Admin dapat menambahkan pelatih beserta detail lengkapnya (profil, keahlian, kontak, lokasi) agar dapat ditampilkan di aplikasi mobile dan mudah dikenali oleh User.
+- **Konsultasi dengan Momo**: Selain user, admin juga dapat bertanya langsung kepada Momo untuk mendapatkan rekomendasi cepat (misalnya: "Momo, buatkan jadwal gym 3 hari seminggu").
 
 ## Penjelasan alur pengintegrasian data di aplikasi dengan aplikasi web (PWS) yang sudah dibuat saat Proyek Tengah Semester berbasis web service.
-Untuk mengintegrasikan data supaya bisa sama antara aplikasi web dan aplikasi mobile, kami akan mengikuti cara dari Tutorial 8 yang telah disediakan oleh tim asisten dosen.
-
-Secara lengkap, langkah-langkahnya adalah sebagai berikut: 
-Menambahkan dependensi http pada proyek Flutter supaya dapat merequest data ke website melalui HTTP request. 
-
-Setelah itu, perlu dibuat model data yang sesuai dengan respons yang diterima dari web service, kemudian akan digunakan untuk mengonversi data JSON ke dalam objek Dart.
-
-Langkah berikutnya adalah mengirimkan request HTTP ke web service menggunakan dependensi http, lalu mengonversi objek yang diterima menjadi model yang telah dibuat sebelumnya. 
-
-Data yang telah dikonversi akan ditampilkan di aplikasi Flutter menggunakan Future Builder, memungkinkan penanganan data supaya dapat asinkron. 
-
+Untuk mengintegrasikan data supaya bisa sama antara aplikasi web dan aplikasi mobile, kami akan mengikuti cara dari Tutorial 8 yang telah disediakan oleh tim asisten dosen. Secara lengkap, langkah-langkahnya adalah sebagai berikut: 
+    - Menambahkan dependensi http pada proyek Flutter supaya dapat merequest data ke website melalui HTTP request. 
+    - Setelah itu, perlu dibuat model data yang sesuai dengan respons yang diterima dari web service, kemudian akan digunakan untuk mengonversi data JSON ke dalam objek Dart.
+    - Langkah berikutnya adalah mengirimkan request HTTP ke web service menggunakan dependensi http, lalu mengonversi objek yang diterima menjadi model yang telah dibuat sebelumnya.
+    - Data yang telah dikonversi akan ditampilkan di aplikasi Flutter menggunakan Future Builder, memungkinkan penanganan data supaya dapat asinkron.
 Semua alur pengintegrasian ini bertujuan agar aplikasi web dan aplikasi mobile dapat berbagi data dengan lancar dan konsisten.
 
 ## Link pws

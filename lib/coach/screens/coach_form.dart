@@ -336,16 +336,10 @@ class _CoachFormPageState extends State<CoachFormPage> {
                                     'photo': photoValue,
                                   };
 
-                                  print(
-                                    'DEBUG: Sending request data: $requestData',
-                                  );
-
                                   final response = await request.postJson(
                                     "$apiBase/coach/create-flutter/",
                                     jsonEncode(requestData),
                                   );
-
-                                  print('DEBUG: Response: $response');
 
                                   if (!mounted) return;
 
@@ -359,7 +353,7 @@ class _CoachFormPageState extends State<CoachFormPage> {
                                         ),
                                       ),
                                     );
-                                    Navigator.pop(context, true); // return to existing CoachPage so styling stays intact
+                                    Navigator.pop(context, true); 
                                   } else {
                                     ScaffoldMessenger.of(context).showSnackBar(
                                       SnackBar(

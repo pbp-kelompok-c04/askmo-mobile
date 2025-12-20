@@ -3,6 +3,7 @@ import 'package:askmo/history/models/booking_history_state.dart';
 import 'package:askmo/user_info.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
+import 'package:intl/intl.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:askmo/profile/models/user_state.dart';
@@ -72,6 +73,7 @@ class _ProfilePageState extends State<ProfilePage>
     super.dispose();
   }
 
+  // Alert dialog untuk mengofirmasi pilihan user ketika ingin un-wishlist item di wishlist lapangan dan coach
   Future<void> _showUnwishlistDialog(
     BuildContext context,
     WishedItem item,
@@ -131,6 +133,7 @@ class _ProfilePageState extends State<ProfilePage>
     }
   }
 
+  // Widget buid background sama seperti lapangan page, coach page, event page, dan home page, untuk menjaga konsistensi tema aplikasi
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -183,6 +186,7 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
+  // Widget container dengan glassmorphism effect
   Widget _glassContainer({
     required Widget child,
     EdgeInsets? padding,
@@ -313,8 +317,7 @@ class _ProfilePageState extends State<ProfilePage>
     );
   }
 
-  Widget _buildCustomIcon(String assetName) {
-    final bool isSelected = _selectedTab == 'wishlist';
+  Widget _buildCustomIcon(String assetName, bool isSelected) {
     final Color color = isSelected ? Colors.white : Colors.grey;
 
     return Padding(
@@ -345,10 +348,16 @@ class _ProfilePageState extends State<ProfilePage>
         children: [
           _buildTabIcon(
             tabKey: 'wishlist',
-            customIcon: _buildCustomIcon('lapangan.png'),
+            customIcon: _buildCustomIcon('lapangan.png', _selectedTab == 'wishlist'),
           ),
-          _buildTabIcon(tabKey: 'coach', customIcon: _buildCustomIcon('coach.png'),),
-          _buildTabIcon(tabKey: 'history', customIcon: _buildCustomIcon('transaction.png'),),
+          _buildTabIcon(
+            tabKey: 'coach', 
+            customIcon: _buildCustomIcon('coach.png', _selectedTab == 'coach'),
+          ),
+          _buildTabIcon(
+            tabKey: 'history', 
+            customIcon: _buildCustomIcon('transaction.png', _selectedTab == 'history'),
+          ),
         ],
       ),
     );
@@ -386,7 +395,7 @@ class _ProfilePageState extends State<ProfilePage>
           decoration: BoxDecoration(
             border: Border(
               bottom: isSelected
-                  ? const BorderSide(color: Color(0xFF6C5CE7), width: 2.0)
+                  ? const BorderSide(color: Color(0xFF6C5CE7), width: 3.0)
                   : BorderSide.none,
             ),
           ),
@@ -1053,7 +1062,11 @@ Widget _buildHistoryCard(BookingItem item) {
               ),
             ),
             Text(
-              'Rp ${item.price}',
+              NumberFormat.currency(
+                  locale: 'id', 
+                  symbol: 'Rp ', 
+                  decimalDigits: 0 
+                ).format(double.parse(item.price)),
               style: GoogleFonts.plusJakartaSans(
                 color: const Color(0xFFA4E4FF),
                 fontSize: 16,
@@ -1162,11 +1175,15 @@ Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
     );
   }
 
-  void _showEditProfile() {
+  Future<void> _showEditProfile() async {
     final userState = context.read<UserState>();
     final initialName = userState.name;
     final initialAvatar = userState.avatarPath;
     final initialSport = userState.favoriteSport;
+
+    final TextEditingController nameController = TextEditingController(
+      text: userState.name.isNotEmpty ? userState.name : UserInfo.username,
+    );
 
     showModalBottomSheet(
       context: context,
@@ -1180,9 +1197,6 @@ Future<List<Coach>> _fetchCoachDetails(List<WishedItem> wishedItems) async {
             String tempAvatar = initialAvatar;
             String tempSport = initialSport;
             Uint8List? pickedBytes;
-            final TextEditingController nameController = TextEditingController(
-              text: initialName.isNotEmpty ? initialName : UserInfo.username,
-            );
 
             return StatefulBuilder(
               builder: (context, setModalState) {
