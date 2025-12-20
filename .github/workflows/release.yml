@@ -40,6 +40,9 @@ jobs:
       - name: Get packages
         run: flutter pub get
 
+      - name: Generate launcher icons
+        run: flutter pub run flutter_launcher_icons
+
       - name: Build APK (with Gemini API key)
         run: flutter build apk --split-per-abi --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
 
