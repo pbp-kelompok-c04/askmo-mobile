@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:intl/intl.dart';
 import 'package:askmo/history/models/booking_history_state.dart';
 
+// Halaman booking lapangan, menerima objek Lapangan dari halaman sebelumnya
 class LapanganBookingPage extends StatefulWidget {
   final Lapangan lapangan;
 
@@ -17,6 +18,8 @@ class LapanganBookingPage extends StatefulWidget {
 
 class _LapanganBookingPageState extends State<LapanganBookingPage>
     with SingleTickerProviderStateMixin {
+
+  // Data jadwal dummy (simulasi, belum dari backend)
   final Map<String, List<String>> _scheduleByDay = <String, List<String>>{
     'Hari ini': <String>[
       '08:00 - 09:00',
@@ -38,19 +41,24 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
     ],
   };
 
+  // State pilihan user
   String? _selectedDay;
   String? _selectedSlot;
   String _paymentMethod = 'Transfer Bank';
   bool _isProcessingPayment = false;
 
+  // Controller animasi background
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
+
+    // Default hari pertama
     _selectedDay = _scheduleByDay.keys.first;
 
+    // Animasi background aura (looping)
     _animationController = AnimationController(
       duration: const Duration(seconds: 15),
       vsync: this,
@@ -63,10 +71,12 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
 
   @override
   void dispose() {
+    // Wajib dispose untuk mencegah memory leak
     _animationController.dispose();
     super.dispose();
   }
 
+  // Utility sederhana untuk formatting teks (Title Case)
   String _toTitleCase(String text) {
     if (text.isEmpty) return text;
     return text.split(' ').map((word) {
@@ -75,7 +85,7 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
     }).join(' ');
   }
 
-  // Background Aura Widget
+  // Background visual (aura animasi)
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -132,7 +142,7 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
   Widget build(BuildContext context) {
     return Scaffold(
       extendBodyBehindAppBar: true,
-      backgroundColor: Colors.black, // Match base color
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         foregroundColor: Colors.white,
@@ -141,8 +151,6 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
           icon: const Icon(Icons.arrow_back),
           onPressed: () => Navigator.pop(context),
         ),
-        centerTitle: false,
-        titleSpacing: 0,
         title: Padding(
           padding: const EdgeInsets.only(top: 25),
           child: Text(
@@ -154,18 +162,17 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
           ),
         ),
       ),
-      // STACK for Animated Background + Content
+
+      // Stack: background animasi + konten utama
       body: Stack(
         children: [
-          // 1. Animated Background Aura
           Positioned.fill(child: _buildBackgroundAura()),
 
-          // 2. Main Content
           SafeArea(
             child: SingleChildScrollView(
               padding: const EdgeInsets.all(16),
               child: Column(
-                children: <Widget>[
+                children: [
                   _buildGlassSection(_buildLapanganHeaderContent()),
                   const SizedBox(height: 16),
                   _buildGlassSection(_buildScheduleSelectorContent()),
@@ -175,7 +182,6 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
                   _buildGlassSection(_buildBookingSummaryContent()),
                   const SizedBox(height: 24),
                   _buildPayButton(),
-                  const SizedBox(height: 20),
                 ],
               ),
             ),
@@ -185,7 +191,7 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
     );
   }
 
-  // --- GLASSMORPHISM WRAPPER ---
+  // Wrapper glassmorphism agar UI konsisten
   Widget _buildGlassSection(Widget child) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(16),
@@ -199,14 +205,9 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
                 Colors.white.withOpacity(0.1),
                 Colors.white.withOpacity(0.05),
               ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
             ),
             borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: Colors.white.withOpacity(0.2),
-              width: 1.5,
-            ),
+            border: Border.all(color: Colors.white.withOpacity(0.2)),
           ),
           child: child,
         ),
@@ -214,44 +215,32 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
     );
   }
 
-  // --- HEADER CONTENT ---
+  // Header: info lapangan (nama, lokasi, tarif)
   Widget _buildLapanganHeaderContent() {
-    final dynamic alamatRaw = widget.lapangan.alamat;
     final String alamatText =
-        (alamatRaw is String && alamatRaw.trim().isNotEmpty)
-            ? alamatRaw
+        (widget.lapangan.alamat?.trim().isNotEmpty ?? false)
+            ? widget.lapangan.alamat!
             : 'Lokasi tidak tersedia';
 
-    final dynamic tarifRaw = widget.lapangan.tarifPerSesi;
-    final String tarifText = 'Rp $tarifRaw / sesi';
+    final String tarifText = 'Rp ${widget.lapangan.tarifPerSesi} / sesi';
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
+      children: [
         _buildImagePlaceholder(),
         const SizedBox(width: 14),
         Expanded(
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
-            children: <Widget>[
+            children: [
               Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 4,
-                ),
+                padding:
+                    const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
                 decoration: BoxDecoration(
                   color: const Color(0xFF06005E),
                   borderRadius: BorderRadius.circular(999),
-                  boxShadow: [
-                    BoxShadow(
-                      color: const Color(0xFF06005E).withOpacity(0.4),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    )
-                  ],
                 ),
                 child: Text(
-                  // Apply Title Case here
                   _toTitleCase(widget.lapangan.olahraga),
                   style: GoogleFonts.plusJakartaSans(
                     color: Colors.white,
@@ -271,12 +260,9 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
               ),
               const SizedBox(height: 6),
               Row(
-                children: <Widget>[
-                  const Icon(
-                    Icons.location_on,
-                    size: 16,
-                    color: Colors.white70,
-                  ),
+                children: [
+                  const Icon(Icons.location_on,
+                      size: 16, color: Colors.white70),
                   const SizedBox(width: 4),
                   Expanded(
                     child: Text(
@@ -296,7 +282,6 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
                 tarifText,
                 style: GoogleFonts.plusJakartaSans(
                   color: Colors.white,
-                  fontSize: 14,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -307,201 +292,112 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
     );
   }
 
-  // --- SCHEDULE CONTENT ---
+  // Pemilihan hari dan jam booking
   Widget _buildScheduleSelectorContent() {
-    return SizedBox(
-      width: double.infinity,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: <Widget>[
-          Text(
-            'Pilih Jadwal',
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Pilih Jadwal',
             style: GoogleFonts.plusJakartaSans(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.w700,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            'Pilih hari dan jam yang pas untuk kamu.',
-            style: GoogleFonts.plusJakartaSans(
-              color: Colors.white70,
-              fontSize: 13,
-            ),
-          ),
-          const SizedBox(height: 12),
-          SingleChildScrollView(
-            scrollDirection: Axis.horizontal,
-            child: Row(
-              children: _scheduleByDay.keys.map((String day) {
-                final bool isSelected = _selectedDay == day;
-                return Padding(
-                  padding: const EdgeInsets.only(right: 8),
-                  child: ChoiceChip(
-                    label: Text(
-                      day,
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white,
-                        fontWeight: FontWeight.w600,
-                      ),
-                    ),
-                    selected: isSelected,
-                    showCheckmark: false,
-                    onSelected: (_) {
-                      setState(() {
-                        _selectedDay = day;
-                        _selectedSlot = null;
-                      });
-                    },
-                    selectedColor: const Color(0xFF06005E),
-                    backgroundColor: Colors.black.withAlpha(200),
-                    side: isSelected
-                        ? BorderSide.none
-                        : const BorderSide(color: Colors.white54),
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(999),
-                    ),
-                  ),
-                );
-              }).toList(),
-            ),
-          ),
-          const SizedBox(height: 12),
-          if (_selectedDay != null) ...<Widget>[
-            Text(
-              'Pilih Jam',
-              style: GoogleFonts.plusJakartaSans(
                 color: Colors.white,
-                fontSize: 14,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            const SizedBox(height: 8),
-            Wrap(
-              spacing: 8,
-              runSpacing: 8,
-              children: (_scheduleByDay[_selectedDay] ?? <String>[])
-                  .map((String slot) {
-                final bool isSelected = _selectedSlot == slot;
-                return ChoiceChip(
-                  label: Text(
-                    slot,
-                    style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
+                fontSize: 18,
+                fontWeight: FontWeight.w700)),
+        const SizedBox(height: 12),
+
+        // Pilih hari
+        SingleChildScrollView(
+          scrollDirection: Axis.horizontal,
+          child: Row(
+            children: _scheduleByDay.keys.map((day) {
+              final bool isSelected = _selectedDay == day;
+              return Padding(
+                padding: const EdgeInsets.only(right: 8),
+                child: ChoiceChip(
+                  label: Text(day,
+                      style: GoogleFonts.plusJakartaSans(
+                          color: Colors.white,
+                          fontWeight: FontWeight.w600)),
                   selected: isSelected,
-                  showCheckmark: false,
                   onSelected: (_) {
                     setState(() {
-                      _selectedSlot = slot;
+                      _selectedDay = day;
+                      _selectedSlot = null;
                     });
                   },
                   selectedColor: const Color(0xFF06005E),
-                  backgroundColor: Colors.black.withAlpha(200),
-                  side: isSelected
-                      ? BorderSide.none
-                      : const BorderSide(color: Colors.white54),
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(12),
-                  ),
-                );
-              }).toList(),
-            ),
-          ],
-        ],
-      ),
-    );
-  }
-
-  // --- PAYMENT CONTENT ---
-  Widget _buildPaymentMethodsContent() {
-    final List<String> methods = <String>[
-      'Transfer Bank',
-      'E-Wallet',
-      'Bayar di Tempat',
-    ];
-
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          'Metode Pembayaran',
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
+                  backgroundColor: Colors.black,
+                ),
+              );
+            }).toList(),
           ),
         ),
-        const SizedBox(height: 8),
-        Text(
-          'Pembayaran di sini hanya simulasi.',
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.white70,
-            fontSize: 13,
-          ),
-        ),
+
         const SizedBox(height: 12),
-        ...methods.map(
-          (String method) => RadioListTile<String>(
-            contentPadding: EdgeInsets.zero,
-            activeColor: const Color(0xFFA4E4FF),
-            value: method,
-            groupValue: _paymentMethod,
-            onChanged: (String? value) {
-              if (value == null) return;
-              setState(() {
-                _paymentMethod = value;
-              });
-            },
-            title: Text(
-              method,
-              style: GoogleFonts.plusJakartaSans(
-                color: Colors.white,
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-            subtitle: Text(
-              method == 'Bayar di Tempat'
-                  ? 'Bayar di lokasi saat datang.'
-                  : 'Simulasi langsung disetujui.',
-              style: GoogleFonts.plusJakartaSans(
-                color: Colors.white54,
-                fontSize: 12,
-              ),
-            ),
-          ),
+
+        // Pilih jam
+        Wrap(
+          spacing: 8,
+          runSpacing: 8,
+          children: (_scheduleByDay[_selectedDay] ?? []).map((slot) {
+            final bool isSelected = _selectedSlot == slot;
+            return ChoiceChip(
+              label: Text(slot,
+                  style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white,
+                      fontWeight: FontWeight.w600)),
+              selected: isSelected,
+              onSelected: (_) {
+                setState(() {
+                  _selectedSlot = slot;
+                });
+              },
+              selectedColor: const Color(0xFF06005E),
+              backgroundColor: Colors.black,
+            );
+          }).toList(),
         ),
       ],
     );
   }
 
-  // --- SUMMARY CONTENT ---
-  Widget _buildBookingSummaryContent() {
-    final dynamic tarifRaw = widget.lapangan.tarifPerSesi;
-    final String tarifText = 'Rp $tarifRaw / sesi';
+  // Pemilihan metode pembayaran (simulasi)
+  Widget _buildPaymentMethodsContent() {
+    final methods = ['Transfer Bank', 'E-Wallet', 'Bayar di Tempat'];
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
-      children: <Widget>[
-        Text(
-          'Ringkasan Booking',
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.w700,
-          ),
-        ),
+      children: methods.map((method) {
+        return RadioListTile<String>(
+          value: method,
+          groupValue: _paymentMethod,
+          onChanged: (value) {
+            if (value == null) return;
+            setState(() => _paymentMethod = value);
+          },
+          title: Text(method,
+              style: GoogleFonts.plusJakartaSans(color: Colors.white)),
+          activeColor: const Color(0xFFA4E4FF),
+        );
+      }).toList(),
+    );
+  }
+
+  // Ringkasan booking sebelum pembayaran
+  Widget _buildBookingSummaryContent() {
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        Text('Ringkasan Booking',
+            style: GoogleFonts.plusJakartaSans(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.w700)),
         const SizedBox(height: 12),
         _buildSummaryRow('Lapangan', widget.lapangan.nama),
-        _buildSummaryRow(
-            _selectedDay == null ? 'Hari' : 'Hari', _selectedDay ?? '-'),
+        _buildSummaryRow('Hari', _selectedDay ?? '-'),
         _buildSummaryRow('Jam', _selectedSlot ?? '-'),
         _buildSummaryRow('Metode', _paymentMethod),
-        const Divider(color: Colors.white24, height: 24),
-        _buildSummaryRow('Tarif', tarifText),
+        _buildSummaryRow('Tarif', 'Rp ${widget.lapangan.tarifPerSesi} / sesi'),
       ],
     );
   }
@@ -511,274 +407,76 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
       padding: const EdgeInsets.symmetric(vertical: 6),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceBetween,
-        children: <Widget>[
-          Text(
-            label,
-            style: GoogleFonts.plusJakartaSans(
-              color: Colors.white70,
-              fontSize: 13,
-            ),
-          ),
-          const SizedBox(width: 8),
-          Expanded(
-            child: Text(
-              value,
+        children: [
+          Text(label,
+              style: GoogleFonts.plusJakartaSans(color: Colors.white70)),
+          Text(value,
               style: GoogleFonts.plusJakartaSans(
-                color: Colors.white,
-                fontWeight: FontWeight.w700,
-              ),
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              textAlign: TextAlign.end,
-            ),
-          ),
+                  color: Colors.white, fontWeight: FontWeight.w700)),
         ],
       ),
     );
   }
 
-  // --- BUTTON ---
+  // Tombol bayar + loading state
   Widget _buildPayButton() {
     return SizedBox(
       width: double.infinity,
       child: ElevatedButton(
         onPressed: _isProcessingPayment ? null : _simulatePayment,
-        style: ElevatedButton.styleFrom(
-          backgroundColor: const Color(0xFF06005E),
-          foregroundColor: Colors.white,
-          padding: const EdgeInsets.symmetric(
-            vertical: 16,
-            horizontal: 20,
-          ),
-          shape: RoundedRectangleBorder(
-            borderRadius: BorderRadius.circular(14),
-          ),
-          elevation: 5,
-          shadowColor: const Color(0xFF06005E).withOpacity(0.5),
-        ),
         child: _isProcessingPayment
-            ? Row(
-                mainAxisSize: MainAxisSize.min,
-                children: <Widget>[
-                  const SizedBox(
-                    width: 16,
-                    height: 16,
-                    child: CircularProgressIndicator(
-                      strokeWidth: 2,
-                      color: Colors.white,
-                    ),
-                  ),
-                  const SizedBox(width: 8),
-                  Text(
-                    'Memproses...',
-                    style: GoogleFonts.plusJakartaSans(
-                      color: Colors.white,
-                      fontWeight: FontWeight.w600,
-                    ),
-                  ),
-                ],
-              )
-            : Text(
-                'Bayar Sekarang',
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white,
-                  fontWeight: FontWeight.w700,
-                  fontSize: 16,
-                ),
-              ),
+            ? const CircularProgressIndicator(color: Colors.white)
+            : const Text('Bayar Sekarang'),
       ),
     );
   }
 
-  // --- LOGIC ---
+  // Simulasi proses pembayaran
   Future<void> _simulatePayment() async {
     if (_selectedDay == null || _selectedSlot == null) {
       ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          backgroundColor: const Color(0xFFFF5555),
-          content: Text(
-            'Pilih jadwal terlebih dahulu.',
-            style: GoogleFonts.plusJakartaSans(color: Colors.white),
-          ),
-        ),
+        const SnackBar(content: Text('Pilih jadwal terlebih dahulu')),
       );
       return;
     }
 
-    setState(() {
-      _isProcessingPayment = true;
-    });
-
+    setState(() => _isProcessingPayment = true);
     await Future.delayed(const Duration(seconds: 2));
-
-    if (!mounted) return;
-
-    setState(() {
-      _isProcessingPayment = false;
-    });
+    setState(() => _isProcessingPayment = false);
 
     _showSuccessSheet();
   }
 
+  // Bottom sheet sukses + simpan ke riwayat booking
   void _showSuccessSheet() {
-    if (!mounted) return;
-
-    final bookingHistoryState = Provider.of<BookingHistoryState>(
-      context,
-      listen: false,
-    );
-
-    showModalBottomSheet<void>(
-      context: context,
-      backgroundColor: Colors.transparent,
-      isScrollControlled: true,
-      builder: (BuildContext ctx) {
-        final dynamic tarifRaw = widget.lapangan.tarifPerSesi;
-        final String tarifText = 'Rp $tarifRaw / sesi';
-
-        return ClipRRect(
-          borderRadius: const BorderRadius.vertical(top: Radius.circular(20)),
-          child: BackdropFilter(
-            filter: ImageFilter.blur(sigmaX: 20, sigmaY: 20),
-            child: Container(
-              decoration: BoxDecoration(
-                // Applied Glassmorphism Gradient here
-                gradient: LinearGradient(
-                  colors: [
-                    Colors.white.withOpacity(0.1),
-                    Colors.white.withOpacity(0.05),
-                  ],
-                  begin: Alignment.topLeft,
-                  end: Alignment.bottomRight,
-                ),
-                borderRadius: const BorderRadius.vertical(
-                  top: Radius.circular(20),
-                ),
-                border: Border(
-                  top: BorderSide(color: Colors.white.withOpacity(0.2), width: 1.5),
-                ),
-              ),
-              padding: const EdgeInsets.all(20),
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: <Widget>[
-                  Center(
-                    child: Container(
-                      height: 4,
-                      width: 40,
-                      decoration: BoxDecoration(
-                        color: Colors.white24,
-                        borderRadius: BorderRadius.circular(2),
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 20),
-                  Center(
-                    child: Container(
-                      height: 64,
-                      width: 64,
-                      decoration: const BoxDecoration(
-                        color: Color(0xFF0BB07B),
-                        shape: BoxShape.circle,
-                      ),
-                      child: const Icon(
-                        Icons.check_rounded,
-                        color: Colors.white,
-                        size: 38,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 16),
-                  Center(
-                    child: Text(
-                      'Booking Berhasil',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white,
-                        fontSize: 20,
-                        fontWeight: FontWeight.w800,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 8),
-                  Center(
-                    child: Text(
-                      'Pembayaran $_paymentMethod dikonfirmasi.\nJangan lupa datang tepat waktu!',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white70,
-                        fontSize: 13,
-                      ),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                  const SizedBox(height: 4),
-                  Center(
-                    child: Text(
-                      'Mengalihkan kembali...',
-                      style: GoogleFonts.plusJakartaSans(
-                        color: Colors.white54,
-                        fontSize: 12,
-                      ),
-                    ),
-                  ),
-                  const SizedBox(height: 18),
-                  Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: Colors.white.withOpacity(0.05),
-                      borderRadius: BorderRadius.circular(12),
-                    ),
-                    child: Column(
-                      children: [
-                        _buildSummaryRow('Lapangan', widget.lapangan.nama),
-                        _buildSummaryRow(
-                          'Hari & Jam',
-                          '${_selectedDay ?? '-'} • ${_selectedSlot ?? '-'}',
-                        ),
-                        _buildSummaryRow('Total', tarifText),
-                      ],
-                    ),
-                  ),
-                ],
-              ),
-            ),
-          ),
-        );
-      },
-    );
+    final bookingHistoryState =
+        Provider.of<BookingHistoryState>(context, listen: false);
 
     DateTime bookingDate = DateTime.now();
-    String dayKey = _selectedDay ?? 'Hari ini';
-    if (dayKey == 'Besok') {
+    if (_selectedDay == 'Besok') {
       bookingDate = bookingDate.add(const Duration(days: 1));
-    } else if (dayKey == 'Lusa') {
+    } else if (_selectedDay == 'Lusa') {
       bookingDate = bookingDate.add(const Duration(days: 2));
     }
-    
-    final formattedDate = DateFormat('dd MMM yyyy').format(bookingDate);
-    final bookingTime = _selectedSlot ?? 'N/A';
-    
-    // Tambahkan item riwayat
+
     bookingHistoryState.addHistoryItem(
       name: widget.lapangan.nama,
       lapanganId: widget.lapangan.id,
       olahraga: widget.lapangan.olahraga,
-      date: '$formattedDate, $bookingTime',
+      date:
+          '${DateFormat('dd MMM yyyy').format(bookingDate)}, $_selectedSlot',
       paymentMethod: _paymentMethod,
       price: widget.lapangan.tarifPerSesi,
       imageUrl: widget.lapangan.thumbnail ?? '',
     );
 
-    Future<void>.delayed(const Duration(seconds: 2), () {
-      if (!mounted) return;
-      Navigator.of(context).maybePop(); // close sheet
-      if (Navigator.of(context).canPop()) {
-        Navigator.of(context).pop(); // pop booking page
-      }
-    });
+    showModalBottomSheet(
+      context: context,
+      builder: (_) => const Center(child: Text('Booking Berhasil')),
+    );
   }
 
-  // --- PLACEHOLDER GAMBAR ---
+  // Placeholder gambar jika thumbnail tidak tersedia
   Widget _buildImagePlaceholder() {
     return Container(
       width: 110,
@@ -786,25 +484,8 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
       decoration: BoxDecoration(
         color: Colors.white.withOpacity(0.1),
         borderRadius: BorderRadius.circular(12),
-        border: Border.all(color: Colors.white.withOpacity(0.1)),
       ),
-      child: const Center(
-        child: Icon(
-          Icons.sports_soccer,
-          color: Colors.white54,
-          size: 32,
-        ),
-      ),
-    );
-  }
-
-  BoxDecoration _sectionDecoration() {
-    return BoxDecoration(
-      color: const Color(0xFF353535),
-      borderRadius: BorderRadius.circular(16),
-      border: Border.all(
-        color: Colors.white.withOpacity(0.15),
-      ),
+      child: const Icon(Icons.sports_soccer, color: Colors.white54),
     );
   }
 }

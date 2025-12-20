@@ -7,6 +7,7 @@ import 'package:intl/intl.dart';
 
 import '../models/lapangan.dart';
 
+// Card komponen untuk menampilkan ringkasan informasi lapangan
 class LapanganCard extends StatelessWidget {
   final Lapangan lapangan;
   final VoidCallback onTap;
@@ -25,12 +26,16 @@ class LapanganCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-  final double? displayRating = ReviewService.getCachedAverage(lapangan.id);
+    // Ambil rating rata-rata dari cache review (jika ada)
+    final double? displayRating =
+        ReviewService.getCachedAverage(lapangan.id);
+
     return Container(
       margin: const EdgeInsets.only(bottom: 16),
       child: ClipRRect(
         borderRadius: BorderRadius.circular(16),
         child: BackdropFilter(
+          // Efek glassmorphism
           filter: ImageFilter.blur(sigmaX: 15.0, sigmaY: 15.0),
           child: Container(
             decoration: BoxDecoration(
@@ -51,11 +56,13 @@ class LapanganCard extends StatelessWidget {
             child: Material(
               color: Colors.transparent,
               child: InkWell(
+                // Tap card untuk ke halaman detail
                 onTap: onTap,
                 borderRadius: BorderRadius.circular(16),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
+                    // Bagian thumbnail
                     Stack(
                       children: [
                         ClipRRect(
@@ -64,8 +71,7 @@ class LapanganCard extends StatelessWidget {
                           ),
                           child: AspectRatio(
                             aspectRatio: 16 / 9,
-                            child:
-                                lapangan.thumbnail != null &&
+                            child: lapangan.thumbnail != null &&
                                     lapangan.thumbnail!.isNotEmpty
                                 ? Image.network(
                                     lapangan.thumbnail!,
@@ -77,6 +83,8 @@ class LapanganCard extends StatelessWidget {
                                 : _buildPlaceholder(),
                           ),
                         ),
+
+                        // Tombol wishlist (khusus halaman wishlist)
                         if (showWishlistButton)
                           Positioned(
                             top: 8,
@@ -100,13 +108,18 @@ class LapanganCard extends StatelessWidget {
                           ),
                       ],
                     ),
+
+                    // Konten utama card
                     Padding(
                       padding: const EdgeInsets.all(16),
                       child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
+                          // Bubble kategori olahraga
                           _buildSportBubbles(lapangan.olahraga),
                           const SizedBox(height: 12),
+
+                          // Nama lapangan
                           Text(
                             lapangan.nama,
                             style: GoogleFonts.plusJakartaSans(
@@ -118,6 +131,8 @@ class LapanganCard extends StatelessWidget {
                             overflow: TextOverflow.ellipsis,
                           ),
                           const SizedBox(height: 4),
+
+                          // Alamat singkat
                           Row(
                             children: [
                               const Icon(
@@ -128,7 +143,8 @@ class LapanganCard extends StatelessWidget {
                               const SizedBox(width: 4),
                               Expanded(
                                 child: Text(
-                                  lapangan.alamat ?? 'Lokasi tidak tersedia',
+                                  lapangan.alamat ??
+                                      'Lokasi tidak tersedia',
                                   style: GoogleFonts.plusJakartaSans(
                                     color: Colors.grey[400],
                                     fontSize: 12,
@@ -140,15 +156,20 @@ class LapanganCard extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 12),
+
+                          // Harga dan rating
                           Row(
-                            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                            mainAxisAlignment:
+                                MainAxisAlignment.spaceBetween,
                             children: [
                               Text(
                                 "${NumberFormat.currency(
-                                  locale: 'id', 
-                                  symbol: 'Rp ', 
-                                  decimalDigits: 0 
-                                ).format(double.parse(lapangan.tarifPerSesi))} / Sesi",
+                                  locale: 'id',
+                                  symbol: 'Rp ',
+                                  decimalDigits: 0,
+                                ).format(
+                                  double.parse(lapangan.tarifPerSesi),
+                                )} / Sesi",
                                 style: GoogleFonts.plusJakartaSans(
                                   color: const Color(0xFFA4B3FF),
                                   fontSize: 14,
@@ -168,12 +189,14 @@ class LapanganCard extends StatelessWidget {
                                         ? 'Belum ada rating'
                                         : displayRating.toStringAsFixed(1),
                                     style: GoogleFonts.plusJakartaSans(
-                                      color: const Color.fromARGB(255, 255, 255, 255),
+                                      color: Colors.white,
                                       fontSize: 12,
-                                      fontStyle:
-                                          displayRating == null ? FontStyle.italic : FontStyle.normal,
-                                      fontWeight:
-                                          displayRating == null ? FontWeight.normal : FontWeight.w600,
+                                      fontStyle: displayRating == null
+                                          ? FontStyle.italic
+                                          : FontStyle.normal,
+                                      fontWeight: displayRating == null
+                                          ? FontWeight.normal
+                                          : FontWeight.w600,
                                     ),
                                   ),
                                 ],
@@ -181,6 +204,8 @@ class LapanganCard extends StatelessWidget {
                             ],
                           ),
                           const SizedBox(height: 12),
+
+                          // Tombol aksi
                           Row(
                             children: [
                               Expanded(
@@ -189,13 +214,16 @@ class LapanganCard extends StatelessWidget {
                                   style: OutlinedButton.styleFrom(
                                     foregroundColor: Colors.white,
                                     side: BorderSide(
-                                      color: Colors.white.withOpacity(0.6),
+                                      color:
+                                          Colors.white.withOpacity(0.6),
                                     ),
-                                    padding: const EdgeInsets.symmetric(
+                                    padding:
+                                        const EdgeInsets.symmetric(
                                       vertical: 12,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius:
+                                          BorderRadius.circular(10),
                                     ),
                                   ),
                                   icon: const Icon(
@@ -204,7 +232,8 @@ class LapanganCard extends StatelessWidget {
                                   ),
                                   label: Text(
                                     'Detail',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style:
+                                        GoogleFonts.plusJakartaSans(
                                       fontWeight: FontWeight.w600,
                                     ),
                                   ),
@@ -215,12 +244,15 @@ class LapanganCard extends StatelessWidget {
                                 child: ElevatedButton.icon(
                                   onPressed: onBook,
                                   style: ElevatedButton.styleFrom(
-                                    backgroundColor: const Color(0xFF06005E),
-                                    padding: const EdgeInsets.symmetric(
+                                    backgroundColor:
+                                        const Color(0xFF06005E),
+                                    padding:
+                                        const EdgeInsets.symmetric(
                                       vertical: 12,
                                     ),
                                     shape: RoundedRectangleBorder(
-                                      borderRadius: BorderRadius.circular(10),
+                                      borderRadius:
+                                          BorderRadius.circular(10),
                                     ),
                                   ),
                                   icon: const Icon(
@@ -230,7 +262,8 @@ class LapanganCard extends StatelessWidget {
                                   ),
                                   label: Text(
                                     'Booking',
-                                    style: GoogleFonts.plusJakartaSans(
+                                    style:
+                                        GoogleFonts.plusJakartaSans(
                                       color: Colors.white,
                                       fontWeight: FontWeight.w700,
                                     ),
@@ -252,9 +285,9 @@ class LapanganCard extends StatelessWidget {
     );
   }
 
+  // Bubble kategori olahraga (bisa lebih dari satu)
   Widget _buildSportBubbles(String olahragaString) {
-    // Split by comma and trim whitespace
-    List<String> sports = olahragaString
+    final List<String> sports = olahragaString
         .split(',')
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
@@ -265,7 +298,8 @@ class LapanganCard extends StatelessWidget {
       runSpacing: 6,
       children: sports.map((sport) {
         return Container(
-          padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+          padding:
+              const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
           decoration: BoxDecoration(
             color: const Color(0xFF06005E),
             borderRadius: BorderRadius.circular(6),
@@ -283,6 +317,7 @@ class LapanganCard extends StatelessWidget {
     );
   }
 
+  // Placeholder jika gambar gagal dimuat
   Widget _buildPlaceholder() {
     return Container(
       color: const Color(0xFF4F4F4F),
@@ -297,6 +332,7 @@ class LapanganCard extends StatelessWidget {
   }
 }
 
+// Utility global untuk Title Case
 String toTitleCase(String text) {
   if (text.isEmpty) return text;
   return text

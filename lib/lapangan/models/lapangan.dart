@@ -1,17 +1,22 @@
 // lib/models/lapangan.dart
 import 'dart:convert';
 
+/// Parsing response API (JSON) menjadi List<Lapangan>
 List<Lapangan> lapanganFromJson(String str) =>
     List<Lapangan>.from(json.decode(str).map((x) => Lapangan.fromJson(x)));
 
+/// Mengubah List<Lapangan> menjadi JSON (jika perlu dikirim kembali)
 String lapanganToJson(List<Lapangan> data) =>
     json.encode(List<dynamic>.from(data.map((x) => x.toJson())));
 
 class Lapangan {
+  /// Representasi data utama lapangan
   String id;
   String nama;
   String deskripsi;
   String olahraga;
+
+  /// Field opsional, tergantung ketersediaan data dari backend
   String? thumbnail;
   double rating;
   bool refund;
@@ -40,17 +45,21 @@ class Lapangan {
     this.fasilitas,
   });
 
+  /// Constructor dari JSON (response backend)
   factory Lapangan.fromJson(Map<String, dynamic> json) => Lapangan(
         id: json["id"],
         nama: json["nama"],
         deskripsi: json["deskripsi"] ?? "",
         olahraga: json["olahraga"] ?? "Lainnya",
-        thumbnail: json["thumbnail"],
+
+        /// Antisipasi perbedaan tipe data rating (int / double)
         rating: (json["rating"] is int)
             ? (json["rating"] as int).toDouble()
             : (json["rating"] as double? ?? 0.0),
+
         refund: json["refund"] ?? false,
         tarifPerSesi: json["tarif_per_sesi"] ?? "0",
+        thumbnail: json["thumbnail"],
         kontak: json["kontak"],
         alamat: json["alamat"],
         kecamatan: json["kecamatan"],
@@ -59,6 +68,7 @@ class Lapangan {
         fasilitas: json["fasilitas"],
       );
 
+  /// Serialisasi objek ke JSON
   Map<String, dynamic> toJson() => {
         "id": id,
         "nama": nama,
@@ -68,14 +78,9 @@ class Lapangan {
         "rating": rating,
         "refund": refund,
         "tarif_per_sesi": tarifPerSesi,
-        "kontak": kontak,
-        "alamat": alamat,
-        "kecamatan": kecamatan,
-        "review": review,
-        "peraturan": peraturan,
-        "fasilitas": fasilitas,
       };
 
+  /// Constructor khusus untuk data wishlist (versi ringkas)
   factory Lapangan.fromWishedItem({
     required String id,
     required String name,
@@ -91,12 +96,6 @@ class Lapangan {
       rating: 0.0,
       refund: false,
       tarifPerSesi: 'N/A',
-      kontak: null,
-      alamat: null,
-      kecamatan: null,
-      review: null,
-      peraturan: null,
-      fasilitas: null,
     );
   }
 }

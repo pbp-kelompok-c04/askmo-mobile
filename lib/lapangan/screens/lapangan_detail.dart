@@ -11,6 +11,7 @@ import 'package:url_launcher/url_launcher.dart';
 
 import '../models/lapangan.dart';
 
+// Halaman detail lapangan, menampilkan informasi lengkap dari objek Lapangan
 class LapanganDetailPage extends StatefulWidget {
   final Lapangan lapangan;
 
@@ -22,12 +23,15 @@ class LapanganDetailPage extends StatefulWidget {
 
 class _LapanganDetailPageState extends State<LapanganDetailPage>
     with SingleTickerProviderStateMixin {
+  // Controller animasi untuk background aura
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
+
+    // Animasi aura background (looping halus)
     _animationController = AnimationController(
       duration: const Duration(seconds: 15),
       vsync: this,
@@ -40,10 +44,12 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
 
   @override
   void dispose() {
+    // Wajib dispose untuk mencegah memory leak
     _animationController.dispose();
     super.dispose();
   }
 
+  // Utility sederhana untuk Title Case
   String _toTitleCase(String text) {
     if (text.isEmpty) return text;
     return text
@@ -74,6 +80,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     var cleanedPhone = phone.replaceAll(RegExp(r'[^0-9]'), '');
     if (cleanedPhone.isEmpty) return;
 
+    // Normalisasi nomor Indonesia
     if (cleanedPhone.startsWith('0')) {
       cleanedPhone = '62${cleanedPhone.substring(1)}';
     }
@@ -87,6 +94,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     }
   }
 
+  // Background visual (aura animasi)
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -141,8 +149,9 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
 
   @override
   Widget build(BuildContext context) {
-    final double? currentRating =ReviewService.getCachedAverage(widget.lapangan.id);
-
+    // Ambil rating rata-rata dari cache review
+    final double? currentRating =
+        ReviewService.getCachedAverage(widget.lapangan.id);
 
     return Scaffold(
       backgroundColor: Colors.black,
@@ -161,6 +170,8 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
             fontWeight: FontWeight.bold,
           ),
         ),
+
+        // Tombol wishlist (Provider)
         actions: [
           Consumer<WishlistState>(
             builder: (context, wishlistState, child) {
@@ -190,7 +201,8 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                         isWished
                             ? 'Dihapus dari Wishlist'
                             : 'Ditambahkan ke Wishlist',
-                        style: GoogleFonts.plusJakartaSans(color: Colors.white),
+                        style:
+                            GoogleFonts.plusJakartaSans(color: Colors.white),
                       ),
                       duration: const Duration(seconds: 2),
                     ),
@@ -202,6 +214,8 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
           const SizedBox(width: 8),
         ],
       ),
+
+      // Stack: background animasi + konten utama
       body: Stack(
         children: [
           Positioned.fill(child: _buildBackgroundAura()),
@@ -220,8 +234,6 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                           Colors.white.withOpacity(0.1),
                           Colors.white.withOpacity(0.05),
                         ],
-                        begin: Alignment.topLeft,
-                        end: Alignment.bottomRight,
                       ),
                       borderRadius: BorderRadius.circular(16),
                       border: Border.all(
@@ -238,16 +250,23 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                             color: Colors.white,
                             fontSize: 32,
                             fontWeight: FontWeight.bold,
-                            height: 1.1,
                           ),
                         ),
                         const SizedBox(height: 12),
+
+                        // Bubble kategori olahraga
                         _buildSportBubbles(widget.lapangan.olahraga),
                         const SizedBox(height: 24),
+
+                        // Thumbnail lapangan
                         _buildThumbnail(),
                         const SizedBox(height: 24),
+
+                        // Alamat interaktif (Google Maps)
                         _buildInteractiveAddress(),
                         const SizedBox(height: 24),
+
+                        // Detail utama lapangan
                         _buildDetailsSection(currentRating),
                       ],
                     ),
@@ -261,6 +280,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     );
   }
 
+  // Alamat yang bisa ditekan (redirect ke Maps)
   Widget _buildInteractiveAddress() {
     final address = widget.lapangan.alamat ?? "";
 
@@ -268,7 +288,8 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
       onTap: () => _openMap(address),
       child: Row(
         children: [
-          const Icon(Icons.location_on_outlined, color: Colors.white, size: 24),
+          const Icon(Icons.location_on_outlined,
+              color: Colors.white, size: 24),
           const SizedBox(width: 12),
           Expanded(
             child: Text(
@@ -276,21 +297,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
               style: GoogleFonts.plusJakartaSans(
                 color: Colors.white.withOpacity(0.8),
                 fontSize: 14,
-                height: 1.4,
               ),
-            ),
-          ),
-          const SizedBox(width: 8),
-          Container(
-            padding: const EdgeInsets.all(6),
-            decoration: BoxDecoration(
-              color: const Color(0xFF571E88).withOpacity(0.3),
-              shape: BoxShape.circle,
-            ),
-            child: const Icon(
-              Icons.north_east,
-              color: Color(0xFFA4B3FF),
-              size: 18,
             ),
           ),
         ],
@@ -298,16 +305,13 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     );
   }
 
+  // Bubble kategori olahraga
   Widget _buildSportBubbles(String olahragaString) {
     final sports = olahragaString
         .split(',')
         .map((s) => s.trim())
         .where((s) => s.isNotEmpty)
         .toList();
-
-    if (sports.isEmpty && olahragaString.trim().isNotEmpty) {
-      sports.add(olahragaString.trim());
-    }
 
     return Wrap(
       spacing: 8,
@@ -318,13 +322,6 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
           decoration: BoxDecoration(
             color: const Color(0xFF06005E),
             borderRadius: BorderRadius.circular(999),
-            boxShadow: [
-              BoxShadow(
-                color: const Color(0xFF06005E).withOpacity(0.4),
-                blurRadius: 8,
-                offset: const Offset(0, 2),
-              ),
-            ],
           ),
           child: Text(
             _toTitleCase(sport),
@@ -339,6 +336,7 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     );
   }
 
+  // Thumbnail utama lapangan
   Widget _buildThumbnail() {
     return ClipRRect(
       borderRadius: BorderRadius.circular(12),
@@ -358,74 +356,50 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
     );
   }
 
+  // Placeholder jika gambar tidak tersedia
   Widget _buildPlaceholder() {
     return Container(
       color: Colors.white.withOpacity(0.1),
-      child: Center(
-        child: Column(
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            const Icon(
-              Icons.image_not_supported,
-              color: Colors.white54,
-              size: 40,
-            ),
-            const SizedBox(height: 8),
-            Text(
-              'Foto tidak tersedia',
-              style: GoogleFonts.plusJakartaSans(
-                color: Colors.white54,
-                fontSize: 14,
-              ),
-            ),
-          ],
-        ),
+      child: const Center(
+        child: Icon(Icons.image_not_supported,
+            color: Colors.white54, size: 40),
       ),
     );
   }
 
+  // Format tarif ke Rupiah per sesi
   String _formatRupiahPerSesi(dynamic rawTarif) {
     final raw = (rawTarif ?? '').toString().trim();
     if (raw.isEmpty) return 'Rp - / Sesi';
 
-    final strict = double.tryParse(raw);
-    if (strict != null) {
-      final formatted = NumberFormat.currency(
+    final parsed = double.tryParse(raw.replaceAll(RegExp(r'[^0-9]'), ''));
+    if (parsed != null) {
+      return NumberFormat.currency(
         locale: 'id',
         symbol: 'Rp ',
         decimalDigits: 0,
-      ).format(strict);
-      return '$formatted / Sesi';
-    }
-
-    final digitsOnly = raw.replaceAll(RegExp(r'[^0-9]'), '');
-    final relaxed = double.tryParse(digitsOnly);
-    if (relaxed != null) {
-      final formatted = NumberFormat.currency(
-        locale: 'id',
-        symbol: 'Rp ',
-        decimalDigits: 0,
-      ).format(relaxed);
-      return '$formatted / Sesi';
+      ).format(parsed);
     }
 
     return 'Rp $raw / Sesi';
   }
 
+  // Section detail utama lapangan
   Widget _buildDetailsSection(double? currentRating) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-      _buildDetailRow(
-        icon: Icons.star,
-        label: 'Rating',
-        value: currentRating == null
-            ? 'Belum ada rating'
-            : '${currentRating.toStringAsFixed(1)} / 5.0',
-        valueItalic: currentRating == null,
-      ),
-
+        _buildDetailRow(
+          icon: Icons.star,
+          label: 'Rating',
+          value: currentRating == null
+              ? 'Belum ada rating'
+              : '${currentRating.toStringAsFixed(1)} / 5.0',
+          valueItalic: currentRating == null,
+        ),
         const SizedBox(height: 16),
+
+        // Kontak WhatsApp
         GestureDetector(
           onTap: () => _openWhatsApp(widget.lapangan.kontak ?? ""),
           child: _buildDetailRow(
@@ -434,75 +408,14 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
             value: widget.lapangan.kontak ?? "-",
           ),
         ),
-        if (widget.lapangan.fasilitas != null &&
-            widget.lapangan.fasilitas!.isNotEmpty) ...[
-          const SizedBox(height: 16),
-          _buildDetailRow(
-            icon: Icons.check_circle_outline,
-            label: 'Fasilitas',
-            value: widget.lapangan.fasilitas!,
-          ),
-        ],
         const SizedBox(height: 24),
-        const Divider(color: Colors.white24),
-        const SizedBox(height: 24),
-        Text(
-          _formatRupiahPerSesi(widget.lapangan.tarifPerSesi),
-          style: GoogleFonts.plusJakartaSans(
-            color: const Color(0xFFA4B3FF),
-            fontSize: 28,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 24),
-        Text(
-          'Deskripsi',
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.white,
-            fontSize: 18,
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const SizedBox(height: 8),
-        Text(
-          widget.lapangan.deskripsi,
-          style: GoogleFonts.plusJakartaSans(
-            color: Colors.white70,
-            fontSize: 15,
-            height: 1.5,
-          ),
-        ),
-        if (widget.lapangan.peraturan != null &&
-            widget.lapangan.peraturan!.isNotEmpty) ...[
-          const SizedBox(height: 24),
-          Text(
-            'Peraturan',
-            style: GoogleFonts.plusJakartaSans(
-              color: Colors.white,
-              fontSize: 18,
-              fontWeight: FontWeight.bold,
-            ),
-          ),
-          const SizedBox(height: 8),
-          Text(
-            widget.lapangan.peraturan!,
-            style: GoogleFonts.plusJakartaSans(
-              color: Colors.white70,
-              fontSize: 15,
-              height: 1.5,
-            ),
-          ),
-        ],
-        const SizedBox(height: 24),
+
+        // Tombol menuju halaman review
         SizedBox(
           width: double.infinity,
           child: ElevatedButton(
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(0xFF571E88),
-              padding: const EdgeInsets.symmetric(vertical: 16),
-              shape: RoundedRectangleBorder(
-                borderRadius: BorderRadius.circular(12),
-              ),
             ),
             onPressed: () {
               Navigator.push(
@@ -515,26 +428,19 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
                 ),
               );
             },
-            child: Text(
-              'Lihat Rating & Review',
-              style: GoogleFonts.plusJakartaSans(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
-                fontSize: 16,
-              ),
-            ),
+            child: const Text('Lihat Rating & Review'),
           ),
         ),
       ],
     );
   }
 
+  // Baris detail reusable
   Widget _buildDetailRow({
     required IconData icon,
     required String label,
     required String value,
     bool valueItalic = false,
-
   }) {
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -545,21 +451,18 @@ class _LapanganDetailPageState extends State<LapanganDetailPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(
-                label,
-                style: GoogleFonts.plusJakartaSans(
-                  color: Colors.white70,
-                  fontSize: 13,
-                ),
-              ),
+              Text(label,
+                  style: GoogleFonts.plusJakartaSans(
+                      color: Colors.white70, fontSize: 13)),
               const SizedBox(height: 4),
               Text(
                 value,
                 style: GoogleFonts.plusJakartaSans(
                   color: valueItalic ? Colors.white70 : Colors.white,
-                  fontSize: 16,
-                  fontStyle: valueItalic ? FontStyle.italic : FontStyle.normal,
-                  fontWeight: valueItalic ? FontWeight.normal : FontWeight.w600,
+                  fontStyle:
+                      valueItalic ? FontStyle.italic : FontStyle.normal,
+                  fontWeight:
+                      valueItalic ? FontWeight.normal : FontWeight.w600,
                 ),
               ),
             ],
