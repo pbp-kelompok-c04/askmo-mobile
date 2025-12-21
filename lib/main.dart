@@ -23,7 +23,6 @@ void main() async {
     try {
       await dotenv.load(fileName: ".env");
     } catch (e, st) {
-      debugPrint('Gagal load .env: $e');
       debugPrintStack(stackTrace: st);
     }
   }
@@ -115,7 +114,6 @@ class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
         await request.logout('$apiBase/auth/logout/');
       }
     } catch (e, st) {
-      debugPrint('Logout failed: $e');
       debugPrintStack(stackTrace: st);
     } finally {
       if (!mounted) return;
