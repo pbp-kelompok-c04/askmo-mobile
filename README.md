@@ -91,7 +91,7 @@ https://www.figma.com/design/T37GzvsuZNpaW1lPoTyhXS/Proyek-Tengah-Semester---C04
 https://www.figma.com/design/6iKjOB7YyDgkFixRf3b5AK/Proyek-Akhir-Semester---C04?node-id=0-1&t=uYqRo581K0o0aULG-1
 
 ## Link aplikasi di Bitrise Cloud Platform
-[![Build Status](https://app.bitrise.io/app/d921d865-de19-420e-b9ae-34fe4a93393b/status.svg?token=JjATywo4x4LjJA0nGewEEA&branch=master)](https://app.bitrise.io/app/d921d865-de19-420e-b9ae-34fe4a93393b)
+[![Build Status](https://app.bitrise.io/app/bdd065e5-f913-4a87-9c81-33603a6922c5/status.svg?token=J9TJd1bT2oFI3F48t8peqQ&branch=master)](https://app.bitrise.io/app/bdd065e5-f913-4a87-9c81-33603a6922c5)
 
 ## Video Promosi
 (menyusul)
