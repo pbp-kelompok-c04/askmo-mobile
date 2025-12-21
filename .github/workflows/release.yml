@@ -43,23 +43,45 @@ jobs:
       - name: Generate launcher icons
         run: flutter pub run flutter_launcher_icons
 
-      - name: Build APK (with Gemini API key)
-        run: flutter build apk --split-per-abi --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
-
-      - name: Decode Keystore
-        run: echo "${{ secrets.KEY_JKS }}" | base64 -d > release-keystore.jks
-
-      - name: Sign APKs
+      - name: Build APK (release, with Gemini + Google Client ID)
         run: |
-          for apk in build/app/outputs/flutter-apk/*.apk; do
-            echo "Signing $apk..."
-            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-              -keystore release-keystore.jks \
-              -storepass "${{ secrets.KEY_PASSWORD }}" \
-              -keypass "${{ secrets.KEY_PASSWORD }}" \
-              "$apk" release
-          done
+          flutter build apk --release --split-per-abi \
+            --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
+            --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
 
+
+      - name: Create android/key.properties
+        run: |
+          cat > android/key.properties << 'EOF'
+          storePassword=${{ secrets.KEY_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=release
+          storeFile=app/release-keystore.jks
+          EOF
+      
+      # - name: Decode Keystore
+      #   run: echo "${{ secrets.KEY_JKS }}" | base64 -d > release-keystore.jks
+
+      # - name: Sign APKs
+      #   run: |
+      #     for apk in build/app/outputs/flutter-apk/*.apk; do
+      #       echo "Signing $apk..."
+      #       jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
+      #         -keystore release-keystore.jks \
+      #         -storepass "${{ secrets.KEY_PASSWORD }}" \
+      #         -keypass "${{ secrets.KEY_PASSWORD }}" \
+      #         "$apk" release
+      #     done
+
+      - name: Verify signatures (apksigner)
+        run: |
+          SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          BUILD_TOOLS=$(ls -d "$SDK_ROOT"/build-tools/* | sort -V | tail -n 1)
+          for apk in build/app/outputs/flutter-apk/*.apk; do
+            echo "=== verifying $apk ==="
+            "$BUILD_TOOLS/apksigner" verify --verbose "$apk"
+          done
+        
       - name: Cleanup Keystore
         if: always()
         run: rm -f release-keystore.jks
