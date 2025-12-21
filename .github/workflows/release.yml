@@ -5,7 +5,7 @@ name: Release
 on:
   # Triggers the workflow on push events but only for the main branch
   push:
-    branches: [master]
+    branches: [main]
 
 # Permissions needed for creating releases
 permissions:
@@ -40,30 +40,34 @@ jobs:
       - name: Get packages
         run: flutter pub get
 
-      - name: Generate launcher icons
-        run: flutter pub run flutter_launcher_icons
+      - name: Decode Keystore (for Gradle)
+        run: echo "${{ secrets.KEY_JKS }}" | base64 -d > android/app/release-keystore.jks
 
-      - name: Build APK (with Gemini API key)
-        run: flutter build apk --split-per-abi --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
-
-      - name: Decode Keystore
-        run: echo "${{ secrets.KEY_JKS }}" | base64 -d > release-keystore.jks
-
-      - name: Sign APKs
+      - name: Create android/key.properties
         run: |
+          cat > android/key.properties << 'EOF'
+          storePassword=${{ secrets.KEY_PASSWORD }}
+          keyPassword=${{ secrets.KEY_PASSWORD }}
+          keyAlias=release
+          storeFile=release-keystore.jks
+          EOF
+          
+      - name: Build APK
+        run: flutter build apk --release --split-per-abi
+
+      - name: Verify signatures (apksigner)
+        run: |
+          SDK_ROOT="${ANDROID_SDK_ROOT:-$ANDROID_HOME}"
+          BUILD_TOOLS=$(ls -d "$SDK_ROOT"/build-tools/* | sort -V | tail -n 1)
           for apk in build/app/outputs/flutter-apk/*.apk; do
-            echo "Signing $apk..."
-            jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-              -keystore release-keystore.jks \
-              -storepass "${{ secrets.KEY_PASSWORD }}" \
-              -keypass "${{ secrets.KEY_PASSWORD }}" \
-              "$apk" release
+            echo "=== verifying $apk ==="
+            "$BUILD_TOOLS/apksigner" verify --verbose "$apk"
           done
 
-      - name: Cleanup Keystore
+      - name: Cleanup keystore files
         if: always()
-        run: rm -f release-keystore.jks
-        
+        run: rm -f android/app/release-keystore.jks android/key.properties
+
       - name: Get current date
         id: date
         run: echo "::set-output name=date::$(TZ='Asia/Jakarta' date +'%A %d-%m-%Y %T WIB')"
