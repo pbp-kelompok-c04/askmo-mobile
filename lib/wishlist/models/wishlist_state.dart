@@ -40,31 +40,46 @@ class WishedItem {
 
 class WishlistState extends ChangeNotifier {
   List<WishedItem> _wishedItems = [];
+  String _currentUsername = '';
 
   List<WishedItem> get wishedItems => _wishedItems;
 
   WishlistState() {
-    _loadWishlist();
+  }
+
+  Future<void> setUsername(String username) async {
+    _currentUsername = username;
+    await _loadWishlist();
   }
 
   Future<void> _loadWishlist() async {
+    if (_currentUsername.isEmpty) {
+      _wishedItems = [];
+      notifyListeners();
+      return;
+    }
     final prefs = await SharedPreferences.getInstance();
-    final jsonString = prefs.getString('wishlist');
+    final key = 'wishlist_$_currentUsername';
+    final jsonString = prefs.getString(key);
     if (jsonString != null) {
       final jsonList = jsonDecode(jsonString) as List<dynamic>;
       _wishedItems = jsonList
           .map((item) => WishedItem.fromJson(item as Map<String, dynamic>))
           .toList();
+    } else {
+      _wishedItems = [];
     }
     notifyListeners();
   }
 
   Future<void> _saveWishlist() async {
+    if (_currentUsername.isEmpty) return;
     final prefs = await SharedPreferences.getInstance();
+    final key = 'wishlist_$_currentUsername';
     final jsonString = jsonEncode(
       _wishedItems.map((item) => item.toJson()).toList(),
     );
-    await prefs.setString('wishlist', jsonString);
+    await prefs.setString(key, jsonString);
   }
 
   Future<void> toggleWish({
