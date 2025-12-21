@@ -7,6 +7,8 @@ import 'package:provider/provider.dart';
 import 'package:askmo/config/api_base.dart';
 import 'package:askmo/profile/models/user_state.dart';
 import 'package:askmo/authentication/screens/register.dart';
+import 'package:askmo/history/models/booking_history_state.dart';
+import 'package:askmo/wishlist/models/wishlist_state.dart';
 import 'package:askmo/menu.dart';
 import 'package:askmo/user_info.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -53,10 +55,10 @@ class _LoginPageState extends State<LoginPage>
 
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
-  
-  final GoogleSignIn _googleSignIn = 
-  GoogleSignIn(
-    serverClientId: '990231107870-uheikav6hi1qovpmgfbspecru0h4hbou.apps.googleusercontent.com',
+
+  final GoogleSignIn _googleSignIn = GoogleSignIn(
+    serverClientId:
+        '990231107870-uheikav6hi1qovpmgfbspecru0h4hbou.apps.googleusercontent.com',
     scopes: ['email', 'profile', 'openid'],
   );
 
@@ -92,10 +94,15 @@ class _LoginPageState extends State<LoginPage>
 
     if (request.loggedIn) {
       final userState = context.read<UserState>();
-
       await userState.reload();
       await userState.setUsername(response['username']);
       await userState.setUserId((response['user_id'] ?? 0) as int);
+
+      // Set username for per-user wishlist and booking history
+      final bookingHistoryState = context.read<BookingHistoryState>();
+      await bookingHistoryState.setUsername(response['username']);
+      final wishlistState = context.read<WishlistState>();
+      await wishlistState.setUsername(response['username']);
 
       final bool isStaff = response['is_staff'] ?? false;
       UserInfo.login(response['username'], isStaff);
@@ -211,10 +218,14 @@ class _LoginPageState extends State<LoginPage>
 
       if (request.loggedIn) {
         final userState = context.read<UserState>();
-
         await userState.reload();
         await userState.setUsername(response['username']);
         await userState.setUserId((response['user_id'] ?? 0) as int);
+
+        final bookingHistoryState = context.read<BookingHistoryState>();
+        await bookingHistoryState.setUsername(response['username']);
+        final wishlistState = context.read<WishlistState>();
+        await wishlistState.setUsername(response['username']);
 
         final bool isStaff = response['is_staff'] ?? false;
         UserInfo.login(response['username'], isStaff);
