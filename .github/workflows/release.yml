@@ -5,7 +5,7 @@ name: Release
 on:
   # Triggers the workflow on push events but only for the main branch
   push:
-    branches: [master]
+    branches: [main]
 
 # Permissions needed for creating releases
 permissions:
@@ -40,14 +40,8 @@ jobs:
       - name: Get packages
         run: flutter pub get
 
-      - name: Generate launcher icons
-        run: flutter pub run flutter_launcher_icons
-
-      - name: Build APK (release, with Gemini + Google Client ID)
-        run: |
-          flutter build apk --release --split-per-abi \
-            --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
-            --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
+      - name: Decode Keystore (for Gradle)
+        run: echo "${{ secrets.KEY_JKS }}" | base64 -d > android/app/release-keystore.jks
 
 
       - name: Create android/key.properties
@@ -56,22 +50,14 @@ jobs:
           storePassword=${{ secrets.KEY_PASSWORD }}
           keyPassword=${{ secrets.KEY_PASSWORD }}
           keyAlias=release
-          storeFile=app/release-keystore.jks
+          storeFile=release-keystore.jks
           EOF
       
-      # - name: Decode Keystore
-      #   run: echo "${{ secrets.KEY_JKS }}" | base64 -d > release-keystore.jks
-
-      # - name: Sign APKs
-      #   run: |
-      #     for apk in build/app/outputs/flutter-apk/*.apk; do
-      #       echo "Signing $apk..."
-      #       jarsigner -verbose -sigalg SHA256withRSA -digestalg SHA-256 \
-      #         -keystore release-keystore.jks \
-      #         -storepass "${{ secrets.KEY_PASSWORD }}" \
-      #         -keypass "${{ secrets.KEY_PASSWORD }}" \
-      #         "$apk" release
-      #     done
+      - name: Build APK (release, with Gemini + Google Client ID)
+        run: |
+          flutter build apk --release --split-per-abi \
+            --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
+            --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
 
       - name: Verify signatures (apksigner)
         run: |
@@ -82,9 +68,9 @@ jobs:
             "$BUILD_TOOLS/apksigner" verify --verbose "$apk"
           done
         
-      - name: Cleanup Keystore
+      - name: Cleanup keystore files
         if: always()
-        run: rm -f release-keystore.jks
+        run: rm -f android/app/release-keystore.jks android/key.properties
         
       - name: Get current date
         id: date
