@@ -1,3 +1,4 @@
+// Model data untuk satu review
 class Review {
   final String id;
   final String name;

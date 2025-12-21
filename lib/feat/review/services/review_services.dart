@@ -1,32 +1,29 @@
-// lib/feat/review/services/review_service.dart
-
 import 'dart:math' as math;
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
-
 import 'package:askmo/config/api_base.dart';
 import 'package:askmo/feat/review/models/review_lapangan.dart';
 
 class ReviewService {
-  // pakai base URL dari config/api_base.dart
+  // Mengambil base URL dari config/api_base.dart
   static String get baseUrl => apiBase;
 
-  // cache rata-rata per lapangan (optional, buat tampilan lebih cepat)
+  // Cache rata-rata rating per lapangan (untuk mempercepat tampilan)
   static final Map<String, double> _cachedAverageByLapangan = {};
 
+  // Mengambil rata-rata rating yang sudah di-cache untuk lapangan tertentu
   static double? getCachedAverage(String lapanganId) =>
       _cachedAverageByLapangan[lapanganId];
 
-  // ===== helper rounding biar mirip Python round(..., 1) =====
-  static double _roundLikePython(double value, int digits) {
+    static double _roundLikePython(double value, int digits) {
     final factor = math.pow(10, digits);
     final scaled = value * factor;
     final floor = scaled.floorToDouble();
     final diff = scaled - floor;
 
     const eps = 1e-9;
+    // Pembulatan ke genap jika .5
     if ((diff - 0.5).abs() < eps) {
       final isEven = floor % 2 == 0;
       return (isEven ? floor : floor + 1.0) / factor;
@@ -37,7 +34,7 @@ class ReviewService {
     }
   }
 
-  // hitung rata-rata rating dari list ReviewLapangan
+  // Hitung rata-rata rating dari list ReviewLapangan
   static double? calculateAverageFromReviews(List<ReviewLapangan> reviews) {
     if (reviews.isEmpty) return null;
 
@@ -47,7 +44,7 @@ class ReviewService {
 
     for (final r in reviews) {
       if (r.isDataset) {
-        datasetRating ??= r.rating; // kalau lebih dari satu, pakai yang pertama
+        datasetRating ??= r.rating; // Jika lebih dari satu, pakai yang pertama
       } else {
         userTotal += r.rating;
         userCount++;
@@ -70,7 +67,7 @@ class ReviewService {
     return _roundLikePython(avgRating, 1);
   }
 
-  // ===== helper ambil pesan error dari response Django =====
+  // Helper untuk mengambil pesan error dari response Django 
   static String _extractErrorMessage(dynamic response, String defaultMsg) {
     if (response is Map<String, dynamic>) {
       if (response['message'] != null) {
@@ -91,12 +88,7 @@ class ReviewService {
     return defaultMsg;
   }
 
-  // =========================================================
-  // 1. Ambil semua review untuk 1 lapangan (JSON list)
-  // Django: path('lapangan/json/<uuid:lapangan_id>/', ...)
-  // project urls: include('review/', review.urls)
-  // => /review/lapangan/json/<lapangan_id>/
-  // =========================================================
+  // Mengambil semua review untuk satu lapangan tertentu
   static Future<List<ReviewLapangan>> fetchReviews(
     BuildContext context,
     String lapanganId,
@@ -115,7 +107,7 @@ class ReviewService {
         .map((e) => ReviewLapangan.fromJson(e as Map<String, dynamic>))
         .toList();
 
-    // update cache rata-rata
+    // Update cache rata-rata rating
     final avg = calculateAverageFromReviews(reviews);
     if (avg != null) {
       _cachedAverageByLapangan[lapanganId] = avg;
@@ -126,11 +118,7 @@ class ReviewService {
     return reviews;
   }
 
-  // =========================================================
-  // 2. Tambah review baru
-  // Django: path('lapangan/add-ajax/<uuid:lapangan_id>/', ...)
-  // => /review/lapangan/add-ajax/<lapangan_id>/
-  // =========================================================
+  // Menambah review baru ke backend
   static Future<void> addReview(
     BuildContext context, {
     required String lapanganId,
@@ -157,14 +145,11 @@ class ReviewService {
       throw Exception('Gagal menambah review: $msg');
     }
 
+    // Hapus cache rata-rata agar di-refresh
     _cachedAverageByLapangan.remove(lapanganId);
   }
 
-  // =========================================================
-  // 3. Ambil satu review (buat form edit)
-  // Django: path('lapangan/json-single/<int:review_id>/', ...)
-  // => /review/lapangan/json-single/<review_id>/
-  // =========================================================
+  // Mengambil satu review berdasarkan ID untuk keperluan edit
   static Future<ReviewLapangan> fetchSingleReview(
     BuildContext context,
     int reviewId,
@@ -182,11 +167,7 @@ class ReviewService {
     return ReviewLapangan.fromJson(response as Map<String, dynamic>);
   }
 
-  // =========================================================
-  // 4. Update review
-  // Django: path('lapangan/update-ajax/<int:review_id>/', ...)
-  // => /review/lapangan/update-ajax/<review_id>/
-  // =========================================================
+  // Mengupdate review yang sudah ada
   static Future<void> updateReview(
     BuildContext context, {
     required int reviewId,
@@ -213,14 +194,12 @@ class ReviewService {
       throw Exception('Gagal update review: $msg');
     }
 
+    // Bersihkan cache rata-rata agar data terbaru
     _cachedAverageByLapangan.clear();
   }
 
-  // =========================================================
-  // 5. Hapus review
-  // Django: path('lapangan/delete-ajax/<int:review_id>/', ...)
-  // => /review/lapangan/delete-ajax/<review_id>/
-  // =========================================================
+
+  // Menghapus review berdasarkan ID
   static Future<void> deleteReview(
     BuildContext context,
     int reviewId,
@@ -238,6 +217,7 @@ class ReviewService {
       throw Exception('Gagal menghapus review: $msg');
     }
 
+    // Bersihkan cache rata-rata agar data terbaru
     _cachedAverageByLapangan.clear();
   }
 }

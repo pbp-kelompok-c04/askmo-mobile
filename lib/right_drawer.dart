@@ -14,9 +14,11 @@ import 'dart:ui';
 class RightDrawer extends StatelessWidget {
   final int currentIndex;
 
+  // Konstruktor dengan index halaman aktif
   const RightDrawer({super.key, this.currentIndex = 0});
 
   @override
+  // Build UI right drawer
   Widget build(BuildContext context) {
     return Drawer(
       backgroundColor: Colors.transparent,
@@ -40,10 +42,13 @@ class RightDrawer extends StatelessWidget {
                 ),
               ),
             ),
+            // Menggunakan Consumer untuk mendapatkan state user (login/logout)
             child: Consumer<UserState>(
               builder: (context, userState, child) {
+                // Cek apakah user sudah login
                 final isLoggedIn = userState.username.isNotEmpty;
 
+                // Daftar menu navigasi
                 return Column(
                   children: [
                     const SizedBox(height: 60),
@@ -60,6 +65,7 @@ class RightDrawer extends StatelessWidget {
                       child: ListView(
                         padding: EdgeInsets.zero,
                         children: [
+                          // Menu Profile hanya muncul jika sudah login
                           if (isLoggedIn)
                             _HoverListTile(
                               icon: Icons.account_circle_rounded,
@@ -74,6 +80,7 @@ class RightDrawer extends StatelessWidget {
                                 );
                               },
                             ),
+                          // Menu Tanya ASKMO (chatbot)
                           _HoverListTile(
                             icon: Icons.psychology_alt_rounded,
                             title: 'Tanya ASKMO',
@@ -99,6 +106,7 @@ class RightDrawer extends StatelessWidget {
                               }
                             },
                           ),
+                          // Menu About Us
                           _HoverListTile(
                             icon: Icons.info_rounded,
                             title: 'About Us',
@@ -123,6 +131,7 @@ class RightDrawer extends StatelessWidget {
                         color: Colors.white.withOpacity(0.2),
                       ),
                     ),
+                    // Tombol Logout jika sudah login, Login jika belum
                     if (isLoggedIn)
                       _HoverListTile(
                         icon: Icons.logout_rounded,
@@ -196,6 +205,7 @@ class RightDrawer extends StatelessWidget {
   }
 }
 
+// Widget ListTile dengan efek hover (untuk menu drawer)
 class _HoverListTile extends StatefulWidget {
   final IconData icon;
   final String title;
@@ -211,6 +221,7 @@ class _HoverListTile extends StatefulWidget {
   State<_HoverListTile> createState() => _HoverListTileState();
 }
 
+// State untuk efek hover pada ListTile
 class _HoverListTileState extends State<_HoverListTile> {
   bool _isHovered = false;
 

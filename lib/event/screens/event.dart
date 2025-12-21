@@ -171,7 +171,7 @@ class _EventPageState extends State<EventPage> {
     _fetchEvents();
   }
 
-  // Membersihkan controller saat widget dihancurkan
+  // Membersihkan controller
   @override
   void dispose() {
     _searchController.dispose();

@@ -1,3 +1,4 @@
+// Import library yang diperlukan
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -28,6 +29,7 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
   @override
   void initState() {
     super.initState();
+    // Inisialisasi field dengan data review yang akan diedit
     _namaController.text = widget.review.reviewerName;
     _ratingController.text = widget.review.rating.toString();
     _deskripsiController.text = widget.review.reviewText;
@@ -47,6 +49,7 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
 
   @override
   void dispose() {
+    // Bersihkan controller saat widget dihapus
     _pulseController.dispose();
     _namaController.dispose();
     _ratingController.dispose();
@@ -54,6 +57,7 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
     super.dispose();
   }
 
+  // Widget untuk membangun efek visual aura di background
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -106,9 +110,12 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
     );
   }
 
+  // Fungsi untuk submit perubahan review ke backend
   Future<void> _submit() async {
+    // Validasi form
     if (!_formKey.currentState!.validate()) return;
 
+    // Validasi rating
     final rating =
         double.tryParse(_ratingController.text.replaceAll(',', '.'));
     if (rating == null || rating < 0 || rating > 5) {
@@ -121,6 +128,7 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
     setState(() => _isSubmitting = true);
 
     try {
+      // Kirim update review ke backend
       await CoachReviewService.updateReview(
         context,
         reviewId: widget.review.id,
@@ -131,12 +139,15 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
 
       if (!mounted) return;
 
+      // Tampilkan pesan sukses
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Review berhasil diupdate')),
       );
 
+      // Kembali ke halaman sebelumnya
       Navigator.pop(context, true);
     } catch (e) {
+      // Tampilkan pesan error jika gagal
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal update review: $e')),
@@ -154,6 +165,7 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
       body: Stack(
         children: [
           _buildBackgroundAura(),
+          // Konten utama
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -177,6 +189,7 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // Judul halaman
                           Center(
                             child: Text(
                               "Edit Review",
@@ -188,11 +201,13 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
                             ),
                           ),
                           const SizedBox(height: 24),
+                          // Input nama
                           _buildInput(
                             controller: _namaController,
                             label: "Nama",
                           ),
                           const SizedBox(height: 16),
+                          // Input rating
                           _buildInput(
                             controller: _ratingController,
                             label: "Rating (0.0 - 5.0)",
@@ -210,6 +225,7 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
                             },
                           ),
                           const SizedBox(height: 16),
+                          // Input deskripsi
                           _buildInput(
                             controller: _deskripsiController,
                             label: "Deskripsi",
@@ -222,6 +238,7 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
                             },
                           ),
                           const SizedBox(height: 28),
+                          // Tombol simpan perubahan
                           Container(
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
@@ -260,6 +277,7 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
               ),
             ),
           ),
+          // Tombol kembali
           SafeArea(
             child: IconButton(
               onPressed: () => Navigator.pop(context),
@@ -271,6 +289,7 @@ class _CoachReviewEditPageState extends State<CoachReviewEditPage>
     );
   }
 
+  // Widget untuk membangun field input teks dengan validasi
   Widget _buildInput({
     required TextEditingController controller,
     required String label,

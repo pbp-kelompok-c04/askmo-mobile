@@ -1,3 +1,4 @@
+// Model data untuk review lapangan
 class ReviewLapangan {
   final int id;
   final String reviewerName;
@@ -21,6 +22,7 @@ class ReviewLapangan {
     required this.isDataset,
   });
 
+  // Membuat objek ReviewLapangan dari data JSON
   factory ReviewLapangan.fromJson(Map<String, dynamic> json) {
     return ReviewLapangan(
       id: json['id'] as int,
@@ -28,7 +30,6 @@ class ReviewLapangan {
       rating: (json['rating'] as num).toDouble(),
       reviewText: json['review_text'] ?? '',
       tanggalDibuat: json['tanggal_dibuat'] ?? '',
-      // backend bisa kirim "gambar" atau "gambar_url"
       gambarUrl: json['gambar_url'] ?? json['gambar'] ?? null,
       canEdit: json['can_edit'] ?? false,
       canDelete: json['can_delete'] ?? false,

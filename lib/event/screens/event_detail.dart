@@ -39,7 +39,7 @@ class _EventDetailPageState extends State<EventDetailPage>
     );
   }
 
-  // Membersihkan animation controller saat widget dihancurkan
+  // Membersihkan animation controller saat widget
   @override
   void dispose() {
     _animationController.dispose();
@@ -132,7 +132,6 @@ class _EventDetailPageState extends State<EventDetailPage>
       ),
       body: Stack(
         children: [
-          // Background Aura
           Positioned.fill(child: _buildBackgroundAura()),
 
           // Main Content

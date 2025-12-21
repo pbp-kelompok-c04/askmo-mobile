@@ -13,11 +13,12 @@ import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:flutter/foundation.dart';
 import 'package:askmo/config/api_base.dart';
 
+// Fungsi utama aplikasi
 void main() async {
   // Inisialisasi Flutter binding
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Load environment variables (development only)
+  // Load environment variables dari file .env (khusus development)
   if (!kReleaseMode && !kIsWeb) {
     try {
       await dotenv.load(fileName: ".env");
@@ -29,9 +30,11 @@ void main() async {
 
   // Inisialisasi format tanggal Indonesia
   await initializeDateFormatting('id_ID', null);
+  // Jalankan aplikasi utama
   runApp(const MyApp());
 }
 
+// Widget utama aplikasi
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
 
@@ -39,12 +42,16 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     final base = ThemeData.dark(useMaterial3: true);
 
-    // Setup providers untuk state management
+    // Setup providers untuk state management (Provider, ChangeNotifier)
     return MultiProvider(
       providers: [
+        // Provider untuk request ke backend (autentikasi)
         Provider<CookieRequest>(create: (_) => CookieRequest()),
+        // Provider untuk state user
         ChangeNotifierProvider<UserState>(create: (_) => UserState()),
+        // Provider untuk state wishlist
         ChangeNotifierProvider<WishlistState>(create: (_) => WishlistState()),
+        // Provider untuk state riwayat booking
         ChangeNotifierProvider<BookingHistoryState>(
           create: (_) => BookingHistoryState(),
         ),
@@ -52,6 +59,7 @@ class MyApp extends StatelessWidget {
       child: MaterialApp(
         debugShowCheckedModeBanner: false,
         title: 'ASKMO',
+        // Tema aplikasi
         theme: base.copyWith(
           textTheme: GoogleFonts.plusJakartaSansTextTheme(base.textTheme),
           appBarTheme: AppBarTheme(
@@ -86,6 +94,7 @@ class FirstLaunchWrapper extends StatefulWidget {
 }
 
 class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
+  // Status apakah aplikasi baru pertama kali dibuka
   bool _isFirstLaunch = true;
   bool _isLoading = true;
 
@@ -144,6 +153,7 @@ class _FirstLaunchWrapperState extends State<FirstLaunchWrapper> {
   }
 }
 
+// Widget login dengan tombol skip di pojok kanan atas (khusus first launch)
 class LoginPageWithSkip extends StatelessWidget {
   final VoidCallback? onSkip;
 
@@ -154,6 +164,7 @@ class LoginPageWithSkip extends StatelessWidget {
     return Scaffold(
       body: Stack(
         children: [
+          // Halaman login utama
           const LoginPage(),
           // Tombol skip di pojok kanan atas
           Positioned(

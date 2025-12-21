@@ -13,7 +13,9 @@ import '../models/coach_model.dart';
 import 'package:askmo/feat/review/coach/screens/coach_review_list_page.dart';
 import 'package:askmo/feat/review/coach/services/coach_review_service.dart';
 import 'package:askmo/feat/review/coach/models/coach_review.dart';
+import 'package:url_launcher/url_launcher.dart';
 
+// Halaman detail untuk menampilkan informasi lengkap seorang coach
 class CoachDetailPage extends StatefulWidget {
   final Coach coach;
 
@@ -23,6 +25,7 @@ class CoachDetailPage extends StatefulWidget {
   State<CoachDetailPage> createState() => _CoachDetailPageState();
 }
 
+// State untuk halaman detail coach
 class _CoachDetailPageState extends State<CoachDetailPage>
     with SingleTickerProviderStateMixin {
   late AnimationController _animationController;
@@ -43,11 +46,40 @@ class _CoachDetailPageState extends State<CoachDetailPage>
 
   @override
   void dispose() {
+    // Membersihkan resource controller saat widget dihapus
     _animationController.dispose();
     super.dispose();
   }
 
-  /// Helper untuk memformat nama olahraga
+  Future<void> _openWhatsApp(String phone) async {
+    var cleanedPhone = phone.replaceAll(RegExp(r'[^0-9]'), '');
+    if (cleanedPhone.isEmpty) return;
+
+    if (cleanedPhone.startsWith('0')) {
+      cleanedPhone = '62${cleanedPhone.substring(1)}';
+    }
+
+    final uri = Uri.parse("https://wa.me/$cleanedPhone");
+
+    try {
+      if (await canLaunchUrl(uri)) {
+        await launchUrl(uri, mode: LaunchMode.externalApplication);
+      } else {
+        if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text('WhatsApp tidak terinstall atau nomor tidak valid')),
+          );
+        }
+      }
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Terjadi kesalahan: $e')),
+        );
+      }
+    }
+  }
+
   String _formatSportLabel(String rawValue) {
     if (rawValue.isEmpty) return rawValue;
     return rawValue
@@ -59,16 +91,19 @@ class _CoachDetailPageState extends State<CoachDetailPage>
         .join(' ');
   }
 
-  /// Helper untuk mengubah teks menjadi Title Case (disimpan jika nanti butuh)
+  /// Helper untuk mengubah teks menjadi Title Case
   String _toTitleCase(String text) {
     if (text.isEmpty) return text;
-    return text.split(' ').map((word) {
-      if (word.isEmpty) return word;
-      return word[0].toUpperCase() + word.substring(1).toLowerCase();
-    }).join(' ');
+    return text
+        .split(' ')
+        .map((word) {
+          if (word.isEmpty) return word;
+          return word[0].toUpperCase() + word.substring(1).toLowerCase();
+        })
+        .join(' ');
   }
 
-  /// Helper untuk URL foto coach
+  /// Helper untuk membangun URL foto coach
   String _buildPhotoUrl(String photoPath) {
     if (photoPath.startsWith('http://') || photoPath.startsWith('https://')) {
       return photoPath;
@@ -76,7 +111,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     return '$apiBase/media/$photoPath';
   }
 
-  /// Background
+  /// Widget background
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -129,6 +164,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     );
   }
 
+  // Fungsi untuk menghapus data coach (hanya admin)
   Future<void> _deleteCoach() async {
     final confirmed = await showDialog<bool>(
       context: context,
@@ -187,7 +223,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
 
         if (context.mounted) {
           if (response['status'] == 'success') {
-            Navigator.pop(context, true); // Sukses
+            Navigator.pop(context, true);
           } else {
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(response['message'] ?? 'Gagal menghapus')),
@@ -209,8 +245,9 @@ class _CoachDetailPageState extends State<CoachDetailPage>
 
   @override
   Widget build(BuildContext context) {
+    // Widget utama halaman detail coach
     return Scaffold(
-      backgroundColor: Colors.black, // Fallback color
+      backgroundColor: Colors.black,
       appBar: AppBar(
         backgroundColor: Colors.transparent,
         elevation: 0,
@@ -226,6 +263,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
           ),
         ),
         actions: [
+          // Tombol wishlist
           Consumer<WishlistState>(
             builder: (context, wishlistState, child) {
               final isWished = wishlistState.isWished(
@@ -281,7 +319,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                 constraints: BoxConstraints(
                   minHeight: MediaQuery.of(context).size.height,
                 ),
-                alignment: Alignment.topCenter, // <-- bikin tetep rata atas
+                alignment: Alignment.topCenter,
                 padding: const EdgeInsets.all(16),
 
                 child: ConstrainedBox(
@@ -313,7 +351,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                         child: Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                        // 1. Nama Coach
+                            // Nama Coach
                             Text(
                               widget.coach.fields.name,
                               style: GoogleFonts.plusJakartaSans(
@@ -326,7 +364,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
 
                             const SizedBox(height: 6),
 
-                            // Sport Branch Tag (pakai _formatSportLabel)
+                            // Tag cabang olahraga
                             Container(
                               padding: const EdgeInsets.symmetric(
                                 horizontal: 12,
@@ -337,15 +375,18 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                                 borderRadius: BorderRadius.circular(999),
                                 boxShadow: [
                                   BoxShadow(
-                                    color:
-                                        const Color(0xFF06005E).withOpacity(0.4),
+                                    color: const Color(
+                                      0xFF06005E,
+                                    ).withOpacity(0.4),
                                     blurRadius: 8,
                                     offset: const Offset(0, 2),
-                                  )
+                                  ),
                                 ],
                               ),
                               child: Text(
-                                _formatSportLabel(widget.coach.fields.sportBranch),
+                                _formatSportLabel(
+                                  widget.coach.fields.sportBranch,
+                                ),
                                 style: GoogleFonts.plusJakartaSans(
                                   color: Colors.white,
                                   fontSize: 12,
@@ -356,7 +397,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
 
                             const SizedBox(height: 24),
 
-                            // 2. Lokasi
+                            // Lokasi
                             if (widget.coach.fields.location.isNotEmpty)
                               Row(
                                 crossAxisAlignment: CrossAxisAlignment.start,
@@ -381,14 +422,14 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                             if (widget.coach.fields.location.isNotEmpty)
                               const SizedBox(height: 24),
 
-                            // 3. Foto
+                            // Foto coach
                             _buildPhoto(),
                             const SizedBox(height: 24),
 
-                            // 4. Detail lain
+                            // Detail lain (kontak, pengalaman, sertifikasi, dsb)
                             _buildDetailsSection(),
 
-                            // 5. Tombol Edit & Delete (Admin Only)
+                            // Tombol Edit & Delete (khusus admin)
                             if (UserInfo.isAdmin) ...[
                               const SizedBox(height: 32),
                               Row(
@@ -401,8 +442,8 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                                           MaterialPageRoute(
                                             builder: (context) =>
                                                 CoachEditFormPage(
-                                              coach: widget.coach,
-                                            ),
+                                                  coach: widget.coach,
+                                                ),
                                           ),
                                         );
                                         if (result == true && context.mounted) {
@@ -422,12 +463,16 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                                         ),
                                       ),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFF571E88),
+                                        backgroundColor: const Color(
+                                          0xFF571E88,
+                                        ),
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 16,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -449,12 +494,16 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                                         ),
                                       ),
                                       style: ElevatedButton.styleFrom(
-                                        backgroundColor: const Color(0xFFFF5555),
+                                        backgroundColor: const Color(
+                                          0xFFFF5555,
+                                        ),
                                         padding: const EdgeInsets.symmetric(
                                           vertical: 16,
                                         ),
                                         shape: RoundedRectangleBorder(
-                                          borderRadius: BorderRadius.circular(12),
+                                          borderRadius: BorderRadius.circular(
+                                            12,
+                                          ),
                                         ),
                                       ),
                                     ),
@@ -473,11 +522,10 @@ class _CoachDetailPageState extends State<CoachDetailPage>
           ),
         ],
       ),
-      //   ],
-      // ),
     );
   }
 
+  // Widget untuk menampilkan foto coach
   Widget _buildPhoto() {
     final photoPath = widget.coach.fields.photo;
 
@@ -498,6 +546,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     );
   }
 
+  // Widget placeholder jika foto coach tidak tersedia
   Widget _buildPlaceholder() {
     return Container(
       color: Colors.white.withOpacity(0.1),
@@ -520,19 +569,21 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     );
   }
 
+  // Widget untuk menampilkan detail info coach (kontak, pengalaman, sertifikasi, harga, dsb)
   Widget _buildDetailsSection() {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // RATING DI ATAS KONTAK
         _buildRatingRow(),
 
-        // Info Rows
         if (widget.coach.fields.contact.isNotEmpty) ...[
-          _buildDetailRow(
-            icon: Icons.contact_phone,
-            label: 'Kontak',
-            value: widget.coach.fields.contact,
+          GestureDetector(
+            onTap: () => _openWhatsApp(widget.coach.fields.contact),
+            child: _buildDetailRow(
+              icon: Icons.contact_phone,
+              label: 'Kontak', 
+              value: widget.coach.fields.contact,
+            ),
           ),
           const SizedBox(height: 16),
         ],
@@ -557,11 +608,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
         const SizedBox(height: 24),
         if (widget.coach.fields.serviceFee.isNotEmpty) ...[
           Text(
-            "${NumberFormat.currency(
-                locale: 'id', 
-                symbol: 'Rp ', 
-                decimalDigits: 0 
-              ).format(double.parse(widget.coach.fields.serviceFee))} / Sesi",
+            "${NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0).format(double.parse(widget.coach.fields.serviceFee))} / Sesi",
             style: GoogleFonts.plusJakartaSans(
               color: const Color(0xFFA4E4FF),
               fontSize: 28,
@@ -570,7 +617,6 @@ class _CoachDetailPageState extends State<CoachDetailPage>
           ),
           const SizedBox(height: 20),
 
-          // Button lihat rating dan review
           SizedBox(
             width: double.infinity,
             child: ElevatedButton(
@@ -579,8 +625,8 @@ class _CoachDetailPageState extends State<CoachDetailPage>
                   context,
                   MaterialPageRoute(
                     builder: (_) => CoachReviewListPage(
-                      coachId: widget.coach.pk, // id coach (int)
-                      coachName: widget.coach.fields.name, // nama coach
+                      coachId: widget.coach.pk,
+                      coachName: widget.coach.fields.name,
                     ),
                   ),
                 );
@@ -607,6 +653,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     );
   }
 
+  // Widget untuk menampilkan rating coach (jika ada review)
   Widget _buildRatingRow() {
     return FutureBuilder<List<CoachReview>>(
       future: CoachReviewService.fetchReviews(context, widget.coach.pk),
@@ -636,6 +683,7 @@ class _CoachDetailPageState extends State<CoachDetailPage>
     );
   }
 
+  // Widget untuk menampilkan satu baris detail info (ikon, label, value)
   Widget _buildDetailRow({
     required IconData icon,
     required String label,

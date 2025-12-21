@@ -1,5 +1,3 @@
-// lib/feat/review/coach/screens/coach_review_list_page.dart
-
 import 'dart:ui';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
@@ -9,6 +7,7 @@ import '../services/coach_review_service.dart';
 import 'coach_review_form_page.dart';
 import 'coach_review_edit_page.dart';
 
+// Halaman daftar review untuk coach tertentu
 class CoachReviewListPage extends StatefulWidget {
   final int coachId;
   final String coachName;
@@ -25,16 +24,20 @@ class CoachReviewListPage extends StatefulWidget {
 
 class _CoachReviewListPageState extends State<CoachReviewListPage>
     with SingleTickerProviderStateMixin {
+  // Future untuk mengambil daftar review
   late Future<List<CoachReview>> _futureReviews;
 
+  // Controller dan animasi untuk efek aura background
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
   @override
   void initState() {
     super.initState();
+    // Ambil review dari backend
     _futureReviews = CoachReviewService.fetchReviews(context, widget.coachId);
 
+    // Setup animasi aura background
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
@@ -50,6 +53,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
 
   @override
   void dispose() {
+    // Bersihkan controller saat widget dihapus
     _pulseController.dispose();
     super.dispose();
   }
@@ -106,6 +110,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
     );
   }
 
+  // Fungsi untuk refresh daftar review
   Future<void> _refresh() async {
     setState(() {
       _futureReviews =
@@ -113,6 +118,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
     });
   }
 
+  // Navigasi ke halaman tambah review
   void _goToAddReview() async {
     final result = await Navigator.push(
       context,
@@ -129,6 +135,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
     }
   }
 
+  // Navigasi ke halaman edit review
   void _goToEditReview(CoachReview review) async {
     final result = await Navigator.push(
       context,
@@ -142,7 +149,9 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
     }
   }
 
+  // Fungsi untuk menghapus review
   void _deleteReview(CoachReview review) async {
+    // Tampilkan dialog konfirmasi hapus
     final confirm = await showDialog<bool>(
       context: context,
       builder: (ctx) => AlertDialog(
@@ -183,6 +192,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
     if (confirm != true) return;
 
     try {
+      // Hapus review dari backend
       await CoachReviewService.deleteReview(context, review.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -191,6 +201,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
       }
       _refresh();
     } catch (e) {
+      // Tampilkan pesan error jika gagal
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal menghapus review: $e')),
@@ -210,7 +221,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                // HEADER SAMA KAYAK LAPANGAN
+                // Header navigasi kembali
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -235,6 +246,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
                   ),
                 ),
 
+                // Judul dan nama coach
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -282,8 +294,10 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
                 ),
 
                 const SizedBox(height: 8),
+                // Widget rating keseluruhan
                 _buildOverallRating(),
                 const SizedBox(height: 12),
+                // Daftar review
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _refresh,
@@ -357,6 +371,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
           ),
         ],
       ),
+      // Tombol tambah review
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _goToAddReview,
         backgroundColor: Colors.transparent,
@@ -386,6 +401,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
     );
   }
 
+  // Widget untuk menampilkan rating keseluruhan
   Widget _buildOverallRating() {
     return FutureBuilder<List<CoachReview>>(
       future: _futureReviews,
@@ -493,6 +509,7 @@ class _CoachReviewListPageState extends State<CoachReviewListPage>
     );
   }
 
+  // Widget untuk menampilkan satu kartu review
   Widget _buildReviewCard(CoachReview review) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),

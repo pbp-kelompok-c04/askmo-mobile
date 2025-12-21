@@ -16,8 +16,9 @@ class LapanganBookingPage extends StatefulWidget {
   State<LapanganBookingPage> createState() => _LapanganBookingPageState();
 }
 
+// State utama untuk halaman booking lapangan
 class _LapanganBookingPageState extends State<LapanganBookingPage>
-    with SingleTickerProviderStateMixin {
+  with SingleTickerProviderStateMixin {
 
   // Data jadwal dummy (simulasi, belum dari backend)
   final Map<String, List<String>> _scheduleByDay = <String, List<String>>{
@@ -222,7 +223,9 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
             ? widget.lapangan.alamat!
             : 'Lokasi tidak tersedia';
 
-    final String tarifText = 'Rp ${widget.lapangan.tarifPerSesi} / sesi';
+    // Format harga sesuai format rupiah
+    final String tarifText =
+        '${NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0).format(double.tryParse(widget.lapangan.tarifPerSesi) ?? 0)} / sesi';
 
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
@@ -233,6 +236,7 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              // Tag olahraga
               Container(
                 padding:
                     const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -250,6 +254,7 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
                 ),
               ),
               const SizedBox(height: 8),
+              // Nama lapangan
               Text(
                 widget.lapangan.nama,
                 style: GoogleFonts.plusJakartaSans(
@@ -259,6 +264,7 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
                 ),
               ),
               const SizedBox(height: 6),
+              // Lokasi
               Row(
                 children: [
                   const Icon(Icons.location_on,
@@ -278,6 +284,7 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
                 ],
               ),
               const SizedBox(height: 8),
+              // Tarif harga
               Text(
                 tarifText,
                 style: GoogleFonts.plusJakartaSans(
@@ -384,6 +391,9 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
 
   // Ringkasan booking sebelum pembayaran
   Widget _buildBookingSummaryContent() {
+    // Format harga sesuai format rupiah
+    final String tarifText =
+        '${NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0).format(double.tryParse(widget.lapangan.tarifPerSesi) ?? 0)} / sesi';
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -397,11 +407,12 @@ class _LapanganBookingPageState extends State<LapanganBookingPage>
         _buildSummaryRow('Hari', _selectedDay ?? '-'),
         _buildSummaryRow('Jam', _selectedSlot ?? '-'),
         _buildSummaryRow('Metode', _paymentMethod),
-        _buildSummaryRow('Tarif', 'Rp ${widget.lapangan.tarifPerSesi} / sesi'),
+        _buildSummaryRow('Tarif', tarifText),
       ],
     );
   }
 
+  // Widget untuk menampilkan satu baris ringkasan booking
   Widget _buildSummaryRow(String label, String value) {
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 6),

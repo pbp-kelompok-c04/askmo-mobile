@@ -1,3 +1,5 @@
+// form untuk add coach baru (hanya admin)
+
 import 'dart:convert';
 import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
@@ -178,7 +180,6 @@ class _CoachFormPageState extends State<CoachFormPage> {
       backgroundColor: Colors.black,
       body: Stack(
         children: [
-          // Background Aura
           Positioned(
             top: -200,
             left: -200,
@@ -213,10 +214,8 @@ class _CoachFormPageState extends State<CoachFormPage> {
               ),
             ),
           ),
-          // Content
           Column(
             children: [
-              // Custom AppBar
               SafeArea(
                 bottom: false,
                 child: Padding(
@@ -246,7 +245,6 @@ class _CoachFormPageState extends State<CoachFormPage> {
                   ),
                 ),
               ),
-              // Scrollable content
               Expanded(
                 child: SingleChildScrollView(
                   padding: const EdgeInsets.fromLTRB(24, 16, 24, 24),
@@ -311,7 +309,6 @@ class _CoachFormPageState extends State<CoachFormPage> {
                           },
                         ),
                         const SizedBox(height: 12),
-                        // Preview foto jika URL ada
                         if (_thumbnailController.text.isNotEmpty)
                           _buildThumbnailPreview(),
                         const SizedBox(height: 32),
@@ -332,7 +329,6 @@ class _CoachFormPageState extends State<CoachFormPage> {
                                 }
 
                                 try {
-                                  // Kirim URL lengkap foto, bukan hanya nama file
                                   final photoValue = _thumbnailController.text.trim();
 
                                   final requestData = <String, String>{

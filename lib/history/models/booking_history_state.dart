@@ -3,7 +3,7 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
 
 class BookingItem {
-  final String id; // lapangan id
+  final String id;
   final String name;
   final String day;
   final String slot;
@@ -25,6 +25,7 @@ class BookingItem {
     required this.olahraga,
   });
 
+  // Konversi objek ke bentuk JSON (Map)
   Map<String, dynamic> toJson() => {
     'id': id,
     'name': name,
@@ -37,6 +38,7 @@ class BookingItem {
     'olahraga': olahraga,
   };
 
+  // Membuat objek BookingItem dari JSON (Map)
   factory BookingItem.fromJson(Map<String, dynamic> json) => BookingItem(
     id: json['id'],
     name: json['name'],
@@ -50,24 +52,28 @@ class BookingItem {
   );
 }
 
+
+// State management untuk riwayat booking, menggunakan ChangeNotifier agar bisa di-observe oleh UI
 class BookingHistoryState extends ChangeNotifier {
   List<BookingItem> _bookings = [];
   String _currentUsername = '';
 
+  // Getter untuk mengambil list booking
   List<BookingItem> get bookings => _bookings;
 
+  // Konstruktor
   BookingHistoryState() {
-    // Don't auto-load, wait for setUsername
   }
 
+  // Menambah item riwayat booking baru berdasarkan data yang diberikan
   void addHistoryItem({
     required String name,
     required String lapanganId,
     required String olahraga,
-    required String date, // date & time combined, e.g., "01 Jan 2024, 08:00 - 09:00"
+    required String date,
     required String paymentMethod,
     required String price,
-    required String imageUrl, // PERLU DITAMBAHKAN
+    required String imageUrl,
   }) {
     final parts = date.split(', ');
     final dayPart = parts.first;
@@ -76,22 +82,24 @@ class BookingHistoryState extends ChangeNotifier {
     final newItem = BookingItem(
       id: lapanganId,
       name: name,
-      day: dayPart, // Tanggal: "01 Jan 2024"
-      slot: slotPart, // Jam: "08:00 - 09:00"
+      day: dayPart,
+      slot: slotPart,
       paymentMethod: paymentMethod,
       price: price,
-      timestamp: DateTime.now().toIso8601String(), // Waktu pencatatan
+      timestamp: DateTime.now().toIso8601String(),
       imageUrl: imageUrl,
       olahraga: olahraga,
     );
   addBooking(newItem);
   }
 
+  // Mengatur username yang sedang aktif dan memuat data booking dari penyimpanan lokal
   Future<void> setUsername(String username) async {
     _currentUsername = username;
     await _load();
   }
 
+  // Memuat data booking dari SharedPreferences berdasarkan username
   Future<void> _load() async {
     if (_currentUsername.isEmpty) {
       _bookings = [];
@@ -102,6 +110,7 @@ class BookingHistoryState extends ChangeNotifier {
     final key = 'booking_history_$_currentUsername';
     final s = prefs.getString(key);
     if (s != null) {
+      // Jika data ada, decode dari JSON ke list BookingItem
       final list = jsonDecode(s) as List<dynamic>;
       _bookings = list
           .map((e) => BookingItem.fromJson(e as Map<String, dynamic>))
@@ -112,6 +121,7 @@ class BookingHistoryState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Menyimpan data booking ke SharedPreferences
   Future<void> _save() async {
     if (_currentUsername.isEmpty) return;
     final prefs = await SharedPreferences.getInstance();
@@ -122,12 +132,14 @@ class BookingHistoryState extends ChangeNotifier {
     );
   }
 
+  // Menambah BookingItem ke list dan simpan ke storage
   Future<void> addBooking(BookingItem b) async {
-    _bookings.insert(0, b); // newest first
+    _bookings.insert(0, b);
     await _save();
     notifyListeners();
   }
 
+  // Menghapus seluruh riwayat booking
   Future<void> clear() async {
     _bookings.clear();
     await _save();

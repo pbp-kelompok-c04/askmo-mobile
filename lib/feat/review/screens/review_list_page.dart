@@ -6,10 +6,12 @@ import '../services/review_services.dart';
 import 'review_form_page.dart';
 import 'review_edit_page.dart';
 
+// Halaman untuk menampilkan daftar review lapangan
 class ReviewListPage extends StatefulWidget {
   final String lapanganId;
   final String lapanganName;
 
+  // Konstruktor
   const ReviewListPage({
     super.key,
     required this.lapanganId,
@@ -29,8 +31,10 @@ class _ReviewListPageState extends State<ReviewListPage>
   @override
   void initState() {
     super.initState();
+    // Ambil data review saat halaman diinisialisasi
     _futureReviews = ReviewService.fetchReviews(context, widget.lapanganId);
 
+    // Setup animasi aura background
     _pulseController = AnimationController(
       vsync: this,
       duration: const Duration(seconds: 4),
@@ -46,16 +50,19 @@ class _ReviewListPageState extends State<ReviewListPage>
 
   @override
   void dispose() {
+    // Bersihkan controller saat widget dihapus
     _pulseController.dispose();
     super.dispose();
   }
 
+  // Fungsi untuk refresh data review
   Future<void> _refresh() async {
     setState(() {
       _futureReviews = ReviewService.fetchReviews(context, widget.lapanganId);
     });
   }
 
+  // Navigasi ke halaman tambah review
   void _goToAddReview() async {
     final result = await Navigator.push(
       context,
@@ -72,6 +79,7 @@ class _ReviewListPageState extends State<ReviewListPage>
     }
   }
 
+  // Navigasi ke halaman edit review
   void _goToEditReview(ReviewLapangan review) async {
     final result = await Navigator.push(
       context,
@@ -85,6 +93,7 @@ class _ReviewListPageState extends State<ReviewListPage>
     }
   }
 
+  // Fungsi untuk menghapus review dengan konfirmasi dialog
   void _deleteReview(ReviewLapangan review) async {
     final confirm = await showDialog<bool>(
       context: context,
@@ -126,6 +135,7 @@ class _ReviewListPageState extends State<ReviewListPage>
     if (confirm != true) return;
 
     try {
+      // Hapus review dari backend
       await ReviewService.deleteReview(context, review.id);
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
@@ -134,6 +144,7 @@ class _ReviewListPageState extends State<ReviewListPage>
       }
       _refresh();
     } catch (e) {
+      // Tampilkan pesan error jika gagal
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal menghapus review: $e')),
@@ -205,6 +216,7 @@ class _ReviewListPageState extends State<ReviewListPage>
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
+                // Tombol kembali dan judul
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
@@ -228,6 +240,7 @@ class _ReviewListPageState extends State<ReviewListPage>
                     ],
                   ),
                 ),
+                // Header nama lapangan
                 Padding(
                   padding:
                       const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
@@ -274,8 +287,10 @@ class _ReviewListPageState extends State<ReviewListPage>
                   ),
                 ),
                 const SizedBox(height: 8),
+                // Widget rating keseluruhan
                 _buildOverallRating(),
                 const SizedBox(height: 12),
+                // Daftar review
                 Expanded(
                   child: RefreshIndicator(
                     onRefresh: _refresh,
@@ -355,6 +370,7 @@ class _ReviewListPageState extends State<ReviewListPage>
           ),
         ],
       ),
+      // Tombol tambah review
       floatingActionButton: FloatingActionButton.extended(
         onPressed: _goToAddReview,
         backgroundColor: Colors.transparent,
@@ -384,6 +400,7 @@ class _ReviewListPageState extends State<ReviewListPage>
     );
   }
 
+  // Widget untuk menampilkan rating keseluruhan lapangan
   Widget _buildOverallRating() {
     return FutureBuilder<List<ReviewLapangan>>(
       future: _futureReviews,
@@ -523,6 +540,7 @@ class _ReviewListPageState extends State<ReviewListPage>
     );
   }
 
+  // Widget untuk menampilkan satu kartu review
   Widget _buildReviewCard(ReviewLapangan review) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(18),
@@ -612,6 +630,7 @@ class _ReviewListPageState extends State<ReviewListPage>
                     ),
                   ),
                 ),
+              // Tampilkan tombol edit/hapus jika user punya hak
               if (review.canEdit || review.canDelete) ...[
                 const SizedBox(height: 12),
                 Row(

@@ -204,7 +204,7 @@ class _EventEditFormPageState extends State<EventEditFormPage> {
     }
   }
 
-  // Membersihkan controller saat widget dihancurkan
+  // Membersihkan controller
   @override
   void dispose() {
     _namaController.dispose();

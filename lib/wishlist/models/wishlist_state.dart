@@ -1,3 +1,4 @@
+// Import package yang diperlukan
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'dart:convert';
@@ -19,6 +20,8 @@ class WishedItem {
     required this.location,
   });
 
+
+  // Konversi objek ke bentuk JSON
   Map<String, dynamic> toJson() => {
     'id': id,
     'type': type,
@@ -28,6 +31,7 @@ class WishedItem {
     'category': category,
   };
 
+  // Membuat objek dari JSON
   factory WishedItem.fromJson(Map<String, dynamic> json) => WishedItem(
     id: json['id'],
     type: json['type'],
@@ -38,12 +42,16 @@ class WishedItem {
   );
 }
 
+
+// State management untuk wishlist
 class WishlistState extends ChangeNotifier {
   List<WishedItem> _wishedItems = [];
   String _currentUsername = '';
 
   List<WishedItem> get wishedItems => _wishedItems;
 
+
+  // Konstruktor
   WishlistState() {
   }
 
@@ -52,6 +60,7 @@ class WishlistState extends ChangeNotifier {
     await _loadWishlist();
   }
 
+  // Memuat wishlist dari SharedPreferences
   Future<void> _loadWishlist() async {
     if (_currentUsername.isEmpty) {
       _wishedItems = [];
@@ -72,6 +81,7 @@ class WishlistState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Menyimpan wishlist ke SharedPreferences
   Future<void> _saveWishlist() async {
     if (_currentUsername.isEmpty) return;
     final prefs = await SharedPreferences.getInstance();
@@ -82,6 +92,7 @@ class WishlistState extends ChangeNotifier {
     await prefs.setString(key, jsonString);
   }
 
+  // Menambah atau menghapus item dari wishlist (toggle)
   Future<void> toggleWish({
     required String id,
     required String type,
@@ -113,20 +124,24 @@ class WishlistState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Menghapus item dari wishlist berdasarkan id
   Future<void> removeWish(String id) async {
     _wishedItems.removeWhere((item) => item.id == id);
     await _saveWishlist();
     notifyListeners();
   }
 
+  // Mengecek apakah item sudah ada di wishlist
   bool isWished(String id, String type) {
     return _wishedItems.any((item) => item.id == id && item.type == type);
   }
 
+  // Mengambil daftar item wishlist berdasarkan tipe
   List<WishedItem> getWishedByType(String type) {
     return _wishedItems.where((item) => item.type == type).toList();
   }
 
+  // Menghapus semua item dari wishlist
   Future<void> clear() async {
     _wishedItems.clear();
     await _saveWishlist();

@@ -392,7 +392,7 @@ class _LapanganPageState extends State<LapanganPage> {
     ];
 
     _locationOptions.forEach((group, locations) {
-      // Header grup (tidak bisa dipilih)
+      // Header grup
       locationItems.add(
         DropdownMenuItem<String>(
           enabled: false,

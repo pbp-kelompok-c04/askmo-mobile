@@ -1,6 +1,7 @@
 import 'package:flutter/foundation.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
+// State user untuk profile, login, dan preferensi
 class UserState extends ChangeNotifier {
   String _username = '';
   String _name = '';
@@ -20,6 +21,7 @@ class UserState extends ChangeNotifier {
 
   String get displayName => _name.isNotEmpty ? _name : _username;
 
+  // Helper untuk membuat key SharedPreferences dengan username
   String _getPrefKey(String suffix) {
     if (_username.isEmpty) {
       return suffix;
@@ -27,10 +29,12 @@ class UserState extends ChangeNotifier {
     return '${_username}_$suffix';
   }
 
+  // Konstruktor, otomatis load dari storage
   UserState() {
     _loadFromStorage();
   }
 
+  // Memuat data user dari SharedPreferences
   Future<void> _loadFromStorage() async {
     final prefs = await SharedPreferences.getInstance();
     _username = prefs.getString('username') ?? '';
@@ -42,6 +46,7 @@ class UserState extends ChangeNotifier {
       _favoriteSport = prefs.getString(_getPrefKey('favoriteSport')) ?? '';
       _userId = prefs.getInt(_getPrefKey('userId')) ?? 0;
 
+      // Jika login email dan nama kosong, ambil dari email
       if (_name.isEmpty && _isEmailLogin) {
         _name = _extractNameFromEmail(_username);
       }
@@ -56,6 +61,7 @@ class UserState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Menyimpan data user ke SharedPreferences
   Future<void> _saveToStorage() async {
     final prefs = await SharedPreferences.getInstance();
     await prefs.setString('username', _username);
@@ -69,6 +75,7 @@ class UserState extends ChangeNotifier {
     }
   }
 
+  // Ekstrak nama dari email jika nama kosong
   String _extractNameFromEmail(String email) {
     if (!email.contains('@')) return email;
     String localPart = email.split('@')[0];
@@ -82,6 +89,7 @@ class UserState extends ChangeNotifier {
         .join(' ');
   }
 
+  // Set username dan load data terkait
   Future<void> setUsername(String uname) async {
     _username = uname;
     _isEmailLogin = uname.contains('@');
@@ -101,34 +109,40 @@ class UserState extends ChangeNotifier {
     notifyListeners();
   }
 
+  // Set userId
   Future<void> setUserId(int id) async {
     _userId = id;
     await _saveToStorage();
     notifyListeners();
   }
 
+  // Set nama user
   Future<void> setName(String newName) async {
     _name = newName;
     await _saveToStorage();
     notifyListeners();
   }
 
+  // Set path avatar user
   Future<void> setAvatarPath(String path) async {
     _avatarPath = path;
     await _saveToStorage();
     notifyListeners();
   }
 
+  // Set olahraga favorit user
   Future<void> setFavoriteSport(String sportKey) async {
     _favoriteSport = sportKey;
     await _saveToStorage();
     notifyListeners();
   }
 
+  // Reload data user dari storage
   Future<void> reload() async {
     await _loadFromStorage();
   }
 
+  // Hapus semua data user dari storage
   Future<void> clear() async {
     final prefs = await SharedPreferences.getInstance();
     final oldUsername = _username;

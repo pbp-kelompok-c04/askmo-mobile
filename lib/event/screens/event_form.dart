@@ -161,7 +161,7 @@ class _EventFormPageState extends State<EventFormPage> {
     ],
   };
 
-  // Bersihkan controller saat widget dihancurkan
+  // Bersihkan controller
   @override
   void dispose() {
     _namaController.dispose();
@@ -196,7 +196,7 @@ class _EventFormPageState extends State<EventFormPage> {
 
       final request = context.read<CookieRequest>();
 
-      // opsional: cek apakah Flutter merasa sudah login
+      // cek apakah Flutter merasa sudah login
       if (!request.loggedIn) {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(

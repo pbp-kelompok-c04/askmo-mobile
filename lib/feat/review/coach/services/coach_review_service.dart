@@ -1,18 +1,15 @@
-// lib/feat/review/coach/services/coach_review_service.dart
-
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
-
-// IMPORT API BASE
 import 'package:askmo/config/api_base.dart';
-
 import '../models/coach_review.dart';
 
+// Service untuk operasi review coach (CRUD)
 class CoachReviewService {
-  // Gunakan apiBase dari api_base.dart
+  // Gunakan apiBase dari api_base.dart sebagai base URL
   static String get baseUrl => apiBase;
 
+  // Ekstrak pesan error dari response backend
   static String _extractErrorMessage(dynamic response, String defaultMsg) {
     if (response is Map<String, dynamic>) {
       if (response['message'] != null) return response['message'].toString();
@@ -38,24 +35,27 @@ class CoachReviewService {
     BuildContext context,
     int coachId,
   ) async {
+    // Ambil instance request dari Provider
     final request = context.read<CookieRequest>();
+    // Endpoint untuk ambil review coach
     final url = '$baseUrl/coach/json/$coachId/';
 
     final response = await request.get(url);
 
+    // Validasi response harus List
     if (response is! List) {
       throw Exception(
         'Server tidak mengembalikan List JSON. Response: $response',
       );
     }
 
+    // Mapping response ke list model CoachReview
     return response
         .map((e) => CoachReview.fromJson(e as Map<String, dynamic>))
         .toList();
   }
 
-  // ===================== ADD REVIEW =====================
-
+  // ===================== TAMBAH REVIEW =====================
   static Future<void> addReview(
     BuildContext context, {
     required int coachId,
@@ -63,7 +63,9 @@ class CoachReviewService {
     required double rating,
     required String reviewText,
   }) async {
+    // Ambil instance request dari Provider
     final request = context.read<CookieRequest>();
+    // Endpoint untuk tambah review
     final url = '$baseUrl/review/coach/add-ajax/$coachId/';
 
     final response = await request.post(url, {
@@ -72,6 +74,7 @@ class CoachReviewService {
       'review_text': reviewText,
     });
 
+    // Cek status response
     if (response is! Map ||
         response['status']?.toString() != 'success') {
       final msg = _extractErrorMessage(
@@ -83,7 +86,6 @@ class CoachReviewService {
   }
 
   // ===================== UPDATE REVIEW =====================
-
   static Future<void> updateReview(
     BuildContext context, {
     required int reviewId,
@@ -91,7 +93,9 @@ class CoachReviewService {
     required double rating,
     required String reviewText,
   }) async {
+    // Ambil instance request dari Provider
     final request = context.read<CookieRequest>();
+    // Endpoint untuk update review
     final url = '$baseUrl/coach/edit-ajax/$reviewId/';
 
     final response = await request.post(url, {
@@ -100,6 +104,7 @@ class CoachReviewService {
       'review_text': reviewText,
     });
 
+    // Cek status response
     if (response is! Map ||
         response['status']?.toString() != 'success') {
       final msg = _extractErrorMessage(
@@ -110,17 +115,19 @@ class CoachReviewService {
     }
   }
 
-  // ===================== DELETE REVIEW =====================
-
+  // ===================== HAPUS REVIEW =====================
   static Future<void> deleteReview(
     BuildContext context,
     int reviewId,
   ) async {
+    // Ambil instance request dari Provider
     final request = context.read<CookieRequest>();
+    // Endpoint untuk hapus review
     final url = '$baseUrl/coach/delete/$reviewId/';
 
     final response = await request.post(url, {});
 
+    // Cek status response
     if (response is! Map ||
         (response['status']?.toLowerCase() != 'success' &&
             !(response['message'] ?? '')

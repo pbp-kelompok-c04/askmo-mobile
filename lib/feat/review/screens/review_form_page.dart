@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import '../services/review_services.dart';
 
+// Halaman untuk menambah review lapangan
 class ReviewFormPage extends StatefulWidget {
   final String lapanganId;
   final String lapanganName;
@@ -25,8 +26,10 @@ class _ReviewFormPageState extends State<ReviewFormPage>
   final _deskripsiController = TextEditingController();
   final _gambarController = TextEditingController();
 
+  // Status submit
   bool _isSubmitting = false;
 
+  // Controller dan animasi untuk efek aura background
   late AnimationController _pulseController;
   late Animation<double> _pulseAnimation;
 
@@ -48,6 +51,7 @@ class _ReviewFormPageState extends State<ReviewFormPage>
 
   @override
   void dispose() {
+    // Bersihkan controller saat widget dihapus
     _pulseController.dispose();
     _namaController.dispose();
     _ratingController.dispose();
@@ -108,9 +112,11 @@ class _ReviewFormPageState extends State<ReviewFormPage>
     );
   }
 
+  // Fungsi untuk submit review ke backend
   Future<void> _submit() async {
     if (!_formKey.currentState!.validate()) return;
 
+    // Validasi panjang URL gambar
     if (_gambarController.text.isNotEmpty &&
         _gambarController.text.length > 200) {
       ScaffoldMessenger.of(context).showSnackBar(
@@ -121,6 +127,7 @@ class _ReviewFormPageState extends State<ReviewFormPage>
       return;
     }
 
+    // Validasi rating
     final rating =
         double.tryParse(_ratingController.text.replaceAll(",", "."));
 
@@ -134,6 +141,7 @@ class _ReviewFormPageState extends State<ReviewFormPage>
     setState(() => _isSubmitting = true);
 
     try {
+      // Kirim review ke backend
       await ReviewService.addReview(
         context,
         lapanganId: widget.lapanganId,
@@ -147,12 +155,15 @@ class _ReviewFormPageState extends State<ReviewFormPage>
 
       if (!mounted) return;
 
+      // Tampilkan pesan sukses
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(content: Text('Review berhasil dikirim')),
       );
 
+      // Kembali ke halaman sebelumnya
       Navigator.pop(context, true);
     } catch (e) {
+      // Tampilkan pesan error jika gagal
       if (mounted) {
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text('Gagal mengirim review: $e')),
@@ -171,6 +182,7 @@ class _ReviewFormPageState extends State<ReviewFormPage>
         children: [
           _buildBackgroundAura(),
 
+          // Konten utama
           Center(
             child: SingleChildScrollView(
               padding: const EdgeInsets.symmetric(horizontal: 32),
@@ -194,6 +206,7 @@ class _ReviewFormPageState extends State<ReviewFormPage>
                         crossAxisAlignment: CrossAxisAlignment.start,
                         mainAxisSize: MainAxisSize.min,
                         children: [
+                          // Judul dan nama lapangan
                           Center(
                             child: Text(
                               widget.lapanganName,
@@ -206,6 +219,7 @@ class _ReviewFormPageState extends State<ReviewFormPage>
                             ),
                           ),
                           const SizedBox(height: 12),
+                          // Subjudul
                           Center(
                             child: Text(
                               "Bagikan pengalamanmu!",
@@ -217,12 +231,14 @@ class _ReviewFormPageState extends State<ReviewFormPage>
                           ),
                           const SizedBox(height: 24),
 
+                          // Input nama
                           _buildInput(
                             controller: _namaController,
                             label: "Nama (opsional)",
                           ),
                           const SizedBox(height: 16),
 
+                          // Input rating
                           _buildInput(
                             controller: _ratingController,
                             label: "Rating (0.0 - 5.0)",
@@ -241,6 +257,7 @@ class _ReviewFormPageState extends State<ReviewFormPage>
                           ),
                           const SizedBox(height: 16),
 
+                          // Input deskripsi pengalaman
                           _buildInput(
                             controller: _deskripsiController,
                             label: "Deskripsi pengalaman",
@@ -254,12 +271,14 @@ class _ReviewFormPageState extends State<ReviewFormPage>
                           ),
                           const SizedBox(height: 16),
 
+                          // Input URL gambar (opsional)
                           _buildInput(
                             controller: _gambarController,
                             label: "URL Gambar (opsional)",
                           ),
                           const SizedBox(height: 28),
 
+                          // Tombol kirim review
                           Container(
                             decoration: BoxDecoration(
                               gradient: const LinearGradient(
@@ -299,6 +318,7 @@ class _ReviewFormPageState extends State<ReviewFormPage>
             ),
           ),
 
+          // Tombol kembali
           SafeArea(
             child: IconButton(
               onPressed: () => Navigator.pop(context),
@@ -310,6 +330,7 @@ class _ReviewFormPageState extends State<ReviewFormPage>
     );
   }
 
+  // Widget untuk membangun field input teks dengan validasi
   Widget _buildInput({
     required TextEditingController controller,
     required String label,

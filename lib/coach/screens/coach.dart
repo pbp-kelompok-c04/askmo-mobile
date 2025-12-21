@@ -157,15 +157,14 @@ class _CoachPageState extends State<CoachPage> {
     super.dispose();
   }
 
-  /// Helper untuk memformat nama olahraga agar rapi (Contoh: "tenis" -> "Tenis")
   String _formatSportLabel(String rawValue) {
-    // 1. Cek apakah value ada di map _sportOptions, jika ada kembalikan Label-nya
+    // Cek apakah value ada di map _sportOptions, jika ada kembalikan Label-nya
     for (var option in _sportOptions) {
       if (option['value']!.toLowerCase() == rawValue.toLowerCase()) {
         return option['label']!;
       }
     }
-    // 2. Jika tidak ada di map (misal data kustom), lakukan Capitalize setiap kata
+    // Jika tidak ada di map (misal data kustom), lakukan Capitalize setiap kata
     if (rawValue.isEmpty) return rawValue;
     return rawValue
         .split(' ')
@@ -184,7 +183,6 @@ class _CoachPageState extends State<CoachPage> {
 
     try {
       final request = context.read<CookieRequest>();
-      // Pastikan URL ini benar dan server Django berjalan
       final response = await request.get('$apiBase/coach/json/');
 
       if (response != null) {
@@ -217,21 +215,18 @@ class _CoachPageState extends State<CoachPage> {
   void _applyFilters() {
     setState(() {
       _filteredCoach = _coachList.where((coach) {
-        // Filter by Name
         bool matchesSearch =
             _searchController.text.isEmpty ||
             coach.fields.name.toLowerCase().contains(
               _searchController.text.toLowerCase(),
             );
 
-        // Filter by Location
         bool matchesLocation =
             _selectedLocation == null ||
             coach.fields.location.toLowerCase().contains(
               _selectedLocation!.toLowerCase(),
             );
 
-        // Filter by Sport
         bool matchesSport =
             _selectedSport == null ||
             coach.fields.sportBranch.toLowerCase() ==
@@ -242,12 +237,12 @@ class _CoachPageState extends State<CoachPage> {
     });
   }
 
-  // Fungsi Hapus Coach langsung dari Card (Icon Sampah)
+  // Fungsi Hapus Coach langsung dari Card
   Future<void> _deleteCoachFromCard(Coach coach) async {
     final confirmed = await showDialog<bool>(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: const Color(0xFF2A2A2A), // Background Gelap
+        backgroundColor: const Color(0xFF2A2A2A),
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(12),
           side: BorderSide(color: Colors.white.withOpacity(0.2)),
@@ -255,7 +250,7 @@ class _CoachPageState extends State<CoachPage> {
         title: Text(
           'Hapus Coach',
           style: GoogleFonts.plusJakartaSans(
-            color: Colors.white, // Title Putih
+            color: Colors.white,
             fontWeight: FontWeight.bold,
           ),
         ),
@@ -263,7 +258,7 @@ class _CoachPageState extends State<CoachPage> {
           'Yakin ingin menghapus "${coach.fields.name}"?',
           style: GoogleFonts.plusJakartaSans(
             color: Colors.white70,
-          ), // Content Putih/Abu terang
+          ),
         ),
         actions: [
           TextButton(
@@ -272,7 +267,7 @@ class _CoachPageState extends State<CoachPage> {
               'Batal',
               style: GoogleFonts.plusJakartaSans(
                 color: Colors.white70,
-              ), // Button text putih
+              ),
             ),
           ),
           ElevatedButton(
@@ -280,7 +275,7 @@ class _CoachPageState extends State<CoachPage> {
             style: ElevatedButton.styleFrom(
               backgroundColor: const Color(
                 0xFFFF5555,
-              ), // Warna Merah sesuai Event Detail
+              ),
               shape: RoundedRectangleBorder(
                 borderRadius: BorderRadius.circular(8),
               ),
@@ -290,7 +285,7 @@ class _CoachPageState extends State<CoachPage> {
               style: GoogleFonts.plusJakartaSans(
                 color: Colors.white,
                 fontWeight: FontWeight.bold,
-              ), // Text putih
+              ),
             ),
           ),
         ],
@@ -347,7 +342,6 @@ class _CoachPageState extends State<CoachPage> {
                     MaterialPageRoute(
                         builder: (context) => const CoachFormPage()),
                   );
-                  // Refresh jika berhasil tambah
                   if (result == true) {
                     _fetchCoach();
                   }
@@ -360,7 +354,6 @@ class _CoachPageState extends State<CoachPage> {
       body: SafeArea(
         child: CustomScrollView(
           slivers: [
-            // Header
             SliverToBoxAdapter(
               child: Padding(
                 padding: const EdgeInsets.only(top: 24, bottom: 24),
@@ -632,14 +625,12 @@ class _CoachPageState extends State<CoachPage> {
 
           return GestureDetector(
             onTap: () async {
-              // Menuju Detail Page
               final result = await Navigator.push(
                 context,
                 MaterialPageRoute(
                   builder: (context) => CoachDetailPage(coach: coach),
                 ),
               );
-              // Jika result == true (ada perubahan), refresh list
               if (result == true) {
                 _fetchCoach();
               }
@@ -748,7 +739,7 @@ class _CoachPageState extends State<CoachPage> {
                           ],
                         ),
                         const SizedBox(height: 6),
-                        // RATING COACH DI CARD
+                        // Rating coach
                         FutureBuilder<List<CoachReview>>(
                           future: CoachReviewService.fetchReviews(
                             context,

@@ -1,6 +1,6 @@
+// Import library yang dibutuhkan
 import 'dart:convert';
 import 'dart:ui';
-
 import 'package:askmo/authentication/screens/login.dart';
 import 'package:askmo/config/api_base.dart';
 import 'package:flutter/material.dart';
@@ -9,6 +9,7 @@ import 'package:google_sign_in/google_sign_in.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
 
+// page register akun baru
 class RegisterPage extends StatefulWidget {
   const RegisterPage({super.key});
 
@@ -16,16 +17,20 @@ class RegisterPage extends StatefulWidget {
   State<RegisterPage> createState() => _RegisterPageState();
 }
 
+// State untuk halaman Register
 class _RegisterPageState extends State<RegisterPage>
     with SingleTickerProviderStateMixin {
+  // Controller untuk input username, password, dan konfirmasi password
   final TextEditingController _usernameController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
 
+  // Controller dan animasi untuk efek visual latar belakang
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
+  // Inisialisasi GoogleSignIn untuk pendaftaran dengan Google
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     scopes: <String>['email', 'profile', 'openid'],
     clientId:
@@ -35,6 +40,7 @@ class _RegisterPageState extends State<RegisterPage>
   @override
   void initState() {
     super.initState();
+    // Inisialisasi animasi efek pulse
     _animationController = AnimationController(
       duration: const Duration(seconds: 15),
       vsync: this,
@@ -47,6 +53,7 @@ class _RegisterPageState extends State<RegisterPage>
 
   @override
   void dispose() {
+    // Membersihkan resource controller saat widget dihapus
     _animationController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
@@ -54,11 +61,13 @@ class _RegisterPageState extends State<RegisterPage>
     super.dispose();
   }
 
+  // Fungsi untuk pendaftaran manual (username & password)
   Future<void> _registerManual(CookieRequest request) async {
     final username = _usernameController.text.trim();
     final password1 = _passwordController.text.trim();
     final password2 = _confirmPasswordController.text.trim();
 
+    // Validasi input
     if (username.isEmpty || password1.isEmpty || password2.isEmpty) {
       _showError('Semua field harus diisi!');
       return;
@@ -70,6 +79,7 @@ class _RegisterPageState extends State<RegisterPage>
     }
 
     try {
+      // Request ke backend untuk pendaftaran
       final response = await request.postJson(
         '$apiBase/auth/register/',
         jsonEncode({
@@ -82,6 +92,7 @@ class _RegisterPageState extends State<RegisterPage>
       if (!mounted) return;
 
       if (response['status'] == true || response['status'] == 'success') {
+        // Jika berhasil, tampilkan pesan sukses dan arahkan ke halaman login
         _showSuccess('Berhasil mendaftar! Silakan login.');
 
         Navigator.of(context).pushAndRemoveUntil(
@@ -89,19 +100,20 @@ class _RegisterPageState extends State<RegisterPage>
           (route) => false,
         );
       } else {
+        // Jika gagal, tampilkan pesan error
         _handleRegisterError(response);
       }
     } catch (_) {
-      _showError(
-        'Terjadi kesalahan koneksi. Pastikan server dapat diakses.',
-      );
+      _showError('Terjadi kesalahan koneksi. Pastikan server dapat diakses.');
     }
   }
 
+  // Fungsi untuk pendaftaran menggunakan akun Google
   Future<void> _registerWithGoogle() async {
     final request = context.read<CookieRequest>();
 
     try {
+      // Proses sign in Google
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return;
 
@@ -114,18 +126,21 @@ class _RegisterPageState extends State<RegisterPage>
         return;
       }
 
+      // Menyiapkan payload token untuk dikirim ke backend
       final payload = <String, dynamic>{
         if (idToken != null) 'id_token': idToken,
         if (idToken == null && accessToken != null) 'access_token': accessToken,
         'mode': 'register',
       };
 
+      // Request ke backend untuk pendaftaran Google
       final response = await request.postJson(
         '$apiBase/auth/google-login/',
         jsonEncode(payload),
       );
 
       if (response['status'] == true) {
+        // Jika berhasil, tampilkan pesan sukses dan arahkan ke halaman login
         final username = response['username'] ?? googleUser.email;
         _showSuccess(
           'Pendaftaran Google berhasil! Silakan login sebagai $username',
@@ -136,6 +151,7 @@ class _RegisterPageState extends State<RegisterPage>
           (route) => false,
         );
       } else {
+        // Jika gagal, tampilkan pesan error
         _showError(
           response['message']?.toString() ?? 'Pendaftaran dengan Google gagal',
         );
@@ -145,6 +161,7 @@ class _RegisterPageState extends State<RegisterPage>
     }
   }
 
+  // Fungsi untuk menampilkan pesan error
   void _showError(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -158,6 +175,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
+  // Fungsi untuk menampilkan pesan sukses
   void _showSuccess(String msg) {
     if (!mounted) return;
     ScaffoldMessenger.of(context).showSnackBar(
@@ -171,6 +189,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
+  // Fungsi untuk menangani error saat pendaftaran
   void _handleRegisterError(Map<String, dynamic> response) {
     String msg = 'Gagal mendaftar!';
 
@@ -202,12 +221,14 @@ class _RegisterPageState extends State<RegisterPage>
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
 
+    // Widget utama halaman register
     return Scaffold(
       body: Container(
         color: Colors.black,
         child: Stack(
           children: [
             _buildBackground(),
+            // Form register
             Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -223,6 +244,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
+  // Widget untuk membangun latar belakang
   Widget _buildBackground() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -286,6 +308,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
+  // Widget form pendaftaran dengan efek glassmorphism
   Widget _buildGlassForm(CookieRequest request) {
     return ClipRRect(
       borderRadius: BorderRadius.circular(24),
@@ -328,6 +351,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
+  // Widget header
   Widget _buildHeader() {
     return Column(
       children: [
@@ -347,6 +371,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
+  // Widget untuk input field username, password, dan konfirmasi password
   Widget _buildTextFields() {
     return Column(
       children: [
@@ -363,6 +388,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
+  // Widget untuk membangun satu input field
   Widget _inputField(
     String label,
     TextEditingController controller, {
@@ -394,6 +420,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
+  // Widget tombol daftar
   Widget _buildRegisterButton(CookieRequest request) {
     return Container(
       decoration: BoxDecoration(
@@ -432,6 +459,7 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
+  // Widget tombol daftar dengan Google
   Widget _buildGoogleButton() {
     return SizedBox(
       width: double.infinity,
@@ -474,6 +502,7 @@ class _RegisterPageState extends State<RegisterPage>
   }
 }
 
+// Widget link untuk kembali ke halaman login
 class _LoginLink extends StatefulWidget {
   const _LoginLink();
 
@@ -481,6 +510,7 @@ class _LoginLink extends StatefulWidget {
   State<_LoginLink> createState() => _LoginLinkState();
 }
 
+// State untuk efek hover pada link login
 class _LoginLinkState extends State<_LoginLink> {
   bool _isHovered = false;
 

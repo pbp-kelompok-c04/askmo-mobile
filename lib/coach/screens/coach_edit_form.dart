@@ -6,6 +6,7 @@ import 'package:provider/provider.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:askmo/coach/models/coach_model.dart';
 
+// Halaman form edit data coach
 class CoachEditFormPage extends StatefulWidget {
   final Coach coach;
 
@@ -15,9 +16,11 @@ class CoachEditFormPage extends StatefulWidget {
   State<CoachEditFormPage> createState() => _CoachEditFormPageState();
 }
 
+// State untuk halaman form edit coach
 class _CoachEditFormPageState extends State<CoachEditFormPage> {
   final _formKey = GlobalKey<FormState>();
 
+  // Variabel untuk menyimpan data input
   late String _name;
   late String _sportBranch;
   late String _location;
@@ -26,6 +29,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
   late String _certifications;
   late String _serviceFee;
 
+  // Daftar pilihan cabang olahraga
   final List<String> _sportOptions = [
     'Sepak Bola',
     'Basket',
@@ -143,6 +147,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
   @override
   void initState() {
     super.initState();
+    // Inisialisasi nilai awal dari data coach yang diedit
     _name = widget.coach.fields.name;
     _sportBranch = widget.coach.fields.sportBranch;
     _location = widget.coach.fields.location;
@@ -151,6 +156,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
     _certifications = widget.coach.fields.certifications;
     _serviceFee = widget.coach.fields.serviceFee;
 
+    // Jika cabang olahraga/lokasi tidak ada di list, tambahkan ke pilihan
     if (!_sportOptions.any(
       (s) => s.toLowerCase() == _sportBranch.toLowerCase(),
     )) {
@@ -167,6 +173,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
 
+    // Widget utama halaman form edit coach
     return Scaffold(
       backgroundColor: Colors.black,
       appBar: AppBar(
@@ -183,6 +190,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
       ),
       body: Stack(
         children: [
+          // Efek latar belakang
           Positioned.fill(
             child: Container(
               decoration: const BoxDecoration(
@@ -229,7 +237,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
             ),
           ),
 
-          // ============================================================
+          // Form edit coach
           Form(
             key: _formKey,
             child: SingleChildScrollView(
@@ -237,6 +245,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
+                  // Input nama coach
                   _buildLabel('Nama Coach'),
                   _buildGlassContainer(
                     child: TextFormField(
@@ -250,6 +259,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // Input cabang olahraga
                   _buildLabel('Cabang Olahraga'),
                   _buildGlassContainer(
                     child: DropdownButtonFormField<String>(
@@ -267,6 +277,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // Input lokasi
                   _buildLabel('Lokasi'),
                   _buildGlassContainer(
                     child: DropdownButtonFormField<String>(
@@ -284,6 +295,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // Input kontak
                   _buildLabel('Kontak (No. HP/Email)'),
                   _buildGlassContainer(
                     child: TextFormField(
@@ -297,6 +309,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // Input tarif jasa
                   _buildLabel('Tarif Jasa'),
                   _buildGlassContainer(
                     child: TextFormField(
@@ -310,6 +323,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // Input pengalaman
                   _buildLabel('Pengalaman'),
                   _buildGlassContainer(
                     child: TextFormField(
@@ -320,6 +334,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
                     ),
                   ),
                   const SizedBox(height: 16),
+                  // Input sertifikasi
                   _buildLabel('Sertifikasi'),
                   _buildGlassContainer(
                     child: TextFormField(
@@ -333,6 +348,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
                     ),
                   ),
                   const SizedBox(height: 32),
+                  // Tombol simpan perubahan
                   SizedBox(
                     width: double.infinity,
                     child: ElevatedButton(
@@ -408,6 +424,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
     );
   }
 
+  // Widget label judul input
   Widget _buildLabel(String text) => Padding(
     padding: const EdgeInsets.only(bottom: 8.0),
     child: Text(
@@ -416,6 +433,7 @@ class _CoachEditFormPageState extends State<CoachEditFormPage> {
     ),
   );
 
+  // Widget dekorasi input field
   InputDecoration _buildInputDecoration(String hint) => InputDecoration(
     hintText: hint,
     hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white.withOpacity(0.3)),

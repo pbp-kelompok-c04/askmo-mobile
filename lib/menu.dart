@@ -1,37 +1,37 @@
 import 'dart:async';
 import 'dart:ui';
-
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:intl/intl.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
-
 import 'package:askmo/config/api_base.dart';
 import 'package:askmo/chatbot/screens/gemini_chat_screen.dart';
 import 'package:askmo/right_drawer.dart';
 import 'package:askmo/profile/models/user_state.dart';
 import 'package:askmo/authentication/screens/login.dart';
-
 import 'package:askmo/lapangan/models/lapangan.dart';
 import 'package:askmo/lapangan/screens/lapangan.dart';
 import 'package:askmo/lapangan/screens/lapangan_detail.dart';
-
 import 'package:askmo/coach/models/coach_model.dart';
 import 'package:askmo/coach/screens/coach.dart';
 import 'package:askmo/coach/screens/coach_detail.dart';
-
 import 'package:askmo/event/models/event.dart';
 import 'package:askmo/event/screens/event.dart';
 import 'package:askmo/event/screens/event_detail.dart';
 
+
+// Endpoint API untuk masing-masing fitur
 const String lapanganEndpoint = '/json/';
 const String coachEndpoint = '/coach/json/';
 const String eventEndpoint = '/get-events-json/';
 
+
+// Fungsi untuk mengambil base URL API
 String _baseUrl() => apiBase;
 
+// Halaman utama menu aplikasi (dengan bottom navigation)
 class MenuPage extends StatefulWidget {
   final int initialIndex;
   const MenuPage({super.key, this.initialIndex = 0});
@@ -69,6 +69,7 @@ class _MenuPageState extends State<MenuPage>
     super.dispose();
   }
 
+  // Fungsi ketika tab bottom navigation ditekan
   void _onItemTapped(int index) {
     final userState = context.read<UserState>();
     final isLoggedIn = userState.username.isNotEmpty;
@@ -95,6 +96,7 @@ class _MenuPageState extends State<MenuPage>
     }
   }
 
+  // Helper untuk styling teks
   TextStyle _t(
     double size,
     FontWeight w,
@@ -112,6 +114,7 @@ class _MenuPageState extends State<MenuPage>
   }
 
   @override
+  // Build UI utama menu
   Widget build(BuildContext context) {
     final List<Widget> _pages = [
       HomeContent(onTabChange: _onItemTapped),
@@ -271,6 +274,7 @@ class _MenuPageState extends State<MenuPage>
   }
 }
 
+// Widget konten utama halaman Home (beranda)
 class HomeContent extends StatefulWidget {
   final Function(int) onTabChange;
   const HomeContent({super.key, required this.onTabChange});
@@ -279,6 +283,7 @@ class HomeContent extends StatefulWidget {
   State<HomeContent> createState() => _HomeContentState();
 }
 
+// State untuk HomeContent
 class _HomeContentState extends State<HomeContent> {
   final ScrollController _scrollController = ScrollController();
   final TextEditingController _searchController = TextEditingController();
@@ -325,6 +330,7 @@ class _HomeContentState extends State<HomeContent> {
     super.dispose();
   }
 
+  // Mengambil semua data (lapangan, coach, event) dari API
   Future<void> _fetchAll() async {
     if (!mounted) return;
     setState(() {
@@ -379,6 +385,7 @@ class _HomeContentState extends State<HomeContent> {
 
   // Logika search & filter
   // Filter lapangan
+  // Mendapatkan daftar lapangan yang sudah difilter
   List<Lapangan> get _filteredLapangan {
     var result = _lapangan;
 
@@ -828,6 +835,7 @@ class _SportFilter extends StatelessWidget {
   }
 }
 
+// Widget teks jika data tidak ditemukan
 class _NotFoundText extends StatelessWidget {
   final String label;
   const _NotFoundText({required this.label});
@@ -849,6 +857,7 @@ class _NotFoundText extends StatelessWidget {
   }
 }
 
+// Widget tampilan data kosong
 class _EmptyData extends StatelessWidget {
   final String label;
   const _EmptyData({required this.label});
@@ -1449,6 +1458,7 @@ class _CoachHorizontal extends StatelessWidget {
   }
 }
 
+// Widget card untuk coach
 class _CoachCard extends StatelessWidget {
   const _CoachCard({required this.item});
   final Coach item;
@@ -1577,6 +1587,7 @@ class _EventHorizontal extends StatelessWidget {
   }
 }
 
+// Widget card untuk event
 class _EventCard extends StatelessWidget {
   const _EventCard({required this.item});
   final Event item;
@@ -1653,6 +1664,7 @@ class _EventCard extends StatelessWidget {
   }
 }
 
+// Widget baris mini (ikon + teks)
 class _MiniLine extends StatelessWidget {
   const _MiniLine({required this.icon, required this.text});
   final IconData icon;
@@ -1745,6 +1757,7 @@ class _PromoSlideshowState extends State<_PromoSlideshow> {
   }
 }
 
+// Widget footer aplikasi
 class _Footer extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
@@ -1801,6 +1814,7 @@ class _TestimonialSection extends StatefulWidget {
   State<_TestimonialSection> createState() => _TestimonialSectionState();
 }
 
+// State untuk section testimoni user
 class _TestimonialSectionState extends State<_TestimonialSection> {
   final PageController _pageCtrl = PageController();
   int _currIndex = 0;

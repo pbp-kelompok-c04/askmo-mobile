@@ -1,6 +1,6 @@
+// Autentikasi login pengguna Flutter
 import 'dart:convert';
 import 'dart:ui';
-
 import 'package:flutter/material.dart';
 import 'package:pbp_django_auth/pbp_django_auth.dart';
 import 'package:provider/provider.dart';
@@ -14,6 +14,7 @@ import 'package:askmo/user_info.dart';
 import 'package:google_fonts/google_fonts.dart';
 import 'package:google_sign_in/google_sign_in.dart';
 
+// Fungsi utama untuk menjalankan aplikasi Login
 void main() {
   runApp(const LoginApp());
 }
@@ -23,6 +24,7 @@ class LoginApp extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    // Mengatur tema dan halaman awal aplikasi
     return MaterialApp(
       title: 'Login',
       theme: ThemeData(
@@ -39,6 +41,7 @@ class LoginApp extends StatelessWidget {
   }
 }
 
+// Halaman login utama
 class LoginPage extends StatefulWidget {
   final int? returnToIndex;
   final Widget? returnRoute;
@@ -48,6 +51,7 @@ class LoginPage extends StatefulWidget {
   State<LoginPage> createState() => _LoginPageState();
 }
 
+// State untuk halaman login
 class _LoginPageState extends State<LoginPage>
     with SingleTickerProviderStateMixin {
   final TextEditingController _usernameController = TextEditingController();
@@ -56,6 +60,7 @@ class _LoginPageState extends State<LoginPage>
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
+  // Inisialisasi GoogleSignIn untuk login Google
   final GoogleSignIn _googleSignIn = GoogleSignIn(
     serverClientId:
         '990231107870-uheikav6hi1qovpmgfbspecru0h4hbou.apps.googleusercontent.com',
@@ -77,12 +82,14 @@ class _LoginPageState extends State<LoginPage>
 
   @override
   void dispose() {
+    // Membersihkan resource controller saat widget dihapus
     _animationController.dispose();
     _usernameController.dispose();
     _passwordController.dispose();
     super.dispose();
   }
 
+  // Fungsi untuk login menggunakan username dan password
   Future<void> _loginWithUsernamePassword(CookieRequest request) async {
     final username = _usernameController.text.trim();
     final password = _passwordController.text.trim();
@@ -93,12 +100,13 @@ class _LoginPageState extends State<LoginPage>
     });
 
     if (request.loggedIn) {
+      // Jika login berhasil, update state user dan navigasi ke halaman utama/menu
       final userState = context.read<UserState>();
       await userState.reload();
       await userState.setUsername(response['username']);
       await userState.setUserId((response['user_id'] ?? 0) as int);
 
-      // Set username for per-user wishlist and booking history
+      // Set username untuk wishlist dan riwayat booking per user
       final bookingHistoryState = context.read<BookingHistoryState>();
       await bookingHistoryState.setUsername(response['username']);
       final wishlistState = context.read<WishlistState>();
@@ -109,6 +117,7 @@ class _LoginPageState extends State<LoginPage>
 
       if (!mounted) return;
 
+      // Tampilkan notifikasi login berhasil
       ScaffoldMessenger.of(context)
         ..hideCurrentSnackBar()
         ..showSnackBar(
@@ -121,6 +130,7 @@ class _LoginPageState extends State<LoginPage>
           ),
         );
 
+      // Navigasi ke halaman tujuan jika ada, atau ke menu utama
       if (widget.returnRoute != null) {
         Navigator.pushReplacement(
           context,
@@ -140,6 +150,7 @@ class _LoginPageState extends State<LoginPage>
         );
       }
     } else {
+      // Jika login gagal, tampilkan dialog error
       if (!mounted) return;
       showDialog(
         context: context,
@@ -182,10 +193,12 @@ class _LoginPageState extends State<LoginPage>
     }
   }
 
+  // Fungsi untuk login menggunakan akun Google
   Future<void> _loginWithGoogle() async {
     final request = context.read<CookieRequest>();
 
     try {
+      // Proses sign in Google
       final googleUser = await _googleSignIn.signIn();
       if (googleUser == null) return;
 
@@ -204,6 +217,7 @@ class _LoginPageState extends State<LoginPage>
         return;
       }
 
+      // Siapkan payload token untuk dikirim ke backend
       final payload = <String, String>{};
       if (idToken != null) {
         payload['id_token'] = idToken;
@@ -211,12 +225,14 @@ class _LoginPageState extends State<LoginPage>
         payload['access_token'] = accessToken;
       }
 
+      // Request login ke backend dengan Google
       final response = await request.login(
         "$apiBase/auth/google-login/",
         payload,
       );
 
       if (request.loggedIn) {
+        // Jika login berhasil, update state user dan navigasi ke menu
         final userState = context.read<UserState>();
         await userState.reload();
         await userState.setUsername(response['username']);
@@ -232,6 +248,7 @@ class _LoginPageState extends State<LoginPage>
 
         if (!mounted) return;
 
+        // Tampilkan notifikasi login berhasil
         ScaffoldMessenger.of(context)
           ..hideCurrentSnackBar()
           ..showSnackBar(
@@ -244,6 +261,7 @@ class _LoginPageState extends State<LoginPage>
             ),
           );
 
+        // Navigasi ke halaman tujuan jika ada, atau ke menu utama
         if (widget.returnRoute != null) {
           Navigator.pushReplacement(
             context,
@@ -264,6 +282,7 @@ class _LoginPageState extends State<LoginPage>
           );
         }
       } else {
+        // Jika login gagal, tampilkan pesan error
         if (!mounted) return;
         final msg =
             response['message']?.toString() ?? 'Login dengan Google gagal';
@@ -275,6 +294,7 @@ class _LoginPageState extends State<LoginPage>
         );
       }
     } catch (e) {
+      // Jika terjadi error saat proses login Google
       if (!mounted) return;
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
@@ -289,6 +309,7 @@ class _LoginPageState extends State<LoginPage>
   Widget build(BuildContext context) {
     final request = context.watch<CookieRequest>();
 
+    // Widget utama halaman login
     return Scaffold(
       body: Container(
         color: Colors.black,
@@ -358,6 +379,7 @@ class _LoginPageState extends State<LoginPage>
                   },
                 ),
               ),
+            // Form login
             Center(
               child: SingleChildScrollView(
                 padding: const EdgeInsets.symmetric(
@@ -599,6 +621,7 @@ class _LoginPageState extends State<LoginPage>
                                 ),
                               ),
                               const SizedBox(height: 36.0),
+                              // Link ke halaman register
                               const _RegisterLink(),
                             ],
                           ),
@@ -616,6 +639,7 @@ class _LoginPageState extends State<LoginPage>
   }
 }
 
+// Widget link untuk menuju halaman register akun
 class _RegisterLink extends StatefulWidget {
   const _RegisterLink();
 
@@ -628,6 +652,7 @@ class _RegisterLinkState extends State<_RegisterLink> {
 
   @override
   Widget build(BuildContext context) {
+    // Widget link register
     return MouseRegion(
       cursor: SystemMouseCursors.click,
       onEnter: (_) => setState(() => _isHovered = true),

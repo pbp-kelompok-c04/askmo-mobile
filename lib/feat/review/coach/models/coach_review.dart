@@ -7,6 +7,7 @@ class CoachReview {
   final bool canEdit;
   final bool canDelete;
 
+  // Konstruktor CoachReview
   CoachReview({
     required this.id,
     required this.reviewerName,
@@ -17,6 +18,7 @@ class CoachReview {
     required this.canDelete,
   });
 
+  // Membuat objek CoachReview dari data JSON
   factory CoachReview.fromJson(Map<String, dynamic> json) {
     return CoachReview(
       id: json['id'] as int,

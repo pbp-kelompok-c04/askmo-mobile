@@ -8,9 +8,11 @@ import 'dart:convert';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
-import 'package:askmo/gemini_config.dart'; 
+import 'package:askmo/gemini_config.dart';
 
-// feature AI bot assistent, menggunakan Gemini API key
+// Fitur asisten AI chatbot, menggunakan Gemini API key
+
+// Halaman utama chat dengan AI MOMO
 class GeminiChatScreen extends StatefulWidget {
   const GeminiChatScreen({super.key});
 
@@ -18,72 +20,72 @@ class GeminiChatScreen extends StatefulWidget {
   State<GeminiChatScreen> createState() => _GeminiChatScreenState();
 }
 
-class _GeminiChatScreenState extends State<GeminiChatScreen> 
+// State untuk halaman chat Gemini/MOMO
+class _GeminiChatScreenState extends State<GeminiChatScreen>
     with SingleTickerProviderStateMixin {
-  
+  // Controller untuk input pesan dan scroll
   final TextEditingController _textController = TextEditingController();
   final ScrollController _scrollController = ScrollController();
+  // List pesan yang dikirim dan diterima
   final List<Map<String, dynamic>> _messages = [];
+  // Status apakah sedang mengirim pesan
   bool _isSending = false;
-  
+
+  // API key Gemini dan objek model/chat
   late final String _apiKey;
   late final GenerativeModel _model;
   late final ChatSession _chat;
-  
+
+  // Controller dan animasi untuk efek visual latar belakang
   late AnimationController _animationController;
   late Animation<double> _pulseAnimation;
 
   @override
-void initState() {
-  super.initState();
+  void initState() {
+    super.initState();
 
-  // API key dari GeminiConfig
-  _apiKey = GeminiConfig.apiKey;
+    // Ambil API key dari konfigurasi
+    _apiKey = GeminiConfig.apiKey;
 
-  if (_apiKey.isEmpty) {
-    debugPrint(
-      'GEMINI_API_KEY kosong. Pastikan .env terisi saat development, '
-      'dan --dart-define=GEMINI_API_KEY=... diset di CI (GitHub Actions/Bitrise).',
+    // Validasi jika API key kosong
+    if (_apiKey.isEmpty) {
+      debugPrint(
+        'GEMINI_API_KEY kosong. Pastikan .env terisi saat development, '
+        'dan --dart-define=GEMINI_API_KEY=... diset di CI (GitHub Actions/Bitrise).',
+      );
+    }
+
+    // Inisialisasi model Gemini
+    _model = GenerativeModel(model: 'gemini-2.5-flash', apiKey: _apiKey);
+
+    _animationController = AnimationController(
+      duration: const Duration(seconds: 15),
+      vsync: this,
+    )..repeat(reverse: true);
+
+    _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
+      CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
     );
-  }
 
-  _model = GenerativeModel(
-    model: 'gemini-2.5-flash',
-    apiKey: _apiKey,
-  );
-
-  _animationController = AnimationController(
-    duration: const Duration(seconds: 15),
-    vsync: this,
-  )..repeat(reverse: true);
-
-  _pulseAnimation = Tween<double>(begin: 1.0, end: 1.05).animate(
-    CurvedAnimation(parent: _animationController, curve: Curves.easeInOut),
-  );
-
-  // Mendefinisikan model untuk AI Assitant ASKMO (MOMO)
-  _chat = _model.startChat(
-    history: [
-      Content(
-        'user',
-        [
+    // Inisialisasi sesi chat dengan persona MOMO
+    _chat = _model.startChat(
+      history: [
+        Content('user', [
           TextPart(
             'You are MOMO, ASKMO Sport Assistant, an expert coach, fitness, and nutrition advisor. '
             'Your persona is helpful, knowledgeable, and highly motivating. Give direct, high-quality, '
             'and specific advice related to the user\'s sports, like training plans, form checks '
             '(hypothetically), or nutrition tips. Respond in Indonesian.',
           ),
-        ],
-      ),
-    ],
-  );
+        ]),
+      ],
+    );
 
-  _addMessage(
-    'Halo! Saya MOMO, pelatih AI yang siap membantu rencana kebugaran dan olahraga Anda. Ada yang bisa saya bantu?',
-    'model',
-  );
-}
-
+    _addMessage(
+      'Halo! Saya MOMO, pelatih AI yang siap membantu rencana kebugaran dan olahraga Anda. Ada yang bisa saya bantu?',
+      'model',
+    );
+  }
 
   @override
   void dispose() {
@@ -93,11 +95,11 @@ void initState() {
     super.dispose();
   }
 
+  // Fungsi untuk menambah pesan ke list chat
   void _addMessage(String text, String role) {
     setState(() {
       _messages.add({'text': text, 'role': role, 'time': DateTime.now()});
     });
-    
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (_scrollController.hasClients) {
         _scrollController.animateTo(
@@ -109,6 +111,7 @@ void initState() {
     });
   }
 
+  // Fungsi untuk mengirim pesan ke AI MOMO
   Future<void> _sendMessage() async {
     final message = _textController.text.trim();
     if (message.isEmpty || _isSending) return;
@@ -116,31 +119,36 @@ void initState() {
     _textController.clear();
     _addMessage(message, 'user');
 
+    // Jika API key belum diatur, tampilkan pesan error
     if (_apiKey.isEmpty) {
       _addMessage(
         'Konfigurasi kunci API belum diatur.\n\n'
-        '- Untuk development lokal: isi GEMINI_API_KEY di file .env\n'
-        '- Untuk build CI (GitHub Actions / Bitrise): set GEMINI_API_KEY sebagai secret '
-        'dan teruskan via --dart-define=GEMINI_API_KEY=...',
+            '- Untuk development lokal: isi GEMINI_API_KEY di file .env\n'
+            '- Untuk build CI (GitHub Actions / Bitrise): set GEMINI_API_KEY sebagai secret '
+            'dan teruskan via --dart-define=GEMINI_API_KEY=...',
         'model',
       );
       return;
     }
-    
+
     setState(() => _isSending = true);
 
     try {
       final response = await _chat.sendMessage(Content.text(message));
-      final responseText = response.text ?? 'Maaf, saya gagal memproses permintaan Anda.';
+      final responseText =
+          response.text ?? 'Maaf, saya gagal memproses permintaan Anda.';
       _addMessage(responseText, 'model');
     } catch (e) {
-      _addMessage('Error: Gagal terhubung dengan MOMO. Periksa kembali internet-mu ya!', 'model');
+      _addMessage(
+        'Error: Gagal terhubung dengan MOMO. Periksa kembali internet-mu ya!',
+        'model',
+      );
       print('Gemini Error: $e');
     } finally {
       setState(() => _isSending = false);
     }
   }
-  
+
   Widget _buildBackgroundAura() {
     return AnimatedBuilder(
       animation: _pulseAnimation,
@@ -193,6 +201,7 @@ void initState() {
     );
   }
 
+  // Daftar prompt saran untuk pengguna
   List<String> get _suggestedPrompts => const [
     'Bagaimana cara memulai latihan lari untuk pemula?',
     'Berikan saya ide sarapan sehat tinggi protein.',
@@ -203,7 +212,8 @@ void initState() {
   @override
   Widget build(BuildContext context) {
     final userState = context.watch<UserState>();
-    
+
+    // Widget utama halaman chat
     return Scaffold(
       extendBodyBehindAppBar: true,
       backgroundColor: Colors.black,
@@ -237,13 +247,16 @@ void initState() {
             child: CircleAvatar(
               radius: 18,
               backgroundColor: const Color(0xFFA4E4FF),
-              backgroundImage: const AssetImage('assets/image/avatar_chatbot.png'),
+              backgroundImage: const AssetImage(
+                'assets/image/avatar_chatbot.png',
+              ),
             ),
           ),
         ],
       ),
       body: Stack(
         children: [
+          // Efek latar belakang
           Positioned.fill(child: _buildBackgroundAura()),
           SafeArea(
             child: Column(
@@ -251,7 +264,10 @@ void initState() {
                 Expanded(
                   child: ListView.builder(
                     controller: _scrollController,
-                    padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 16.0,
+                      vertical: 8.0,
+                    ),
                     itemCount: _messages.length,
                     itemBuilder: (context, index) {
                       final msg = _messages[index];
@@ -264,6 +280,7 @@ void initState() {
                     },
                   ),
                 ),
+                // Input bar
                 _buildInputBar(),
               ],
             ),
@@ -275,19 +292,22 @@ void initState() {
 
   // Widget message bubble, untuk menampilkan pesan dari MOMO dan user
   Widget _buildMessageBubble({
-    required String text, 
-    required String role, 
+    required String text,
+    required String role,
     required UserState userState,
     required bool isLast,
   }) {
     final isUser = role == 'user';
-    
+
     ImageProvider? avatarImage;
     String displayName;
-    
+
+    // Menentukan avatar dan nama tampilan
     if (isUser) {
       if (userState.avatarPath.startsWith('data:')) {
-        avatarImage = MemoryImage(base64Decode(userState.avatarPath.split(',').last));
+        avatarImage = MemoryImage(
+          base64Decode(userState.avatarPath.split(',').last),
+        );
       } else if (userState.avatarPath.isNotEmpty) {
         avatarImage = AssetImage(userState.avatarPath);
       } else {
@@ -298,7 +318,7 @@ void initState() {
       displayName = 'MOMO';
     }
 
-    // Widget avatar widget, untuk menampilkan avatar/ikon
+    // Widget avatar untuk menampilkan avatar/icon
     Widget avatarWidget;
     if (isUser) {
       avatarWidget = CircleAvatar(
@@ -310,27 +330,28 @@ void initState() {
       avatarWidget = const CircleAvatar(
         radius: 18,
         backgroundColor: Color(0xFFA4E4FF),
-        backgroundImage: AssetImage(
-            'assets/image/avatar_chatbot.png',
-        ),
+        backgroundImage: AssetImage('assets/image/avatar_chatbot.png'),
       );
     }
 
     return Padding(
       padding: const EdgeInsets.symmetric(vertical: 8.0),
       child: Row(
-        mainAxisAlignment: isUser ? MainAxisAlignment.end : MainAxisAlignment.start,
+        mainAxisAlignment: isUser
+            ? MainAxisAlignment.end
+            : MainAxisAlignment.start,
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          if (!isUser) ...[
-            avatarWidget,
-            const SizedBox(width: 8),
-          ],
+          if (!isUser) ...[avatarWidget, const SizedBox(width: 8)],
           Flexible(
             child: Container(
-              constraints: BoxConstraints(maxWidth: MediaQuery.of(context).size.width * 0.75),
+              constraints: BoxConstraints(
+                maxWidth: MediaQuery.of(context).size.width * 0.75,
+              ),
               decoration: BoxDecoration(
-                color: isUser ? const Color(0xFF571E88) : const Color(0xFF2A2A2A),
+                color: isUser
+                    ? const Color(0xFF571E88)
+                    : const Color(0xFF2A2A2A),
                 borderRadius: BorderRadius.only(
                   topLeft: Radius.circular(isUser ? 16 : 4),
                   topRight: Radius.circular(isUser ? 4 : 16),
@@ -353,7 +374,9 @@ void initState() {
                     Text(
                       isUser ? displayName : 'MOMO',
                       style: GoogleFonts.plusJakartaSans(
-                        color: isUser ? Colors.white70 : const Color(0xFFA4E4FF),
+                        color: isUser
+                            ? Colors.white70
+                            : const Color(0xFFA4E4FF),
                         fontSize: 12,
                         fontWeight: FontWeight.bold,
                       ),
@@ -395,7 +418,7 @@ void initState() {
                               ),
                             ),
                           ),
-                    if (!isUser && isLast && _isSending) 
+                    if (!isUser && isLast && _isSending)
                       Padding(
                         padding: const EdgeInsets.only(top: 8.0),
                         child: Text(
@@ -412,16 +435,13 @@ void initState() {
               ),
             ),
           ),
-          if (isUser) ...[
-            const SizedBox(width: 8),
-            avatarWidget,
-          ],
+          if (isUser) ...[const SizedBox(width: 8), avatarWidget],
         ],
       ),
     );
   }
 
-  // Widget input bar yang menyediakan beberapa saran prompt terkait olahraga, 
+  // Widget untuk membangun input bar (prompt saran, text field, tombol kirim, disclaimer)
   Widget _buildInputBar() {
     return ClipRRect(
       child: BackdropFilter(
@@ -437,7 +457,6 @@ void initState() {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              // suggested prompts
               SingleChildScrollView(
                 scrollDirection: Axis.horizontal,
                 padding: const EdgeInsets.only(bottom: 12),
@@ -484,7 +503,9 @@ void initState() {
                       style: GoogleFonts.plusJakartaSans(color: Colors.white),
                       decoration: InputDecoration(
                         hintText: 'Tanyakan tentang latihan, nutrisi...',
-                        hintStyle: GoogleFonts.plusJakartaSans(color: Colors.white54),
+                        hintStyle: GoogleFonts.plusJakartaSans(
+                          color: Colors.white54,
+                        ),
                         filled: true,
                         fillColor: Colors.black.withOpacity(0.3),
                         contentPadding: const EdgeInsets.symmetric(
@@ -497,16 +518,16 @@ void initState() {
                         ),
                         suffixIcon: _isSending
                             ? const Padding(
-                          padding: EdgeInsets.all(12.0),
-                          child: SizedBox(
-                            width: 20,
-                            height: 20,
-                            child: CircularProgressIndicator(
-                              strokeWidth: 2,
-                              color: Color(0xFFA4E4FF),
-                            ),
-                          ),
-                        )
+                                padding: EdgeInsets.all(12.0),
+                                child: SizedBox(
+                                  width: 20,
+                                  height: 20,
+                                  child: CircularProgressIndicator(
+                                    strokeWidth: 2,
+                                    color: Color(0xFFA4E4FF),
+                                  ),
+                                ),
+                              )
                             : null,
                       ),
                       onSubmitted: (_) => _sendMessage(),
@@ -519,16 +540,21 @@ void initState() {
                       width: 50,
                       height: 50,
                       decoration: BoxDecoration(
-                        color: _isSending ? Colors.grey : const Color(0xFF571E88),
+                        color: _isSending
+                            ? Colors.grey
+                            : const Color(0xFF571E88),
                         shape: BoxShape.circle,
                       ),
-                      child: const Icon(Icons.send_rounded, color: Colors.white),
+                      child: const Icon(
+                        Icons.send_rounded,
+                        color: Colors.white,
+                      ),
                     ),
                   ),
                 ],
               ),
 
-              // teks disclaimer bahwa MOMO AI Assistant bisa saja melakukan kesalahan, memberikan saran untuk user untuk mem-verifikasi jawaban yang diberikan MOMO
+              // teks disclaimer bahwa MOMO AI Assistant bisa saja melakukan kesalahan dan memberikan saran untuk user untuk mem-verifikasi jawaban yang diberikan MOMO
               Padding(
                 padding: const EdgeInsets.only(top: 10.0, bottom: 4.0),
                 child: Text(
