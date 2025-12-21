@@ -21,12 +21,10 @@ import 'package:askmo/event/models/event.dart';
 import 'package:askmo/event/screens/event.dart';
 import 'package:askmo/event/screens/event_detail.dart';
 
-
 // Endpoint API untuk masing-masing fitur
 const String lapanganEndpoint = '/json/';
 const String coachEndpoint = '/coach/json/';
 const String eventEndpoint = '/get-events-json/';
-
 
 // Fungsi untuk mengambil base URL API
 String _baseUrl() => apiBase;
@@ -129,7 +127,7 @@ class _MenuPageState extends State<MenuPage>
       endDrawer: RightDrawer(currentIndex: _selectedIndex),
 
       appBar: AppBar(
-        automaticallyImplyLeading: _selectedIndex == 0 ? false : true,
+        automaticallyImplyLeading: false,
         backgroundColor: Colors.black.withOpacity(0.25),
         elevation: 0,
         title: Text(
@@ -1522,11 +1520,7 @@ class _CoachCard extends StatelessWidget {
             ),
             const SizedBox(height: 6),
             Text(
-              "${NumberFormat.currency(
-                  locale: 'id', 
-                  symbol: 'Rp ', 
-                  decimalDigits: 0 
-                ).format(double.parse(item.fields.serviceFee))} / Sesi",
+              "${NumberFormat.currency(locale: 'id', symbol: 'Rp ', decimalDigits: 0).format(double.parse(item.fields.serviceFee))} / Sesi",
               maxLines: 1,
               overflow: TextOverflow.ellipsis,
               style: GoogleFonts.plusJakartaSans(
