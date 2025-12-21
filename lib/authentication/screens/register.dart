@@ -189,6 +189,30 @@ class _RegisterPageState extends State<RegisterPage>
     );
   }
 
+  // Fungsi untuk menerjemahkan error message dari backend
+  String _translateErrorMessage(String message) {
+    final translations = {
+      'This password is too similar to the username.':
+          'Kata sandi terlalu mirip dengan username.',
+      'This password is too short. It must contain at least 8 characters.':
+          'Kata sandi terlalu pendek. Minimal 8 karakter.',
+      'This password is too common.': 'Kata sandi terlalu umum.',
+      'This password is entirely numeric.':
+          'Kata sandi tidak boleh hanya angka.',
+      'A user with that username already exists.': 'Username sudah digunakan.',
+      'The two password fields didn\'t match.': 'Kata sandi tidak cocok.',
+      'This field may not be blank.': 'Field ini tidak boleh kosong.',
+    };
+
+    for (final entry in translations.entries) {
+      if (message.contains(entry.key)) {
+        return message.replaceAll(entry.key, entry.value);
+      }
+    }
+
+    return message;
+  }
+
   // Fungsi untuk menangani error saat pendaftaran
   void _handleRegisterError(Map<String, dynamic> response) {
     String msg = 'Gagal mendaftar!';
@@ -200,18 +224,18 @@ class _RegisterPageState extends State<RegisterPage>
 
         errors.forEach((_, value) {
           if (value is List) {
-            list.addAll(value.map((e) => e.toString()));
+            list.addAll(value.map((e) => _translateErrorMessage(e.toString())));
           } else {
-            list.add(value.toString());
+            list.add(_translateErrorMessage(value.toString()));
           }
         });
 
         msg = list.join('\n');
       } else {
-        msg = response['errors'].toString();
+        msg = _translateErrorMessage(response['errors'].toString());
       }
     } else if (response['message'] != null) {
-      msg = response['message'].toString();
+      msg = _translateErrorMessage(response['message'].toString());
     }
 
     _showError(msg);
