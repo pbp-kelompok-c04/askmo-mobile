@@ -38,7 +38,7 @@ class CoachReviewService {
     // Ambil instance request dari Provider
     final request = context.read<CookieRequest>();
     // Endpoint untuk ambil review coach
-    final url = '$baseUrl/coach/json/$coachId/';
+    final url = '$baseUrl/review/coach/json/$coachId/';
 
     final response = await request.get(url);
 
@@ -75,12 +75,8 @@ class CoachReviewService {
     });
 
     // Cek status response
-    if (response is! Map ||
-        response['status']?.toString() != 'success') {
-      final msg = _extractErrorMessage(
-        response,
-        'Gagal menambah review.',
-      );
+    if (response is! Map || response['status']?.toString() != 'success') {
+      final msg = _extractErrorMessage(response, 'Gagal menambah review.');
       throw Exception(msg);
     }
   }
@@ -96,7 +92,7 @@ class CoachReviewService {
     // Ambil instance request dari Provider
     final request = context.read<CookieRequest>();
     // Endpoint untuk update review
-    final url = '$baseUrl/coach/edit-ajax/$reviewId/';
+    final url = '$baseUrl/review/coach/edit-ajax/$reviewId/';
 
     final response = await request.post(url, {
       'reviewer_name': reviewerName,
@@ -105,38 +101,26 @@ class CoachReviewService {
     });
 
     // Cek status response
-    if (response is! Map ||
-        response['status']?.toString() != 'success') {
-      final msg = _extractErrorMessage(
-        response,
-        'Gagal update review.',
-      );
+    if (response is! Map || response['status']?.toString() != 'success') {
+      final msg = _extractErrorMessage(response, 'Gagal update review.');
       throw Exception(msg);
     }
   }
 
   // ===================== HAPUS REVIEW =====================
-  static Future<void> deleteReview(
-    BuildContext context,
-    int reviewId,
-  ) async {
+  static Future<void> deleteReview(BuildContext context, int reviewId) async {
     // Ambil instance request dari Provider
     final request = context.read<CookieRequest>();
     // Endpoint untuk hapus review
-    final url = '$baseUrl/coach/delete/$reviewId/';
+    final url = '$baseUrl/review/coach/delete/$reviewId/';
 
     final response = await request.post(url, {});
 
     // Cek status response
     if (response is! Map ||
         (response['status']?.toLowerCase() != 'success' &&
-            !(response['message'] ?? '')
-                .toLowerCase()
-                .contains('berhasil'))) {
-      final msg = _extractErrorMessage(
-        response,
-        'Gagal menghapus review.',
-      );
+            !(response['message'] ?? '').toLowerCase().contains('berhasil'))) {
+      final msg = _extractErrorMessage(response, 'Gagal menghapus review.');
       throw Exception(msg);
     }
   }
