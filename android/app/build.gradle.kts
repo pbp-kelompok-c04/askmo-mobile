@@ -16,7 +16,7 @@ if (hasKeystore) {
 }
 
 android {
-    namespace = "com.example.mounttrack_mobile"
+    namespace = "com.askmo.mobile"
     compileSdk = flutter.compileSdkVersion
     ndkVersion = flutter.ndkVersion
 
