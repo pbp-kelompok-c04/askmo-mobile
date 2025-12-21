@@ -3,7 +3,7 @@ name: Release
 
 # Controls when the workflow will run
 on:
-  # Trigger on pushes to main only, plus manual run
+  # Trigger on pushes to master only, plus manual run
   push:
     branches:
       - master
@@ -13,13 +13,11 @@ on:
 permissions:
   contents: write
 
-# A workflow run is made up of one or more jobs that can run sequentially or in parallel
 jobs:
-  # This workflow contains a single job called "Build and Release APK"
   releases:
     name: Build and Release APK
-    # The type of runner that the job will run on
     runs-on: ubuntu-latest
+
     steps:
       - name: Checkout the code
         uses: actions/checkout@v4
@@ -46,6 +44,22 @@ jobs:
       - name: Generate launcher icons
         run: flutter pub run flutter_launcher_icons
 
+      # Optional: fail fast if required secrets are missing
+      - name: Validate required secrets
+        run: |
+          if [ -z "${{ secrets.GOOGLE_CLIENT_ID }}" ]; then
+            echo "ERROR: Missing secret GOOGLE_CLIENT_ID"
+            exit 1
+          fi
+          if [ -z "${{ secrets.GEMINI_API_KEY }}" ]; then
+            echo "ERROR: Missing secret GEMINI_API_KEY"
+            exit 1
+          fi
+          if [ -z "${{ secrets.KEY_JKS }}" ] || [ -z "${{ secrets.KEY_PASSWORD }}" ]; then
+            echo "ERROR: Missing keystore secrets KEY_JKS and/or KEY_PASSWORD"
+            exit 1
+          fi
+
       - name: Decode keystore
         run: echo "${{ secrets.KEY_JKS }}" | base64 -d > android/app/release-keystore.jks
 
@@ -59,10 +73,11 @@ jobs:
           EOF
 
       - name: Build APK
-        run: >
-          flutter build apk --release
-          --dart-define=API_BASE_URL=https://lessyarta-kamali-askmo.pbp.cs.ui.ac.id/
-          --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }}
+        run: |
+          flutter build apk --release \
+            --dart-define=API_BASE_URL=https://lessyarta-kamali-askmo.pbp.cs.ui.ac.id/ \
+            --dart-define=GEMINI_API_KEY=${{ secrets.GEMINI_API_KEY }} \
+            --dart-define=GOOGLE_CLIENT_ID=${{ secrets.GOOGLE_CLIENT_ID }}
 
       - name: Cleanup keystore
         if: always()
